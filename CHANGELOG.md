@@ -19,6 +19,9 @@ The **customer picker, modal input fix and floor integrity** release.
 - `/demo` shortcut redirects to the primary seeded branch.
 - Owner **Customers** page (`/dashboard/customers?branch=`) with name, contact, party, status, table/seat, opener PIC, releaser PIC and join time; 1/7/30-day ranges and CSV.
 - `npm run db:clear -- --yes` clears queue/activity/table state while keeping brands, branches, staff and tables.
+- Owner **Settings → Clear queue data** for a branch-scoped clear from the dashboard.
+- `DEMO_AUTO_RESET` is now opt-in: production can clear its queues and stay empty.
+- Production `antriq1` queues were cleared; all three branches show 0 waiting and all tables available.
 
 ### Fixed
 - **All modal inputs were not typeable**: the modal focus timer re-ran on every parent render and stole focus from fields. It now runs only when the dialog opens and never steals focus already inside the panel.

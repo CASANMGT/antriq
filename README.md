@@ -18,8 +18,8 @@ A bold, warm restaurant queue for guests, hosts, cashiers and owners — built f
 | Environment | URL | Data |
 | --- | --- | --- |
 | **App / restaurant picker** | https://antriq1.vercel.app | Live database |
-| **Demo shortcut** | https://antriq1.vercel.app/demo | Redirects to the seeded primary branch |
-| **Demo branch** | https://antriq1.vercel.app/b/nikumaru/senopati | Seeded demo queue when `DEMO_MODE=1` |
+| **Demo shortcut** | https://antriq1.vercel.app/demo | Redirects to the primary branch; queue starts empty after a production clear |
+| **Demo branch** | https://antriq1.vercel.app/b/nikumaru/senopati | Primary branch (empty after the production clear) |
 | **Brand page** | https://antriq1.vercel.app/b/nikumaru | Brand assets + branch list |
 
 For a true production/demo split, deploy the same repo twice with different databases:

@@ -20,8 +20,10 @@ Last run: **7 Nov 2026** — lint clean, 22/22 tests passing, production build g
 - [x] Live ticket states (waiting, called, seated, completed)
 - [x] Demo floor reseeded after the smoke test
 - [x] v0.3 deployed to `antriq1`; legacy tables moved to `antriq_v2_backup`
-- [x] Production `/` → customer restaurant picker
-- [x] Production `/demo` → primary demo branch
+- [x] Production queues cleared; all branches show 0 waiting / all tables available
+- [x] `/` is the customer restaurant picker; `/demo` redirects to the primary branch
+- [x] `/dashboard/customers` lists guests with contact, table/seat, opener/releaser PIC
+- [x] Modals accept typing; focus is not stolen after opening
 - [x] Production `/b/nikumaru`, `/b/nikumaru/kemang`, `/b/tenka/senopati` → 200
 - [x] Production brand logo route → 200 `image/svg+xml`
 - [x] `X-Vercel-Id` confirms `sin1` (Singapore)
