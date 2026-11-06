@@ -21,22 +21,37 @@ export function Modal({
   wide?: boolean;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef(onClose);
+
+  useEffect(() => {
+    closeRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") closeRef.current();
     };
     document.addEventListener("keydown", onKey);
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const timer = window.setTimeout(() => panelRef.current?.focus(), 30);
+
+    // Focus the panel only when focus is not already inside the dialog.
+    // Never steal focus from an input, select or textarea after the user
+    // has started interacting with the form.
+    const timer = window.setTimeout(() => {
+      const panel = panelRef.current;
+      if (!panel) return;
+      if (panel.contains(document.activeElement)) return;
+      panel.focus();
+    }, 30);
+
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = previous;
       window.clearTimeout(timer);
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 

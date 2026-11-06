@@ -1,6 +1,6 @@
 {
   "name": "antriq",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "type": "module",
   "description": "AntriQ — multi-brand, multi-branch restaurant waitlist, table, seat and guest flow.",
@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:reset": "node scripts/reset-db.mjs"
+    "db:reset": "node scripts/reset-db.mjs",
+    "db:clear": "node scripts/clear-db.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.15",

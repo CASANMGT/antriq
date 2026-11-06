@@ -603,7 +603,7 @@ brand (identity, logo, menu PDF, Instagram, accent)
 ```
 
 - **Brand URLs:** `/b/[brand]` lists branches and brand assets.
-- **Branch URLs:** `/b/[brand]/[branch]` is the guest queue for that branch. `/` redirects to the primary branch.
+- **Branch URLs:** `/b/[brand]/[branch]` is the guest queue for that branch. `/` is the customer restaurant/branch picker; `/demo` redirects to the primary demo branch.
 - **Assets:** logos and menu PDFs are stored in Postgres `bytea` and served from `/api/brands/[id]/logo` and `/api/brands/[id]/menu`; no object-storage vendor is required.
 - **QR posters** encode the exact branch URL.
 

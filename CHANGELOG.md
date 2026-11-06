@@ -10,6 +10,22 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.3.2] — 2026-11-07
+
+The **customer picker, modal input fix and floor integrity** release.
+
+### Added
+- Customer-facing **restaurant picker** at `/` — brands, branches, live waiting count, open tables, now serving, address, hours, brand menu/Instagram and branch links.
+- `/demo` shortcut redirects to the primary seeded branch.
+- Owner **Customers** page (`/dashboard/customers?branch=`) with name, contact, party, status, table/seat, opener PIC, releaser PIC and join time; 1/7/30-day ranges and CSV.
+- `npm run db:clear -- --yes` clears queue/activity/table state while keeping brands, branches, staff and tables.
+
+### Fixed
+- **All modal inputs were not typeable**: the modal focus timer re-ran on every parent render and stole focus from fields. It now runs only when the dialog opens and never steals focus already inside the panel.
+- Floor could show an available table with a seated guest (and a “Duduk” count that disagreed with the grid). Reads now reconcile table status from seated entries.
+- Added a partial unique index so a table can never have two active seated entries; duplicate seated rows are closed on migration.
+- README now lists production, demo and branch links plus production/demo database separation.
+
 ## [0.3.1] — 2026-11-07
 
 The **call countdown, notifications and seat release** patch.

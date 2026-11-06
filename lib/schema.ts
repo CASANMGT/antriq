@@ -137,6 +137,19 @@ export const SCHEMA_STATEMENTS: string[] = [
   `create index if not exists queue_entries_token_idx on queue_entries (token)`,
   `create index if not exists dining_tables_branch_status_idx on dining_tables (branch_id, status)`,
   `create index if not exists activity_branch_created_idx on activity (branch_id, created_at desc)`,
+
+  /* Keep at most one active seated entry per table. */
+  `update queue_entries qe
+     set status = 'completed', closed_at = coalesce(qe.closed_at, now())
+     where qe.status = 'seated' and qe.table_id is not null
+       and qe.id <> (
+         select q2.id from queue_entries q2
+         where q2.table_id = qe.table_id and q2.status = 'seated'
+         order by q2.seated_at desc nulls last, q2.id desc
+         limit 1
+       )`,
+  `create unique index if not exists queue_entries_one_active_seat_idx
+     on queue_entries (table_id) where status = 'seated' and table_id is not null`,
 ];
 
 export const PRIMARY_BRANCH_ID = 1;

@@ -56,6 +56,7 @@ export function OwnerShell({
       label: t.owner.navManage,
       items: [
         { href: withBranch("/dashboard/tables", active.id), base: "/dashboard/tables", label: t.owner.tables, icon: LayoutGrid },
+        { href: withBranch("/dashboard/customers", active.id), base: "/dashboard/customers", label: t.owner.customers, icon: Users },
         { href: withBranch("/dashboard/team", active.id), base: "/dashboard/team", label: t.owner.team, icon: Users },
         { href: withBranch("/dashboard/settings", active.id), base: "/dashboard/settings", label: t.owner.settings, icon: Settings },
         { href: withBranch("/dashboard/qr", active.id), base: "/dashboard/qr", label: t.owner.qr, icon: QrCode },

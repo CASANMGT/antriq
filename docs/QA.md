@@ -20,7 +20,8 @@ Last run: **7 Nov 2026** — lint clean, 22/22 tests passing, production build g
 - [x] Live ticket states (waiting, called, seated, completed)
 - [x] Demo floor reseeded after the smoke test
 - [x] v0.3 deployed to `antriq1`; legacy tables moved to `antriq_v2_backup`
-- [x] Production `/` → `307 /b/nikumaru/senopati`
+- [x] Production `/` → customer restaurant picker
+- [x] Production `/demo` → primary demo branch
 - [x] Production `/b/nikumaru`, `/b/nikumaru/kemang`, `/b/tenka/senopati` → 200
 - [x] Production brand logo route → 200 `image/svg+xml`
 - [x] `X-Vercel-Id` confirms `sin1` (Singapore)
@@ -36,7 +37,10 @@ Last run: **7 Nov 2026** — lint clean, 22/22 tests passing, production build g
 - [x] “Open seat” seats at the best-fit table without a seat number
 - [x] “Release seat” is available to cashier/host; `released_by` is recorded and shown in activity/CSV
 
-- [x] `/` redirects to `/b/nikumaru/senopati`
+- [x] `/` shows the customer restaurant/branch picker
+- [x] `/demo` redirects to the primary seeded branch
+- [x] Modals accept typing; focus is not stolen after opening
+- [x] Floor reconciliation heals table/entry status drift
 - [x] Brand page `/b/nikumaru` lists Senopati + Kemang with logo/menu/IG
 - [x] `/b/tenka/senopati` renders the Tenka branch and its own queue
 - [x] Unknown brand/branch returns 404

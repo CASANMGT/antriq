@@ -799,6 +799,33 @@ export async function listTables(branchId: number, db: Queryable | null = null):
   return rows.map(mapTable);
 }
 
+/**
+ * Heal the floor when a table and its seated entries disagree (for example,
+ * after an interrupted action or imported demo data). Safe to run on read.
+ */
+async function reconcileFloor(branchId: number): Promise<void> {
+  await q(
+    `update dining_tables t
+     set status = 'seated', status_changed_at = now()
+     where t.branch_id = $1 and t.status <> 'seated'
+       and exists (
+         select 1 from queue_entries qe
+         where qe.branch_id = $1 and qe.table_id = t.id and qe.status = 'seated'
+       )`,
+    [branchId],
+  );
+  await q(
+    `update dining_tables t
+     set status = 'dirty', status_changed_at = now()
+     where t.branch_id = $1 and t.status = 'seated'
+       and not exists (
+         select 1 from queue_entries qe
+         where qe.branch_id = $1 and qe.table_id = t.id and qe.status = 'seated'
+       )`,
+    [branchId],
+  );
+}
+
 async function entriesForDay(
   branchId: number,
   day: string,
@@ -854,6 +881,7 @@ export async function getHostState(branchId: number): Promise<HostState> {
   const branch = await getBranch(branchId);
   const brand = await getBrand(branch.brandId);
   await expireHolds(branchId);
+  await reconcileFloor(branchId);
   const now = new Date();
   const today = dayInTz(now, branch.timezone);
   const tables = await listTables(branchId);
@@ -1530,6 +1558,7 @@ export async function getOwnerOverview(branchId: number, days = 7): Promise<Owne
   const branch = await getBranch(branchId);
   const brand = await getBrand(branch.brandId);
   await expireHolds(branchId);
+  await reconcileFloor(branchId);
   const now = new Date();
   const today = dayInTz(now, branch.timezone);
   const windowDays = Math.min(90, Math.max(1, Math.round(days)));
@@ -1619,6 +1648,24 @@ function safeJson(value: string): Row {
   } catch {
     return {};
   }
+}
+
+export async function getCustomerList(branchId: number, days = 1): Promise<QueueEntry[]> {
+  const branch = await getBranch(branchId);
+  const windowDays = Math.min(90, Math.max(1, Math.round(days)));
+  const today = dayInTz(new Date(), branch.timezone);
+  const startDay = addDaysToDay(today, -(windowDays - 1));
+  const tables = await listTables(branchId);
+  const map = tablesByIdMap(tables);
+  const rows = await q<Row>(
+    `select ${ENTRY_COLUMNS}
+     from queue_entries qe
+     left join dining_tables t on t.id = qe.table_id
+     where qe.branch_id = $1 and qe.day >= $2::date
+     order by qe.joined_at desc`,
+    [branchId, startDay],
+  );
+  return rows.map((row) => mapEntry(row, map));
 }
 
 export async function getReportCsv(branchId: number, days = 30): Promise<string> {

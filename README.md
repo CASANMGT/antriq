@@ -13,6 +13,28 @@ A bold, warm restaurant queue for guests, hosts, cashiers and owners — built f
 
 ---
 
+## Live environments
+
+| Environment | URL | Data |
+| --- | --- | --- |
+| **App / restaurant picker** | https://antriq1.vercel.app | Live database |
+| **Demo shortcut** | https://antriq1.vercel.app/demo | Redirects to the seeded primary branch |
+| **Demo branch** | https://antriq1.vercel.app/b/nikumaru/senopati | Seeded demo queue when `DEMO_MODE=1` |
+| **Brand page** | https://antriq1.vercel.app/b/nikumaru | Brand assets + branch list |
+
+For a true production/demo split, deploy the same repo twice with different databases:
+
+- **Production:** `DEMO_MODE=0`, production Neon database, production `NEXT_PUBLIC_APP_URL`.
+- **Demo:** `DEMO_MODE=1`, separate Neon database, demo `NEXT_PUBLIC_APP_URL`.
+
+Clear live queue data while keeping brands, branches, staff and tables:
+
+```bash
+DATABASE_URL=postgres://… npm run db:clear -- --yes
+```
+
+Use `db:reset -- --yes` when you want a completely empty database.
+
 ## What it is
 
 AntriQ is a multi-brand, multi-branch queue system with three connected surfaces:
@@ -79,6 +101,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 ## Features
 
 ### Guest
+- **Restaurant picker at `/`** with every brand and branch, live waiting/tables/now-serving, address, hours, menu and Instagram.
 - Brand page (`/b/[brand]`) with logo, menu PDF, Instagram and branch cards.
 - Branch page (`/b/[brand]/[branch]`) with live queue snapshot: parties waiting, tables open, now serving, branch status.
 - Take a number in about 20 seconds: party size, name, optional phone/note.
@@ -110,6 +133,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Queue-focused KPIs: waiting, called, seated today, tables open.
 - Hourly service pulse (joined vs seated), floor map by zone, live queue, activity feed.
 - 7/30/90-day reports: joined, seated, attendance, no-shows, cancellations, CSV (incl. table, seat, PIC).
+- **Customers** page: contact, party, status, table/seat, opener/releaser PIC, join time, 1/7/30-day ranges.
 - Tables CRUD with capacity/zone and seated-table protection.
 - Team management: owner/greeter/cashier, brand + branch assignment, reset PIN, pause access, last-owner protection.
 - **Brands:** name, slug, Instagram, accent, logo upload, menu PDF upload.
@@ -159,9 +183,10 @@ npm run dev
 
 Open:
 
-- Guest (primary branch) — http://localhost:3000 redirects to `/b/nikumaru/senopati`
+- Guest — http://localhost:3000 is the restaurant/branch picker
+- Demo shortcut — http://localhost:3000/demo
 - Brand — http://localhost:3000/b/nikumaru
-- Other branch — http://localhost:3000/b/nikumaru/kemang or `/b/tenka/senopati`
+- Branch — http://localhost:3000/b/nikumaru/senopati or `/b/nikumaru/kemang`, `/b/tenka/senopati`
 - Staff login — http://localhost:3000/login
 - Owner — http://localhost:3000/dashboard
 - Health — http://localhost:3000/api/health
@@ -276,13 +301,14 @@ See [docs/QA.md](docs/QA.md) for the release checklist.
 
 ```text
 app/
-  page.tsx                 Root redirect to the primary branch
+  page.tsx                 Customer restaurant/branch picker
+  demo/                    Demo shortcut to the primary branch
   b/[brand]/               Brand page: logo, menu, Instagram, branch cards
   b/[brand]/[branch]/      Guest branch landing + join
   t/[token]/               Live ticket
   login/                   Staff PIN login
   host/                    Greeter/cashier board (?branch=)
-  dashboard/               Owner: overview, reports, tables, team, brands, branches, settings, QR
+  dashboard/               Owner: overview, reports, customers, tables, team, brands, branches, settings, QR
   api/                     JSON reads/writes
 components/
   diner/ host/ owner/ ticket/ login/   Surface components
