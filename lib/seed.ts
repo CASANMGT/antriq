@@ -10,7 +10,7 @@ export const DEMO_RESTAURANT = {
   instagram: "@sageandember",
   timezone: "Asia/Jakarta",
   openTime: "11:00",
-  closeTime: "22:30",
+  closeTime: "23:30",
   accent: "#C8452B",
   announcement:
     "Welcome to Sage & Ember. Join the waitlist from your phone — we'll let you know the moment your table is ready.",

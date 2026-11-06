@@ -13,7 +13,7 @@ export const SCHEMA_STATEMENTS: string[] = [
     instagram text,
     timezone text not null default 'Asia/Jakarta',
     open_time text not null default '11:00',
-    close_time text not null default '22:30',
+    close_time text not null default '23:30',
     accent text not null default '#C8452B',
     announcement text,
     waitlist_status text not null default 'open' check (waitlist_status in ('open','paused','closed')),

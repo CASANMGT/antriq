@@ -80,7 +80,7 @@ function mapRestaurant(row: Row): Restaurant {
     instagram: row.instagram ?? null,
     timezone: String(row.timezone ?? "Asia/Jakarta"),
     openTime: String(row.open_time ?? "11:00"),
-    closeTime: String(row.close_time ?? "22:30"),
+    closeTime: String(row.close_time ?? "23:30"),
     accent: String(row.accent ?? "#C8452B"),
     announcement: row.announcement ?? null,
     waitlistStatus: (row.waitlist_status ?? "open") as WaitlistStatus,
