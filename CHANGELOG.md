@@ -49,7 +49,7 @@ The **brand + queue-first** release: Nikumaru & Tenka, Indonesian-first, and a v
 First public MVP. One restaurant, three roles, a real database and a demo floor.
 
 ### Deployed
-- Production: **https://antriq-s8vk.vercel.app** (Vercel + Neon Postgres, Singapore).
+- Production: **https://antriq1.vercel.app** (Vercel + Neon Postgres, Singapore).
 - Source: **https://github.com/CASANMGT/antriq**.
 - Health probe verified: `GET /api/health` returns `200 {"ok":true}`.
 
