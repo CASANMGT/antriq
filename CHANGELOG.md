@@ -14,6 +14,11 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 
 First public MVP. One restaurant, three roles, a real database and a demo floor.
 
+### Deployed
+- Production: **https://antriq-s8vk.vercel.app** (Vercel + Neon Postgres, Singapore).
+- Source: **https://github.com/CASANMGT/antriq**.
+- Health probe verified: `GET /api/health` returns `200 {"ok":true}`.
+
 ### Added
 
 **Guest**

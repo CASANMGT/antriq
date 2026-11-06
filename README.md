@@ -6,6 +6,9 @@
 
 A calm restaurant waitlist and table-flow app for one restaurant — built for the guest at the door, the greeter on the floor, and the owner watching the room.
 
+**Live demo:** [https://antriq-s8vk.vercel.app](https://antriq-s8vk.vercel.app) · [GitHub](https://github.com/CASANMGT/antriq)
+**Demo restaurant:** Sage & Ember (fictional). Owner PIN `2468`, greeter PIN `1357`.
+
 [PRD](docs/PRD.md) · [Architecture](docs/ARCHITECTURE.md) · [Reverse engineering](docs/REVERSE_ENGINEERING.md) · [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md)
 
 </div>
@@ -172,7 +175,13 @@ npm test          # 21 domain + integration tests
 vercel --prod
 ```
 
+This repository is deployed at **https://antriq-s8vk.vercel.app** with a free **Neon Postgres** database in Singapore and demo mode enabled. The Vercel project is `clauxz-8397s-projects/antriq-s8vk`.
+
 > The app also has a PGlite fallback for local experiments, but production **must** use `DATABASE_URL`; serverless instances do not share `/tmp`.
+
+### CI
+
+The GitHub token used for the initial push did not have the `workflow` scope, so the CI definition lives at [`docs/ci-example.yml`](docs/ci-example.yml). Copy it to `.github/workflows/ci.yml` once your token has that scope; it runs lint, tests and a production build.
 
 ## API
 

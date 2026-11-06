@@ -10,6 +10,16 @@ npm run build    # production build
 
 Last run: **6 Nov 2026** — lint clean, 21/21 tests passing, production build green.
 
+### Deployment verification
+
+- [x] Vercel project `antriq-s8vk` deployed from `CASANMGT/antriq`
+- [x] Neon Postgres (Singapore, free plan) connected via `DATABASE_URL`
+- [x] `AUTH_SECRET`, `NEXT_PUBLIC_APP_URL` and `DEMO_MODE=1` set in Production
+- [x] `GET /api/health` → `200 {"ok":true,"service":"antriq"}`
+- [x] Live guest join → owner call → seat → clear flow
+- [x] Live ticket states (waiting, called, seated, completed)
+- [x] Demo floor reseeded after the smoke test
+
 ### Domain suite (`tests/queue.test.ts`)
 
 - [x] Daily ticket code formatting and widening above 999
