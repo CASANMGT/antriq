@@ -19,6 +19,11 @@ Last run: **7 Nov 2026** — lint clean, 21/21 tests passing, production build g
 - [x] Live guest join → owner call → seat → clear flow
 - [x] Live ticket states (waiting, called, seated, completed)
 - [x] Demo floor reseeded after the smoke test
+- [x] v0.3 deployed to `antriq1`; legacy tables moved to `antriq_v2_backup`
+- [x] Production `/` → `307 /b/nikumaru/senopati`
+- [x] Production `/b/nikumaru`, `/b/nikumaru/kemang`, `/b/tenka/senopati` → 200
+- [x] Production brand logo route → 200 `image/svg+xml`
+- [x] `X-Vercel-Id` confirms `sin1` (Singapore)
 
 ### v1.2 multi-brand, multi-branch checks
 
