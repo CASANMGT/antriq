@@ -553,7 +553,7 @@ A free 14-day trial with the demo restaurant. No per-ticket fees. The reference 
 - [x] Lint and production build
 - [x] QR poster
 - [x] Responsive layouts and reduced motion
-- [ ] Live Postgres URL connected in Vercel
-- [ ] Production deploy verified with `/api/health`
+- [x] Live Postgres URL connected in Vercel (Neon, Singapore)
+- [x] Production deploy verified with `/api/health` — https://antriq-s8vk.vercel.app
 - [ ] Real restaurant pilot (2 weeks, one shift/day)
 - [ ] Metric baseline captured before pricing conversations
