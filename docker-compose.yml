@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: antriq-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: antriq
+      POSTGRES_PASSWORD: antriq
+      POSTGRES_DB: antriq
+    ports:
+      - "5433:5432"
+    volumes:
+      - antriq-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U antriq -d antriq"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  antriq-pgdata:
