@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Loader2, PauseCircle, PlayCircle, Save, Store } from "lucide-react";
 import { Notice, type NoticeState } from "@/components/Notice";
+import { Modal } from "@/components/Modal";
 import { useLang } from "@/components/LanguageProvider";
 import { postJson } from "@/lib/client-api";
 import { format } from "@/lib/i18n";
@@ -29,6 +30,7 @@ export function SettingsForm({ branch }: { branch: Branch }) {
   const [state, setState] = useState<{ ok?: boolean; message?: string }>({});
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<NoticeState | null>(null);
+  const [clearOpen, setClearOpen] = useState(false);
   const [waitlistPending, startTransition] = useTransition();
   const status = branch.waitlistStatus;
 
@@ -43,6 +45,21 @@ export function SettingsForm({ branch }: { branch: Branch }) {
       });
       setNotice({
         message: result.message ?? (result.ok ? t.owner.saved : t.owner.quiet),
+        tone: result.ok ? "success" : "error",
+      });
+      if (result.ok) router.refresh();
+    });
+  }
+
+  function clearQueue() {
+    startTransition(async () => {
+      const result = await postJson("/api/owner/action", {
+        type: "clearQueue",
+        branchId: branch.id,
+      });
+      setClearOpen(false);
+      setNotice({
+        message: result.message ?? (result.ok ? t.owner.queueCleared : t.owner.quiet),
         tone: result.ok ? "success" : "error",
       });
       if (result.ok) router.refresh();
@@ -118,6 +135,16 @@ export function SettingsForm({ branch }: { branch: Branch }) {
             <PlayCircle className="size-3.5" />
           )}
           {status === "open" ? t.owner.pauseJoins : t.owner.reopen}
+        </button>
+      </section>
+
+      <section className="card flex flex-wrap items-center justify-between gap-3 border-tomato/25 p-4 sm:p-5">
+        <div>
+          <h2 className="font-display text-[1.5rem] font-semibold leading-tight">{t.owner.dangerZone}</h2>
+          <p className="mt-0.5 max-w-xl text-xs font-semibold leading-relaxed text-muted">{t.owner.clearQueueDesc}</p>
+        </div>
+        <button type="button" className="btn btn-danger btn-sm" onClick={() => setClearOpen(true)}>
+          {t.owner.clearQueue}
         </button>
       </section>
 
@@ -254,6 +281,28 @@ export function SettingsForm({ branch }: { branch: Branch }) {
           </div>
         )}
       </form>
+
+      <Modal
+        open={clearOpen}
+        onClose={() => setClearOpen(false)}
+        title={t.owner.clearQueueTitle}
+        description={t.owner.clearQueueTitleDesc}
+        footer={
+          <>
+            <button type="button" className="btn btn-ghost" onClick={() => setClearOpen(false)}>
+              {t.common.cancel}
+            </button>
+            <button type="button" className="btn btn-danger" onClick={clearQueue} disabled={waitlistPending}>
+              {waitlistPending ? <Loader2 className="size-4 animate-spin" /> : null}
+              {t.owner.clearQueueConfirm}
+            </button>
+          </>
+        }
+      >
+        <p className="rounded-xl border-2 border-ink bg-pink px-4 py-3 text-sm font-semibold leading-relaxed text-tomato-dark">
+          {t.owner.clearQueueWarning}
+        </p>
+      </Modal>
 
       <Notice notice={notice} onClose={() => setNotice(null)} />
     </div>

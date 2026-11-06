@@ -1432,13 +1432,28 @@ export async function setTableStatus(
   return { ok: true, message: `${rows[0].label} is ${status}.` };
 }
 
+export async function clearQueueData(branchId: number, actor: string): Promise<ActionResult> {
+  return tx(async (db) => {
+    await db.query("delete from activity where branch_id = $1", [branchId]);
+    await db.query("delete from queue_entries where branch_id = $1", [branchId]);
+    await db.query("delete from queue_sequence where branch_id = $1", [branchId]);
+    await db.query(
+      "update dining_tables set status = 'available', status_changed_at = now() where branch_id = $1",
+      [branchId],
+    );
+    await logActivity(db, branchId, "queue_cleared", actor, {
+      note: "Queue and table state cleared",
+    });
+    return { ok: true, message: "Queue data cleared. Tables are ready for a fresh service." };
+  });
+}
+
 export async function setWaitlistStatus(
   branchId: number,
   status: WaitlistStatus,
   reason: string | null,
   actor: string,
-): Promise<ActionResult> {
-  if (!["open", "paused", "closed"].includes(status)) {
+): Promise<ActionResult> {  if (!["open", "paused", "closed"].includes(status)) {
     return { ok: false, message: "Unknown queue state." };
   }
   const rows = await q<Row>(

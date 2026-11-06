@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth";
 import {
   canManageBranch,
   canManageBrand,
+  clearQueueData,
   createBrand,
   createBranch,
   createStaff,
@@ -193,6 +194,11 @@ export async function POST(request: Request) {
         return json(
           await setWaitlistStatus(branchId, status as WaitlistStatus, body.reason ? String(body.reason) : null, actor),
         );
+      }
+      case "clearQueue": {
+        const branchId = requiredBranchId(body);
+        await guardBranch(branchId);
+        return json(await clearQueueData(branchId, actor));
       }
       case "tableCreate": {
         const branchId = requiredBranchId(body);
