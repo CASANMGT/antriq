@@ -11,6 +11,7 @@ import { verifyStaffPin } from "@/lib/store";
 
 export interface LoginState {
   error?: string;
+  code?: "choose" | "pin" | "throttle" | "wrong";
 }
 
 export async function loginAction(_previous: LoginState, formData: FormData): Promise<LoginState> {
@@ -19,19 +20,19 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
   const next = String(formData.get("next") ?? "");
 
   if (!Number.isInteger(staffId) || staffId <= 0) {
-    return { error: "Choose your name to sign in." };
+    return { error: "Choose your name to sign in.", code: "choose" };
   }
   if (!/^\d{4,8}$/.test(pin)) {
-    return { error: "Enter your 4–8 digit PIN." };
+    return { error: "Enter your 4–8 digit PIN.", code: "pin" };
   }
   if (!loginAllowed(staffId)) {
-    return { error: "Too many tries. Please wait five minutes and try again." };
+    return { error: "Too many tries. Please wait five minutes and try again.", code: "throttle" };
   }
 
   const staff = await verifyStaffPin(staffId, pin);
   if (!staff) {
     noteLoginFailure(staffId);
-    return { error: "That PIN doesn't match. Try again." };
+    return { error: "That PIN doesn't match. Try again.", code: "wrong" };
   }
 
   clearLoginFailures(staffId);

@@ -8,7 +8,41 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - Reservation / booking date flow.
 - WhatsApp notification adapter.
 - SSE for call events (polling remains a fallback).
-- Indonesian localization.
+- Push notifications and PWA install prompt.
+
+## [0.2.0] — 2026-11-07
+
+The **brand + queue-first** release: Nikumaru & Tenka, Indonesian-first, and a visual system built from the AntriQ brand boards.
+
+### Added
+- Full brand system: Fredoka + Plus Jakarta Sans, tomato/butter/ink/pink/leaf palette, 2px sticker outlines, offset shadows, paper backgrounds, brush accents and spark doodles.
+- AntriQ toast mascot with `happy`, `calm`, `celebrate` and `sleep` moods, used on guest, ticket, login, empty states and the QR poster.
+- New responsive logo, app icon, apple icon and manifest.
+- **Bahasa Indonesia as default**, with a cookie-backed **English** toggle across guest, ticket, login, host stand, owner dashboard, reports, tables, team, settings, QR, 404 and error screens.
+- New `lib/i18n.ts` dictionary, `LanguageProvider`, and server language detection.
+- Queue-first guest experience: queue number, position, parties ahead, now serving and tables open.
+- “Meja siap!” called state with mascot and “Saya menuju host”, without a countdown.
+- Renamed demo restaurant to **Nikumaru & Tenka** (ramen & izakaya), with Indonesian seed notes.
+- Printable QR poster redesigned around the brand.
+- Demo floor resets on the first request of a new service day, even on warm serverless instances.
+- Production deployment at **https://antriq1.vercel.app** (Vercel + Neon Postgres, Singapore).
+
+### Changed
+- Removed guest-facing wait estimates and hold countdowns. Queue position and call status are the primary signals.
+- Removed average-wait KPIs from the owner overview and reports; replaced with queue counts, attendance and no-shows.
+- Removed the average-turn and hold-duration fields from settings (the internal hold/auto-no-show engine remains).
+- Host cards show queue positions instead of “waited X minutes”; called cards no longer show a countdown.
+- Guest hero, ticket, host stand, dashboard, login and QR now use the new sticker/outlined visual language.
+- Dashboard sidebar is now butter cream with a tomato active state.
+- Seed restaurant hours extended to 23:30 Jakarta for a better evening demo.
+- Updated docs, screenshots and metadata.
+
+### Fixed
+- Ghost small buttons no longer inherit a sticker shadow and stray underline.
+- Called ticket shows the correct “we’re holding your table” note before acknowledgement.
+- QR poster text no longer collides with the mascot.
+- Floor cards show capacity with a proper space (`2 org` / `2 pax`).
+- Demo called guest persists at the door instead of auto-expiring during a demo session.
 
 ## [0.1.0] — 2026-11-06
 

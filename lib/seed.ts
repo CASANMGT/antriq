@@ -3,17 +3,17 @@ import type { Queryable } from "./db";
 import { dayInTz } from "./time";
 
 export const DEMO_RESTAURANT = {
-  name: "Sage & Ember",
-  tagline: "Wood-fired bistro · Senopati",
+  name: "Nikumaru & Tenka",
+  tagline: "Ramen & Izakaya · Senopati",
   address: "Jl. Senopati No. 21, Kebayoran Baru, Jakarta",
   phone: "+62 811 9000 212",
-  instagram: "@sageandember",
+  instagram: "@nikumaru.tenka",
   timezone: "Asia/Jakarta",
   openTime: "11:00",
   closeTime: "23:30",
-  accent: "#C8452B",
+  accent: "#F24B3F",
   announcement:
-    "Welcome to Sage & Ember. Join the waitlist from your phone — we'll let you know the moment your table is ready.",
+    "Selamat datang di Nikumaru & Tenka. Ambil nomor antrean dari ponselmu — kami panggil saat meja siap.",
 };
 
 const STAFF_SEED = [
@@ -45,10 +45,6 @@ export function isDemoMode(): boolean {
 
 function isoMinutesAgo(minutes: number): string {
   return new Date(Date.now() - minutes * 60_000).toISOString();
-}
-
-function isoMinutesFromNow(minutes: number): string {
-  return new Date(Date.now() + minutes * 60_000).toISOString();
 }
 
 export async function seedDatabase(db: Queryable): Promise<void> {
@@ -115,7 +111,7 @@ export async function seedDatabase(db: Queryable): Promise<void> {
   const demo = [
     {
       seq: 1, code: "A-001", name: "Joaquin Reyes", party: 2, phone: "+62 812 1111 0101",
-      source: "qr", status: "waiting", joined: 34, notes: "Window seat if possible",
+      source: "qr", status: "waiting", joined: 34, notes: "Dekat jendela kalau bisa",
     },
     {
       seq: 2, code: "A-002", name: "Mira Santoso", party: 4, phone: "+62 812 1111 0102",
@@ -127,11 +123,11 @@ export async function seedDatabase(db: Queryable): Promise<void> {
     },
     {
       seq: 4, code: "A-004", name: "The Oka Family", party: 6, phone: "+62 812 1111 0104",
-      source: "qr", status: "waiting", joined: 11, notes: "One high chair, please",
+      source: "qr", status: "waiting", joined: 11, notes: "Butuh satu kursi bayi",
     },
     {
       seq: 5, code: "A-005", name: "Clara Nguyen", party: 3, phone: "+62 812 1111 0105",
-      source: "online", status: "called", joined: 22, notes: "Celebrating a birthday",
+      source: "online", status: "called", joined: 22, notes: "Merayakan ulang tahun",
       called: 2, table: null,
     },
     {
@@ -164,7 +160,7 @@ export async function seedDatabase(db: Queryable): Promise<void> {
     },
     {
       seq: 13, code: "A-013", name: "Tom Bakker", party: 3, phone: "+62 812 1111 0113",
-      source: "online", status: "waiting", joined: 3, notes: "Bar seat is fine",
+      source: "online", status: "waiting", joined: 3, notes: "Boleh di bar",
     },
     {
       seq: 14, code: "A-014", name: "Luca Moretti", party: 4, phone: "+62 812 1111 0114",
@@ -172,7 +168,7 @@ export async function seedDatabase(db: Queryable): Promise<void> {
     },
     {
       seq: 15, code: "A-015", name: "Nina Halim", party: 3, phone: "+62 812 1111 0115",
-      source: "qr", status: "seated", joined: 62, notes: "No shellfish", seated: 18, table: "T5",
+      source: "qr", status: "seated", joined: 62, notes: "Alergi kerang", seated: 18, table: "T5",
     },
     {
       seq: 16, code: "A-016", name: "Omar Haddad", party: 4, phone: "+62 812 1111 0116",
@@ -180,7 +176,7 @@ export async function seedDatabase(db: Queryable): Promise<void> {
     },
     {
       seq: 17, code: "A-017", name: "Grace Tan", party: 6, phone: "+62 812 1111 0117",
-      source: "qr", status: "seated", joined: 58, notes: "Birthday cake in the fridge", seated: 8, table: "P4",
+      source: "qr", status: "seated", joined: 58, notes: "Kue ulang tahun di kulkas", seated: 8, table: "P4",
     },
     {
       seq: 18, code: "A-018", name: "Sam Rivera", party: 1, phone: "+62 812 1111 0118",
@@ -219,8 +215,9 @@ export async function seedDatabase(db: Queryable): Promise<void> {
   for (const item of demo) {
     const joinedAt = isoMinutesAgo(item.joined);
     const calledAt = "called" in item && item.called ? isoMinutesAgo(item.called) : null;
-    const holdExpiresAt =
-      item.status === "called" ? isoMinutesFromNow(6) : null;
+    // A seeded "called" guest stays at the door in the demo so the host board
+    // always has something to demonstrate. Real calls still get a hold timer.
+    const holdExpiresAt = null;
     const seatedAt = "seated" in item && item.seated ? isoMinutesAgo(item.seated) : null;
     const closedAt = "closed" in item && item.closed ? isoMinutesAgo(item.closed) : null;
     const table = "table" in item ? item.table ?? null : null;

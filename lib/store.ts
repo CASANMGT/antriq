@@ -15,6 +15,7 @@ import {
   statsFrom,
 } from "./queue";
 import { addDaysToDay, dayInTz, elapsedMinutes, isOpenAt, parseTimeToMinutes } from "./time";
+import { isDemoMode, seedDatabase } from "./seed";
 import type {
   ActionResult,
   ActivityItem,
@@ -268,6 +269,22 @@ async function entryByToken(token: string): Promise<QueueEntry | null> {
   return mapEntry(rows[0], tablesByIdMap(await listTables()));
 }
 
+/**
+ * Demo mode should look alive on the first request of every new service day,
+ * even when a warm serverless instance survived midnight.
+ */
+async function ensureDemoDay(restaurant: Restaurant): Promise<void> {
+  if (!isDemoMode()) return;
+  const today = dayInTz(new Date(), restaurant.timezone);
+  const rows = await q<Row>(
+    "select count(*)::int as count from queue_entries where day = $1::date",
+    [today],
+  );
+  if (toNumber(rows[0]?.count) === 0) {
+    await seedDatabase({ query: q });
+  }
+}
+
 async function expireHolds(restaurant: Restaurant): Promise<void> {
   if (!restaurant.autoNoShow) return;
   const expired = await q<Row>(
@@ -289,6 +306,7 @@ async function expireHolds(restaurant: Restaurant): Promise<void> {
 
 export async function getHostState(): Promise<HostState> {
   const restaurant = await getRestaurant();
+  await ensureDemoDay(restaurant);
   await expireHolds(restaurant);
   const now = new Date();
   const today = dayInTz(now, restaurant.timezone);
@@ -320,6 +338,7 @@ export async function getHostState(): Promise<HostState> {
 
 export async function getPublicSnapshot(): Promise<PublicSnapshot> {
   const restaurant = await getRestaurant();
+  await ensureDemoDay(restaurant);
   await expireHolds(restaurant);
   const now = new Date();
   const today = dayInTz(now, restaurant.timezone);
@@ -1045,6 +1064,7 @@ export async function setStaffActive(id: number, active: boolean, actor: string)
 
 export async function getOwnerOverview(days = 7): Promise<OwnerOverview> {
   const restaurant = await getRestaurant();
+  await ensureDemoDay(restaurant);
   await expireHolds(restaurant);
   const now = new Date();
   const today = dayInTz(now, restaurant.timezone);

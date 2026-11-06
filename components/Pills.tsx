@@ -1,27 +1,44 @@
+"use client";
+
+import { useLang } from "@/components/LanguageProvider";
 import type { EntryStatus, TableStatus } from "@/lib/types";
 
-const entryStyles: Record<EntryStatus, { label: string; className: string }> = {
-  waiting: { label: "Waiting", className: "status-waiting" },
-  called: { label: "Table ready", className: "status-called" },
-  seated: { label: "Seated", className: "status-seated" },
-  completed: { label: "Completed", className: "status-muted" },
-  no_show: { label: "No-show", className: "status-noshow" },
-  cancelled: { label: "Cancelled", className: "status-muted" },
+const entryStyles: Record<EntryStatus, string> = {
+  waiting: "status-waiting",
+  called: "status-called",
+  seated: "status-seated",
+  completed: "status-muted",
+  no_show: "status-noshow",
+  cancelled: "status-muted",
 };
 
-const tableStyles: Record<TableStatus, { label: string; className: string }> = {
-  available: { label: "Open", className: "status-seated" },
-  seated: { label: "Seated", className: "status-called" },
-  dirty: { label: "Reset", className: "status-waiting" },
-  blocked: { label: "Blocked", className: "status-muted" },
+const tableStyles: Record<TableStatus, string> = {
+  available: "status-seated",
+  seated: "status-called",
+  dirty: "status-waiting",
+  blocked: "status-muted",
 };
 
 export function EntryPill({ status }: { status: EntryStatus }) {
-  const meta = entryStyles[status] ?? entryStyles.waiting;
-  return <span className={`pill ${meta.className}`}>{meta.label}</span>;
+  const { t } = useLang();
+  const labels: Record<EntryStatus, string> = {
+    waiting: t.status.waiting,
+    called: t.status.called,
+    seated: t.status.seated,
+    completed: t.status.completed,
+    no_show: t.status.noShow,
+    cancelled: t.status.cancelled,
+  };
+  return <span className={`pill ${entryStyles[status] ?? entryStyles.waiting}`}>{labels[status] ?? t.status.waiting}</span>;
 }
 
 export function TablePill({ status }: { status: TableStatus }) {
-  const meta = tableStyles[status] ?? tableStyles.available;
-  return <span className={`pill ${meta.className}`}>{meta.label}</span>;
+  const { t } = useLang();
+  const labels: Record<TableStatus, string> = {
+    available: t.status.available,
+    seated: t.status.seated,
+    dirty: t.status.dirty,
+    blocked: t.status.blocked,
+  };
+  return <span className={`pill ${tableStyles[status] ?? tableStyles.available}`}>{labels[status] ?? t.status.available}</span>;
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Ticket, X } from "lucide-react";
+import { useLang } from "@/components/LanguageProvider";
 
 interface StoredTicket {
   token: string;
@@ -11,6 +12,7 @@ interface StoredTicket {
 }
 
 export function MyTicketBanner() {
+  const { t } = useLang();
   const [ticket, setTicket] = useState<StoredTicket | null>(null);
 
   useEffect(() => {
@@ -27,23 +29,25 @@ export function MyTicketBanner() {
   if (!ticket) return null;
 
   return (
-    <div className="mb-5 flex items-center gap-3 rounded-2xl border border-sage/25 bg-sage-soft px-3.5 py-3 animate-rise">
-      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-white/70 text-sage-dark">
+    <div className="mb-5 flex items-center gap-3 rounded-2xl border-2 border-ink bg-leaf-soft px-3.5 py-3 shadow-[2px_2px_0_#262321] animate-rise">
+      <span className="grid size-9 shrink-0 place-items-center rounded-xl border-2 border-ink bg-white text-leaf-dark">
         <Ticket className="size-4" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-sage-dark/70">Your open ticket</p>
-        <p className="truncate text-sm font-bold text-sage-dark">
-          {ticket.code} · tap to see your place
+        <p className="text-[0.625rem] font-extrabold uppercase tracking-[0.14em] text-leaf-dark/70">
+          {t.guest.ticketBannerKicker}
+        </p>
+        <p className="truncate text-sm font-extrabold text-leaf-dark">
+          {ticket.code} · {t.guest.ticketBannerBody}
         </p>
       </div>
       <Link href={`/t/${ticket.token}`} className="btn btn-sage btn-sm">
-        View <ArrowRight className="size-3.5" />
+        {t.guest.viewTicket} <ArrowRight className="size-3.5" />
       </Link>
       <button
         type="button"
-        className="rounded-full p-1.5 text-sage-dark/60 hover:bg-white/60 hover:text-sage-dark"
-        aria-label="Dismiss saved ticket"
+        className="rounded-full p-1.5 text-leaf-dark/60 hover:bg-white/60 hover:text-leaf-dark"
+        aria-label={t.guest.myTicketDismiss}
         onClick={() => {
           window.localStorage.removeItem("antriq:ticket");
           setTicket(null);

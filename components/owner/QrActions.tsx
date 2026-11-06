@@ -2,16 +2,19 @@
 
 import { useState } from "react";
 import { Check, Copy, Printer } from "lucide-react";
+import { useLang } from "@/components/LanguageProvider";
 
 export function PrintButton() {
+  const { t } = useLang();
   return (
     <button type="button" className="btn btn-primary btn-sm" onClick={() => window.print()}>
-      <Printer className="size-3.5" /> Print poster
+      <Printer className="size-3.5" /> {t.owner.printPoster}
     </button>
   );
 }
 
 export function CopyLinkButton({ url }: { url: string }) {
+  const { t } = useLang();
   const [copied, setCopied] = useState(false);
 
   return (
@@ -29,7 +32,7 @@ export function CopyLinkButton({ url }: { url: string }) {
       }}
     >
       {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-      {copied ? "Copied" : "Copy link"}
+      {copied ? t.common.copied : t.owner.copyLink}
     </button>
   );
 }

@@ -5,7 +5,7 @@ import { getRestaurant } from "@/lib/store";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Settings",
+  title: "Pengaturan",
   robots: { index: false, follow: false },
 };
 

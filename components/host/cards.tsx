@@ -4,7 +4,7 @@ import {
   BellRing,
   Check,
   ChevronRight,
-  Clock3,
+  ClipboardList,
   CornerUpLeft,
   Phone,
   RotateCcw,
@@ -12,9 +12,8 @@ import {
   UserRound,
   Utensils,
 } from "lucide-react";
-import { Countdown } from "@/components/Countdown";
 import { TablePill } from "@/components/Pills";
-import { humanizeMinutes } from "@/lib/time";
+import { useLang } from "@/components/LanguageProvider";
 import type { DiningTable, HostStats, QueueEntry } from "@/lib/types";
 
 const sourceLabel: Record<string, string> = {
@@ -24,21 +23,22 @@ const sourceLabel: Record<string, string> = {
 };
 
 export function StatsStrip({ stats }: { stats: HostStats }) {
+  const { t } = useLang();
   const items = [
-    { label: "Waiting", value: stats.waiting, tone: "text-gold" },
-    { label: "At the door", value: stats.called, tone: "text-clay" },
-    { label: "Seated", value: stats.seated, tone: "text-sage" },
-    { label: "Tables free", value: `${stats.availableTables}/${stats.totalTables}`, tone: "text-ink" },
-    { label: "Avg wait", value: stats.avgWaitMinutes ? `${stats.avgWaitMinutes}m` : "—", tone: "text-ink" },
-    { label: "Longest wait", value: stats.longestWaitMinutes ? `${stats.longestWaitMinutes}m` : "—", tone: stats.longestWaitMinutes > 25 ? "text-clay" : "text-ink" },
+    { label: t.host.waiting, value: stats.waiting, tone: "text-gold" },
+    { label: t.host.atDoor, value: stats.called, tone: "text-tomato" },
+    { label: t.host.seated, value: stats.seated, tone: "text-leaf-dark" },
+    { label: t.host.tablesFreeLabel, value: `${stats.availableTables}/${stats.totalTables}`, tone: "text-ink" },
+    { label: t.host.seatedToday, value: stats.seatedToday, tone: "text-ink" },
+    { label: t.owner.noShows, value: stats.noShowToday, tone: "text-tomato-dark" },
   ];
 
   return (
-    <div className="grid grid-cols-3 border-t border-line bg-white/60 sm:grid-cols-6">
+    <div className="grid grid-cols-3 border-t-2 border-ink bg-cream sm:grid-cols-6">
       {items.map((item) => (
-        <div key={item.label} className="border-b border-r border-line px-3 py-2.5 last:border-r-0 sm:border-b-0">
-          <p className={`num text-lg font-extrabold leading-none ${item.tone}`}>{item.value}</p>
-          <p className="mt-1 text-[0.5625rem] font-bold uppercase tracking-[0.12em] text-muted">{item.label}</p>
+        <div key={item.label} className="border-b border-r border-ink/15 px-3 py-2.5 last:border-r-0 sm:border-b-0">
+          <p className={`num font-display text-xl font-semibold leading-none ${item.tone}`}>{item.value}</p>
+          <p className="mt-1 text-[0.5625rem] font-extrabold uppercase tracking-[0.1em] text-ink/55">{item.label}</p>
         </div>
       ))}
     </div>
@@ -47,64 +47,61 @@ export function StatsStrip({ stats }: { stats: HostStats }) {
 
 export function QueueCard({
   entry,
+  position,
   next,
   busy,
   onCall,
   onSeat,
-  onExtend,
   onNoShow,
   onUndo,
 }: {
   entry: QueueEntry;
+  position: number;
   next: boolean;
   busy: boolean;
   onCall: () => void;
   onSeat: () => void;
-  onExtend: () => void;
   onNoShow: () => void;
   onUndo: () => void;
 }) {
+  const { t } = useLang();
   const called = entry.status === "called";
-  const urgent = called && entry.holdSecondsLeft <= 120;
 
   return (
     <article
-      className={`rounded-2xl border bg-white p-3.5 transition ${
-        called
-          ? urgent
-            ? "border-clay/50 shadow-[0_0_0_3px_rgba(200,69,43,0.08)]"
-            : "border-clay/30"
-          : next
-            ? "border-clay/30 shadow-soft"
-            : "border-line hover:border-sand"
+      className={`rounded-2xl border-2 border-ink p-3.5 shadow-[3px_3px_0_#262321] transition ${
+        called ? "bg-pink-soft" : next ? "bg-white" : "bg-white/85"
       }`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="num rounded-md bg-ink px-1.5 py-0.5 text-[0.6875rem] font-bold tracking-wide text-paper">
+            <span className="num rounded-md border-2 border-ink bg-ink px-1.5 py-0.5 text-[0.6875rem] font-extrabold tracking-wide text-paper">
               {entry.code}
             </span>
             <span className="pill status-muted">{sourceLabel[entry.source] ?? entry.source}</span>
-            {next && !called && <span className="eyebrow text-clay">Next up</span>}
+            {next && !called && (
+              <span className="pill bg-tomato text-white">
+                <ClipboardList className="size-3" /> {t.host.nextUp}
+              </span>
+            )}
             {called && entry.acknowledged && (
               <span className="pill status-seated">
-                <Check className="size-3" /> On the way
+                <Check className="size-3" /> {t.host.onTheWay}
               </span>
             )}
           </div>
-          <h3 className="mt-2 truncate font-display text-[1.35rem] leading-tight tracking-tight">
-            {entry.guestName}
-          </h3>
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-            <span className="font-semibold text-ink/75">
-              {entry.partySize} {entry.partySize === 1 ? "guest" : "guests"}
+          <div className="mt-2 flex items-center gap-2">
+            <span className="grid size-7 shrink-0 place-items-center rounded-full border-2 border-ink bg-cream font-display text-xs font-semibold">
+              {position}
             </span>
-            <span className="inline-flex items-center gap-1">
-              <Clock3 className="size-3" />
-              {called
-                ? `called ${humanizeMinutes(entry.calledMinutesAgo ?? 0)} ago`
-                : `waited ${humanizeMinutes(entry.waitMinutes)}`}
+            <h3 className="truncate font-display text-[1.45rem] leading-tight tracking-tight">
+              {entry.guestName}
+            </h3>
+          </div>
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 pl-9 text-xs font-semibold text-muted">
+            <span className="text-ink/75">
+              {entry.partySize} {t.guest.guestUnit}
             </span>
             {entry.phone && (
               <a href={`tel:${entry.phone}`} className="inline-flex items-center gap-1 hover:text-ink">
@@ -114,55 +111,43 @@ export function QueueCard({
             )}
           </div>
           {entry.notes && (
-            <p className="mt-2 rounded-lg bg-cream/60 px-2 py-1.5 text-xs leading-relaxed text-ink/70">
+            <p className="mt-2 rounded-lg bg-cream px-2 py-1.5 text-xs font-medium leading-relaxed text-ink/70">
               {entry.notes}
             </p>
           )}
         </div>
-        {called ? (
-          <div className="shrink-0 rounded-xl border border-clay/20 bg-clay-soft px-2.5 py-2 text-center">
-            <p className="text-[0.5625rem] font-bold uppercase tracking-[0.1em] text-clay-dark/60">Hold</p>
-            <p className="mt-0.5 text-sm text-clay-dark">
-              <Countdown seconds={entry.holdSecondsLeft} />
-            </p>
-          </div>
-        ) : (
-          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-cream text-ink/60">
-            <UserRound className="size-4" />
-          </span>
-        )}
+        <span className="grid size-9 shrink-0 place-items-center rounded-full border-2 border-ink bg-cream text-ink/60">
+          <UserRound className="size-4" />
+        </span>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-1.5 border-t border-line/70 pt-2.5">
+      <div className="mt-3 flex flex-wrap gap-1.5 border-t-2 border-dashed border-ink/15 pt-2.5">
         {!called && (
           <>
-            <button type="button" className="btn btn-clay btn-sm" onClick={onCall} disabled={busy}>
-              <BellRing className="size-3.5" /> Call
+            <button type="button" className="btn btn-primary btn-sm" onClick={onCall} disabled={busy}>
+              <BellRing className="size-3.5" /> {t.host.call}
             </button>
             <button type="button" className="btn btn-outline btn-sm" onClick={onSeat} disabled={busy}>
-              <Utensils className="size-3.5" /> Seat
+              <Utensils className="size-3.5" /> {t.host.seat}
             </button>
           </>
         )}
         {called && (
           <>
             <button type="button" className="btn btn-sage btn-sm" onClick={onSeat} disabled={busy}>
-              <Utensils className="size-3.5" /> Seat
-            </button>
-            <button type="button" className="btn btn-soft btn-sm" onClick={onExtend} disabled={busy}>
-              +5 min
+              <Utensils className="size-3.5" /> {t.host.seat}
             </button>
             <button type="button" className="btn btn-ghost btn-sm text-muted" onClick={onNoShow} disabled={busy}>
-              No-show
+              {t.host.noShow}
             </button>
             <button
               type="button"
               className="btn btn-ghost btn-sm ml-auto text-muted"
               onClick={onUndo}
               disabled={busy}
-              title="Return to the waitlist"
+              title={t.host.undo}
             >
-              <CornerUpLeft className="size-3.5" /> Undo
+              <CornerUpLeft className="size-3.5" /> {t.host.undo}
             </button>
           </>
         )}
@@ -186,55 +171,60 @@ export function TableCard({
   onReady: () => void;
   onBlock: () => void;
 }) {
+  const { t } = useLang();
   const tint =
     table.status === "seated"
-      ? "border-clay/25 bg-[#FFFBF7]"
+      ? "bg-pink-soft"
       : table.status === "dirty"
-        ? "border-gold/30 bg-gold-soft/40"
+        ? "bg-cream"
         : table.status === "blocked"
-          ? "border-line bg-cream/50"
-          : "border-line bg-white";
+          ? "bg-[#EFE8DA]"
+          : "bg-white";
 
   return (
-    <div className={`rounded-xl border p-2.5 ${tint}`}>
+    <div className={`rounded-xl border-2 border-ink p-2.5 shadow-[2px_2px_0_#262321] ${tint}`}>
       <div className="flex items-start justify-between gap-1">
-        <span className="num text-sm font-extrabold">{table.label}</span>
+        <span className="num font-display text-base font-semibold">{table.label}</span>
         <TablePill status={table.status} />
       </div>
-      <p className="mt-0.5 text-[0.625rem] text-muted">
-        {table.capacity} {table.capacity === 1 ? "seat" : "seats"}
+      <p className="mt-0.5 text-[0.625rem] font-semibold text-ink/50">
+        {table.capacity} {t.owner.seats}
       </p>
       {entry ? (
         <div className="mt-1.5 min-w-0">
-          <p className="truncate text-xs font-bold">{entry.guestName}</p>
-          <p className="text-[0.625rem] text-muted">
-            {entry.code} · {humanizeMinutes(entry.waitMinutes)}
+          <p className="truncate text-xs font-extrabold">{entry.guestName}</p>
+          <p className="text-[0.625rem] font-semibold text-muted">
+            {entry.code} · {entry.partySize} {t.guest.guestUnit}
           </p>
         </div>
       ) : (
-        <p className="mt-1.5 text-[0.625rem] text-muted/70">
-          {table.status === "available" ? "Ready for guests" : table.status === "dirty" ? "Needs resetting" : "Out of service"}
+        <p className="mt-1.5 text-[0.625rem] font-semibold text-ink/45">
+          {table.status === "available"
+            ? t.owner.openLegend
+            : table.status === "dirty"
+              ? t.owner.resetLegend
+              : t.owner.blockedLegend}
         </p>
       )}
       <div className="mt-2 flex gap-1">
         {table.status === "seated" && (
           <button type="button" className="btn btn-soft btn-sm h-7 flex-1 px-2 text-[0.6875rem]" onClick={onClear} disabled={busy}>
-            <RotateCcw className="size-3" /> Clear
+            <RotateCcw className="size-3" /> {t.host.clear}
           </button>
         )}
         {table.status === "dirty" && (
           <button type="button" className="btn btn-sage btn-sm h-7 flex-1 px-2 text-[0.6875rem]" onClick={onReady} disabled={busy}>
-            <Sparkles className="size-3" /> Ready
+            <Sparkles className="size-3" /> {t.host.ready}
           </button>
         )}
         {table.status === "available" && (
           <button type="button" className="btn btn-ghost btn-sm h-7 flex-1 px-2 text-[0.6875rem] text-muted" onClick={onBlock} disabled={busy}>
-            Block
+            {t.status.blocked}
           </button>
         )}
         {table.status === "blocked" && (
           <button type="button" className="btn btn-ghost btn-sm h-7 flex-1 px-2 text-[0.6875rem] text-muted" onClick={onReady} disabled={busy}>
-            <ChevronRight className="size-3" /> Unblock
+            <ChevronRight className="size-3" /> {t.owner.openLegend}
           </button>
         )}
       </div>
@@ -244,9 +234,9 @@ export function TableCard({
 
 export function EmptyBoard({ title, note }: { title: string; note: string }) {
   return (
-    <div className="rounded-2xl border border-dashed border-line bg-white/50 px-4 py-8 text-center">
+    <div className="rounded-2xl border-2 border-dashed border-ink/35 bg-white/60 px-4 py-8 text-center">
       <p className="font-display text-lg">{title}</p>
-      <p className="mx-auto mt-1 max-w-[16rem] text-xs leading-relaxed text-muted">{note}</p>
+      <p className="mx-auto mt-1 max-w-[16rem] text-xs font-medium leading-relaxed text-muted">{note}</p>
     </div>
   );
 }

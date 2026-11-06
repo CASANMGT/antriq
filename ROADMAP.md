@@ -13,7 +13,18 @@ AntriQ is deliberately small. This roadmap protects that: every item must make t
 
 **Exit criteria:** a real restaurant can run one dinner service end-to-end on a phone and a tablet.
 
-## Next — v0.2 “Trust & reach” (6–8 weeks)
+## Shipped — v0.2 “Brand + queue-first” (7 Nov 2026)
+
+- [x] Fredoka + Plus Jakarta Sans, tomato/butter/ink/pink palette, sticker outlines
+- [x] Toast mascot, new logo, icon, manifest, QR poster
+- [x] Indonesian default + English toggle across every surface
+- [x] Removed guest-facing ETA and hold countdown; queue position is the signal
+- [x] Renamed demo restaurant to Nikumaru & Tenka with Indonesian seed data
+- [x] Queue-first KPIs: waiting, called, seated, tables open
+- [x] Daily demo reset on warm serverless instances
+- [x] Deployed at antriq1.vercel.app
+
+## Next — v0.3 “Trust & reach” (6–8 weeks)
 
 ### Reservations that respect the floor
 - A booking date/time, party size, and grace period.
@@ -23,7 +34,7 @@ AntriQ is deliberately small. This roadmap protects that: every item must make t
 - Acceptance: a booked party can check in, join, be called, and be seated without breaking walk-in fairness.
 
 ### Notifications without a new app
-- WhatsApp Cloud API adapter (template: “Your table is ready — hold 8 min”).
+- WhatsApp Cloud API adapter (template: “Your table is ready — please come to the host stand”).
 - Optional SMS fallback.
 - Preferences per restaurant; consent captured at join.
 - Retry/outbox with idempotency; delivery status in activity.
@@ -41,7 +52,7 @@ AntriQ is deliberately small. This roadmap protects that: every item must make t
 - Audit log filter (by actor, type, day) in owner settings.
 - Acceptance: calls appear in under 1s; expiry does not depend on a page being open.
 
-## Later — v0.3 “One more location”
+## Later — v0.4 “One more location”
 
 ### Multi-location
 - `restaurant_id` scoping, location switcher, per-location staff and tables.

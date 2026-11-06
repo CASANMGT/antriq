@@ -30,7 +30,7 @@ describe("store integration (PGlite + demo seed)", () => {
 
   it("seeds a believable service and exposes a public snapshot", async () => {
     const snapshot = await getPublicSnapshot();
-    expect(snapshot.restaurant.name).toBe("Sage & Ember");
+    expect(snapshot.restaurant.name).toBe("Nikumaru & Tenka");
     expect(snapshot.waiting).toBe(6);
     expect(snapshot.availableTables).toBe(3);
     expect(snapshot.typicalWaitMinutes).toBeGreaterThan(5);

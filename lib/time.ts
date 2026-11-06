@@ -88,9 +88,9 @@ export function humanizeMinutes(mins: number): string {
   return rest === 0 ? `${h}h` : `${h}h ${rest}m`;
 }
 
-export function formatDayLong(day: string): string {
+export function formatDayLong(day: string, locale = "en-GB"): string {
   const d = new Date(`${day}T12:00:00Z`);
-  return new Intl.DateTimeFormat("en-GB", {
+  return new Intl.DateTimeFormat(locale, {
     timeZone: "UTC",
     weekday: "short",
     day: "numeric",
@@ -98,9 +98,9 @@ export function formatDayLong(day: string): string {
   }).format(d);
 }
 
-export function formatDayShort(day: string): string {
+export function formatDayShort(day: string, locale = "en-GB"): string {
   const d = new Date(`${day}T12:00:00Z`);
-  return new Intl.DateTimeFormat("en-GB", {
+  return new Intl.DateTimeFormat(locale, {
     timeZone: "UTC",
     day: "numeric",
     month: "short",
@@ -117,15 +117,17 @@ export function formatNumber(n: number): string {
   return new Intl.NumberFormat("en-US").format(n);
 }
 
-export function relativeTime(value: string | Date, now: Date = new Date()): string {
+export function relativeTime(value: string | Date, now: Date = new Date(), lang: "id" | "en" = "en"): string {
   const date = typeof value === "string" ? new Date(value) : value;
   const seconds = Math.max(0, Math.round((now.getTime() - date.getTime()) / 1000));
-  if (seconds < 45) return "just now";
+  const id = lang === "id";
+  if (seconds < 45) return id ? "baru saja" : "just now";
   const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 60) return id ? `${minutes} mnt lalu` : `${minutes}m ago`;
   const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return id ? `${hours} jam lalu` : `${hours}h ago`;
   const days = Math.round(hours / 24);
-  return days === 1 ? "yesterday" : `${days}d ago`;
+  if (days === 1) return id ? "kemarin" : "yesterday";
+  return id ? `${days} hr lalu` : `${days}d ago`;
 }
 

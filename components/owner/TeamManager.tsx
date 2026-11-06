@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { KeyRound, Loader2, Plus, Shield, UserRound, Users } from "lucide-react";
 import { Modal } from "@/components/Modal";
 import { Notice, type NoticeState } from "@/components/Notice";
+import { useLang } from "@/components/LanguageProvider";
 import { postJson } from "@/lib/client-api";
+import { format } from "@/lib/i18n";
 import type { PublicStaff, Role } from "@/lib/types";
 
 interface StaffRow extends PublicStaff {
@@ -15,6 +17,7 @@ interface StaffRow extends PublicStaff {
 
 export function TeamManager({ staff }: { staff: StaffRow[] }) {
   const router = useRouter();
+  const { t } = useLang();
   const [notice, setNotice] = useState<NoticeState | null>(null);
   const [pending, startTransition] = useTransition();
   const [addOpen, setAddOpen] = useState(false);
@@ -49,11 +52,10 @@ export function TeamManager({ staff }: { staff: StaffRow[] }) {
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="eyebrow text-clay">People</p>
-          <h1 className="mt-1 font-display text-[2.3rem] leading-none tracking-tight">Team</h1>
-          <p className="mt-2 text-sm text-muted">
-            {active.length} active · {owners.length} owner{owners.length === 1 ? "" : "s"} · {greeters.length} greeter
-            {greeters.length === 1 ? "" : "s"}
+          <p className="eyebrow text-tomato">{t.owner.teamKicker}</p>
+          <h1 className="mt-1 font-display text-[2.5rem] font-semibold leading-none tracking-tight">{t.owner.teamTitle}</h1>
+          <p className="mt-2 text-sm font-semibold text-muted">
+            {format(t.owner.teamSub, { active: active.length, owners: owners.length, greeters: greeters.length })}
           </p>
         </div>
         <button
@@ -64,41 +66,41 @@ export function TeamManager({ staff }: { staff: StaffRow[] }) {
             setAddOpen(true);
           }}
         >
-          <Plus className="size-3.5" /> Add team member
+          <Plus className="size-3.5" /> {t.owner.addMember}
         </button>
       </header>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <Stat icon={Users} label="Active access" value={active.length} />
-        <Stat icon={Shield} label="Owners" value={owners.length} hint="Full dashboard + floor" />
-        <Stat icon={UserRound} label="Greeters" value={greeters.length} hint="Host stand only" />
+        <Stat icon={Users} label={t.owner.activeAccess} value={active.length} tone="bg-pink" />
+        <Stat icon={Shield} label={t.owner.owners} value={owners.length} hint={t.owner.ownerAccess} tone="bg-cream" />
+        <Stat icon={UserRound} label={t.owner.greeters} value={greeters.length} hint={t.owner.greeterAccess} tone="bg-leaf-soft" />
       </div>
 
       <section className="card overflow-hidden">
-        <div className="border-b border-line px-4 py-3 sm:px-5">
-          <h2 className="font-display text-xl leading-tight">Access list</h2>
-          <p className="text-xs text-muted">PINs are stored hashed. Nobody can read them back — only reset.</p>
+        <div className="border-b-2 border-ink bg-cream/70 px-4 py-3 sm:px-5">
+          <h2 className="font-display text-[1.5rem] font-semibold leading-tight">{t.owner.accessList}</h2>
+          <p className="text-xs font-semibold text-muted">{t.owner.accessSub}</p>
         </div>
-        <div className="divide-y divide-line/70">
+        <div className="divide-y-2 divide-dashed divide-ink/10">
           {staff.map((person) => (
             <div key={person.id} className="flex flex-wrap items-center gap-3 px-4 py-3.5 sm:px-5">
               <span
-                className={`grid size-10 shrink-0 place-items-center rounded-full text-xs font-extrabold ${
-                  person.active ? "bg-ink text-paper" : "bg-cream text-muted"
+                className={`grid size-10 shrink-0 place-items-center rounded-full border-2 border-ink text-xs font-extrabold ${
+                  person.active ? "bg-ink text-paper" : "bg-[#EFE8DA] text-muted"
                 }`}
               >
                 {person.initials ?? person.name.slice(0, 2).toUpperCase()}
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-sm font-bold">{person.name}</p>
+                  <p className="text-sm font-extrabold">{person.name}</p>
                   <span className={`pill ${person.role === "owner" ? "status-called" : "status-muted"}`}>
-                    {person.role === "owner" ? "Owner" : "Greeter"}
+                    {person.role === "owner" ? t.owner.owners.replace(/s$/i, "") : t.owner.greeters.replace(/s$/i, "")}
                   </span>
-                  {!person.active && <span className="pill status-muted">Paused</span>}
+                  {!person.active && <span className="pill status-muted">{t.owner.paused}</span>}
                 </div>
-                <p className="mt-0.5 text-xs text-muted">
-                  {person.role === "owner" ? "Dashboard + host stand" : "Host stand only"} · PIN protected
+                <p className="mt-0.5 text-xs font-semibold text-muted">
+                  {person.role === "owner" ? t.owner.ownerAccess : t.owner.greeterAccess} · {t.owner.pinProtected}
                 </p>
               </div>
               <div className="flex items-center gap-1.5">
@@ -110,7 +112,7 @@ export function TeamManager({ staff }: { staff: StaffRow[] }) {
                     setPin("");
                   }}
                 >
-                  <KeyRound className="size-3.5" /> Reset PIN
+                  <KeyRound className="size-3.5" /> {t.owner.resetPin}
                 </button>
                 <button
                   type="button"
@@ -126,7 +128,7 @@ export function TeamManager({ staff }: { staff: StaffRow[] }) {
                     )
                   }
                 >
-                  {person.active ? "Pause" : "Restore"}
+                  {person.active ? t.owner.pause : t.owner.restore}
                 </button>
               </div>
             </div>
@@ -134,17 +136,11 @@ export function TeamManager({ staff }: { staff: StaffRow[] }) {
         </div>
       </section>
 
-      <div className="rounded-2xl border border-dashed border-line bg-cream/40 p-4 text-xs leading-relaxed text-muted">
-        Owners can change settings, tables, reports and staff. Greeters only get the live floor. At least one
-        owner must stay active, so you can never lock yourself out.
+      <div className="rounded-2xl border-2 border-dashed border-ink/30 bg-cream/50 p-4 text-xs font-semibold leading-relaxed text-muted">
+        {t.owner.teamNote}
       </div>
 
-      <Modal
-        open={addOpen}
-        onClose={() => setAddOpen(false)}
-        title="Add a team member"
-        description="They can sign in right away at the host stand with this PIN."
-      >
+      <Modal open={addOpen} onClose={() => setAddOpen(false)} title={t.owner.addMemberTitle} description={t.owner.addMemberDesc}>
         <form
           onSubmit={(event) => {
             event.preventDefault();
@@ -159,13 +155,13 @@ export function TeamManager({ staff }: { staff: StaffRow[] }) {
           className="space-y-4"
         >
           <div>
-            <label className="label" htmlFor="staff-name">Full name</label>
+            <label className="label" htmlFor="staff-name">{t.owner.fullName}</label>
             <input
               id="staff-name"
               className="input"
               value={draft.name}
               onChange={(event) => setDraft({ ...draft, name: event.target.value })}
-              placeholder="e.g. Ayu Lestari"
+              placeholder="Ayu Lestari"
               maxLength={60}
               required
             />
@@ -173,19 +169,19 @@ export function TeamManager({ staff }: { staff: StaffRow[] }) {
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="label" htmlFor="staff-role">Role</label>
+              <label className="label" htmlFor="staff-role">{t.owner.role}</label>
               <select
                 id="staff-role"
                 className="input bg-white"
                 value={draft.role}
                 onChange={(event) => setDraft({ ...draft, role: event.target.value as Role })}
               >
-                <option value="greeter">Greeter</option>
-                <option value="owner">Owner</option>
+                <option value="greeter">{t.login.greeterRole}</option>
+                <option value="owner">{t.login.ownerRole}</option>
               </select>
             </div>
             <div>
-              <label className="label" htmlFor="staff-pin">4–8 digit PIN</label>
+              <label className="label" htmlFor="staff-pin">{t.owner.clearPin}</label>
               <input
                 id="staff-pin"
                 className="input num tracking-[0.25em]"
@@ -202,10 +198,10 @@ export function TeamManager({ staff }: { staff: StaffRow[] }) {
 
           <div className="flex gap-2 pt-1">
             <button type="button" className="btn btn-ghost flex-1" onClick={() => setAddOpen(false)}>
-              Cancel
+              {t.common.cancel}
             </button>
             <button type="submit" className="btn btn-primary flex-1" disabled={pending}>
-              {pending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />} Add member
+              {pending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />} {t.owner.addMemberBtn}
             </button>
           </div>
         </form>
@@ -214,8 +210,8 @@ export function TeamManager({ staff }: { staff: StaffRow[] }) {
       <Modal
         open={Boolean(resetting)}
         onClose={() => setResetting(null)}
-        title={resetting ? `Reset ${resetting.name}'s PIN` : "Reset PIN"}
-        description="The old PIN stops working immediately. Share the new one in person."
+        title={resetting ? format(t.owner.resetTitle, { name: resetting.name }) : t.owner.resetPin}
+        description={t.owner.resetDesc}
       >
         {resetting && (
           <form
@@ -232,7 +228,7 @@ export function TeamManager({ staff }: { staff: StaffRow[] }) {
             className="space-y-4"
           >
             <div>
-              <label className="label" htmlFor="new-pin">New PIN</label>
+              <label className="label" htmlFor="new-pin">{t.owner.newPin}</label>
               <input
                 id="new-pin"
                 className="input num tracking-[0.3em]"
@@ -248,10 +244,10 @@ export function TeamManager({ staff }: { staff: StaffRow[] }) {
             </div>
             <div className="flex gap-2">
               <button type="button" className="btn btn-ghost flex-1" onClick={() => setResetting(null)}>
-                Cancel
+                {t.common.cancel}
               </button>
               <button type="submit" className="btn btn-primary flex-1" disabled={pending}>
-                {pending ? <Loader2 className="size-4 animate-spin" /> : <KeyRound className="size-4" />} Save PIN
+                {pending ? <Loader2 className="size-4 animate-spin" /> : <KeyRound className="size-4" />} {t.owner.savePin}
               </button>
             </div>
           </form>
@@ -268,20 +264,22 @@ function Stat({
   label,
   value,
   hint,
+  tone,
 }: {
   icon: typeof Users;
   label: string;
   value: number;
   hint?: string;
+  tone: string;
 }) {
   return (
-    <div className="card p-4">
+    <div className={`rounded-2xl border-2 border-ink p-4 shadow-[3px_3px_0_#262321] ${tone}`}>
       <div className="flex items-center justify-between">
-        <p className="text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-muted">{label}</p>
-        <Icon className="size-4 text-clay" />
+        <p className="text-[0.625rem] font-extrabold uppercase tracking-[0.12em] text-ink/55">{label}</p>
+        <Icon className="size-4 text-ink/70" />
       </div>
-      <p className="stat-number mt-2 text-4xl">{value}</p>
-      {hint && <p className="mt-1 text-[0.6875rem] text-muted">{hint}</p>}
+      <p className="stat-number mt-2 text-[2.6rem]">{value}</p>
+      {hint && <p className="mt-1 text-[0.6875rem] font-semibold text-ink/55">{hint}</p>}
     </div>
   );
 }

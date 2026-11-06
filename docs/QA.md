@@ -12,13 +12,31 @@ Last run: **6 Nov 2026** — lint clean, 21/21 tests passing, production build g
 
 ### Deployment verification
 
-- [x] Vercel project `antriq-s8vk` deployed from `CASANMGT/antriq`
+- [x] Vercel project `antriq1` deployed from `CASANMGT/antriq`
 - [x] Neon Postgres (Singapore, free plan) connected via `DATABASE_URL`
-- [x] `AUTH_SECRET`, `NEXT_PUBLIC_APP_URL` and `DEMO_MODE=1` set in Production
+- [x] `AUTH_SECRET`, `NEXT_PUBLIC_APP_URL=https://antriq1.vercel.app`, `DEMO_MODE=1`
 - [x] `GET /api/health` → `200 {"ok":true,"service":"antriq"}`
 - [x] Live guest join → owner call → seat → clear flow
 - [x] Live ticket states (waiting, called, seated, completed)
 - [x] Demo floor reseeded after the smoke test
+
+### v1.1 visual & language checks
+
+- [x] Fredoka + Plus Jakarta Sans load on guest, host, dashboard and login
+- [x] Tomato/butter/ink/pink/leaf tokens applied instead of the old serif/clay theme
+- [x] Toast mascot renders on guest, ticket, login, empty queue and QR poster
+- [x] Sticker outlines + offset shadows on cards, buttons and inputs
+- [x] Guest page: no ETA, no hold timer, no “we hold for X minutes”
+- [x] Ticket: no ETA, no countdown; waiting/called/seated/completed states clear
+- [x] Host: queue positions, counts and actions; no wait/hold timers
+- [x] Owner: queue-first KPIs; no average-wait KPI; reports use counts
+- [x] Settings: no hold/avg-turn fields
+- [x] QR poster: no hold time; text does not collide with mascot
+- [x] ID default on a fresh browser; `EN` toggle updates server and client text
+- [x] Switching back to `ID` restores Indonesian without a reload loop
+- [x] 430px mobile: no horizontal overflow; host tabs + owner link fit
+- [x] 1440px: three-column host, cream dashboard sidebar, poster layout
+- [x] Demo called guest stays at the door; floor resets on a new service day
 
 ### Domain suite (`tests/queue.test.ts`)
 

@@ -1,16 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Fraunces } from "next/font/google";
+import { Fredoka, Plus_Jakarta_Sans } from "next/font/google";
+import { LanguageProvider } from "@/components/LanguageProvider";
+import { getLang } from "@/lib/lang";
 import "./globals.css";
 
-const sans = DM_Sans({
+const display = Fredoka({
   subsets: ["latin"],
-  variable: "--font-dm-sans",
+  variable: "--font-fredoka",
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
-const display = Fraunces({
+const sans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-fraunces",
+  variable: "--font-jakarta",
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -19,16 +23,16 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
   title: {
-    default: "AntriQ — fewer waits, better tables",
+    default: "AntriQ — Antrean restoran, lebih praktis",
     template: "%s · AntriQ",
   },
   description:
-    "A calm restaurant waitlist for guests, hosts and owners. Join from your phone, seat the right party, and see the whole floor at a glance.",
+    "Antrean restoran yang jelas dan menyenangkan. Tamu memantau giliran dari ponsel, host mengatur meja, pemilik melihat layanan.",
   applicationName: "AntriQ",
   openGraph: {
-    title: "AntriQ — fewer waits, better tables",
+    title: "AntriQ — Antrean restoran, lebih praktis",
     description:
-      "A calm restaurant waitlist for guests, hosts and owners. Join from your phone, seat the right party, and see the whole floor at a glance.",
+      "Antrean restoran yang jelas dan menyenangkan. Tamu memantau giliran dari ponsel, host mengatur meja, pemilik melihat layanan.",
     type: "website",
     url: appUrl,
     images: [
@@ -36,14 +40,14 @@ export const metadata: Metadata = {
         url: "/og.jpg",
         width: 1440,
         height: 1000,
-        alt: "AntriQ guest page for Sage & Ember",
+        alt: "AntriQ — antrean restoran yang lebih praktis",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "AntriQ — fewer waits, better tables",
-    description: "Restaurant waitlist, table flow and floor analytics in one calm place.",
+    title: "AntriQ — Antrean restoran, lebih praktis",
+    description: "Antrean restoran yang jelas dan menyenangkan.",
     images: ["/og.jpg"],
   },
   appleWebApp: {
@@ -54,17 +58,20 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#FBF6ED",
+  themeColor: "#FFF1CA",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const lang = await getLang();
   return (
-    <html lang="en" className={`${sans.variable} ${display.variable}`}>
-      <body className="min-h-[100dvh] bg-paper font-sans text-ink antialiased">{children}</body>
+    <html lang={lang} className={`${sans.variable} ${display.variable}`}>
+      <body className="min-h-[100dvh] bg-paper font-sans text-ink antialiased">
+        <LanguageProvider initialLang={lang}>{children}</LanguageProvider>
+      </body>
     </html>
   );
 }

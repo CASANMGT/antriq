@@ -1,14 +1,16 @@
-# AntriQ — Product Requirements Document (v1.0)
+# AntriQ — Product Requirements Document (v1.1)
 
 | | |
 | --- | --- |
-| **Product** | AntriQ — restaurant waitlist, table flow and floor insight |
-| **Version** | 1.0 (MVP shipped) |
-| **Date** | 6 November 2026 |
+| **Product** | AntriQ — restaurant queue, table flow and floor insight |
+| **Version** | 1.1 (brand + queue-first release) |
+| **Date** | 7 November 2026 |
 | **Owner** | Product / Engineering |
 | **Status** | Released (v0.1.0) |
 | **Reference study** | WaitHub (`web.waithub.id`), F&B vertical — see [REVERSE_ENGINEERING.md](REVERSE_ENGINEERING.md) |
-| **Scope** | One restaurant, one location, walk-in waitlist (no advance reservations in v1) |
+| **Scope** | One restaurant, one location, walk-in queue (no advance reservations in v1) |
+
+> **v1.1 amendment — 7 November 2026.** AntriQ now ships with the Nikumaru & Tenka demo, a full Fredoka/tomato/butter/pink visual system, **Indonesian as the default language with an English toggle**, and a **queue-first guest experience**. Guests no longer see wait-time estimates or hold countdowns; the queue number, position, parties ahead and the called code are the product. The hold engine and ETA maths remain internal (auto no-show / analytics) but are not surfaced. Sections below that describe ETA/hold in the UI are superseded by §21.
 
 ---
 
@@ -63,7 +65,7 @@ Indonesian F&B operators increasingly use queue products (WaitHub, Antrian.onlin
 
 | Goal | Measure |
 | --- | --- |
-| Reduce guest uncertainty | A guest can state their position and ETA at any moment without asking staff |
+| Reduce guest uncertainty | A guest can state their queue position, parties ahead and the code being called without asking staff |
 | Make the line fair | Parties are called in arrival order unless a party cannot physically fit a free table |
 | Protect turns | Called guests get a clear hold window; expired holds release the table |
 | Make the floor legible | A greeter can see waiting, at-door, seated and table state in one scan |
@@ -89,7 +91,7 @@ Indonesian F&B operators increasingly use queue products (WaitHub, Antrian.onlin
 - 28–45, arrives with 2–6 people, often on a Friday or weekend.
 - Has a phone, low patience for uncertainty, may be with family or on a date.
 - Wants to know: *how long, where am I, will I lose my table if I step out?*
-- Success: joins in under 30 seconds; sees a credible ETA; gets a clear call; is seated without repeating her name.
+- Success: joins in under 30 seconds; sees a clear queue position and call; is seated without repeating her name.
 
 ### 4.2 Ayu — the greeter
 
@@ -135,7 +137,7 @@ Indonesian F&B operators increasingly use queue products (WaitHub, Antrian.onlin
 
 - Single restaurant profile and hours.
 - Walk-in waitlist with party size, name, optional phone/note.
-- Live guest ticket: position, ETA, now-serving, hold countdown, acknowledge, cancel.
+- Live guest ticket: position, parties ahead, now-serving, called state, acknowledge, cancel — no time estimate or hold countdown.
 - Greeter board: call next, call specific, seat, extend, no-show, undo, walk-in, table lifecycle, pause/close, search.
 - Table inventory: label, capacity, zone, available/seated/dirty/blocked.
 - Owner dashboard: live KPIs, hourly pulse, floor map, queue, activity, 7/30/90-day reports, CSV.
@@ -218,12 +220,13 @@ See §3.2. Adjacent items are tracked in [ROADMAP.md](../ROADMAP.md).
 | G-06 | Respect queue capacity | Joining rejected when waiting ≥ `max_queue_size` |
 | G-07 | Allocate a daily code | `A-001`, `A-002`… resets at midnight in restaurant timezone |
 | G-08 | Issue a capability ticket | 18 random bytes, URL-safe; `/t/<token>` only way to read the ticket |
-| G-09 | Live position/ETA | Polling ≤4s; position = index in FIFO waiting queue; ETA follows §10 |
-| G-10 | Called state | Hold countdown, directions, “I’m on my way” once, release |
+| G-09 | Live position | Polling ≤4s; position = index in FIFO waiting queue; show parties ahead |
+| G-10 | Called state | “Meja siap!” with directions, “Saya menuju host” once, release — no countdown |
 | G-11 | Final states | Seated, completed, no-show, cancelled all render a clear end state |
 | G-12 | Cancel | Only waiting/called; releases place immediately; idempotent failure message |
 | G-13 | Keep my ticket | Store token locally; show “open ticket” banner on the guest page |
-| G-14 | Reduce uncertainty | ETA never displayed below 2 min or above 180 min |
+| G-14 | Queue-first | No wait-time estimate or hold timer is shown to guests; queue position and call status only |
+| G-15 | Language | Indonesian is the default; English is available via a persistent toggle |
 | G-15 | Privacy | Ticket URL is unguessable; no diner account; no public name list |
 
 ### 9.2 Greeter requirements
@@ -304,7 +307,9 @@ return "no-fit" (host must clear a larger table)
 
 Calling does not reserve the suggested table in v1; the greeter seats within the hold. This avoids blocking a table if the guest disappears. The suggested table is shown in the call activity and the seat modal.
 
-### 10.3 ETA
+### 10.3 ETA maths (internal only)
+
+> **v1.1:** this calculation remains available to the API and analytics for future work, but it is **not displayed** to guests or hosts. Queue position is the guest-facing signal.
 
 ```text
 perParty = clamp(avgTurnMinutes / tableCount, 4, 20)
@@ -455,7 +460,7 @@ See [`lib/schema.ts`](../lib/schema.ts) for the full DDL.
 
 ### Localization
 
-- v1 UI is English. Copy is centralized enough to extract. Indonesian and Chinese are on the roadmap.
+- v1.1 UI is **Indonesian by default**, with an English toggle. Copy lives in `lib/i18n.ts` and is ready for more languages.
 - All timestamps are restaurant-timezone aware.
 - `Intl` used for dates; no hard-coded UTC assumptions.
 
@@ -538,9 +543,9 @@ A free 14-day trial with the demo restaurant. No per-ticket fees. The reference 
 3. WhatsApp template messages: which provider (Meta Cloud API vs local gateway)?
 4. Is a printed QR at the table better than at the door for reorders? (v2 experiment.)
 5. Should no-show auto-mark be off by default for fine dining?
-6. Multi-language: Indonesian first or bilingual EN/ID?
+6. ~~Multi-language: Indonesian first or bilingual EN/ID?~~ Resolved in v1.1: Indonesian default, English toggle.
 
-## 20. Launch checklist
+## 20. Launch checklist (v1.0 → v1.1)
 
 - [x] PRD and architecture docs
 - [x] Guest join → ticket → call → seat → complete
@@ -554,6 +559,33 @@ A free 14-day trial with the demo restaurant. No per-ticket fees. The reference 
 - [x] QR poster
 - [x] Responsive layouts and reduced motion
 - [x] Live Postgres URL connected in Vercel (Neon, Singapore)
-- [x] Production deploy verified with `/api/health` — https://antriq-s8vk.vercel.app
+- [x] Production deploy verified with `/api/health` — https://antriq1.vercel.app
+- [x] v1.1 brand foundation, mascot, queue-first screens
+- [x] Indonesian default + English toggle
 - [ ] Real restaurant pilot (2 weeks, one shift/day)
 - [ ] Metric baseline captured before pricing conversations
+
+## 21. v1.1 — brand & queue-first amendment
+
+**Restaurant:** Nikumaru & Tenka (fictional ramen & izakaya, Senopati). One location, 14 tables, 3 staff.
+
+**Language:** Indonesian is the default. English is available through a persistent cookie-backed toggle. All guest, ticket, host, owner, reports, tables, team, settings, QR, 404 and error surfaces are translated.
+
+**Queue-first rule:** the guest sees:
+
+- queue code (`A-024`)
+- position (`#4 dari 6 rombongan`)
+- parties ahead
+- now-serving code
+- tables open
+- called / seated / completed / no-show / cancelled state
+
+The guest does **not** see an ETA, a hold countdown, a “time left” meter, or a “we hold for X minutes” promise. `hold_expires_at` remains in the database for auto no-show, and `eta_minutes` remains in the ticket API for future use, but neither is rendered.
+
+**Host rule:** waiting cards show queue positions, not wait duration. Called cards show name, party and actions (`Dudukkan`, `Tidak hadir`, `Batalkan panggilan`) without a timer. Stats are counts: waiting, called, seated, tables open, seated today, no-shows.
+
+**Owner rule:** queue-focused KPIs (waiting, called, seated today, tables open); service pulse and reports use joined/seated/no-show/cancel counts. Average wait and average turn are no longer shown as headline KPIs. Settings no longer expose hold duration or average turn; the operational values are retained internally.
+
+**Visual system:** Fredoka + Plus Jakarta Sans; tomato `#F24B3F`, butter `#FFF1CA`, ink `#262321`, soft pink `#FFD6DF`, leaf `#2E7D4F`; 2px outlines, sticker shadows, brush accents, toast mascot, paper backgrounds.
+
+**Demo:** seeded floor with a called guest that stays at the door for demonstration; the floor resets on the first request of each new service day. Production URL: https://antriq1.vercel.app.

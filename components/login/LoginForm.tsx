@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { AlertCircle, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 import { loginAction, type LoginState } from "@/app/login/actions";
+import { useLang } from "@/components/LanguageProvider";
 import type { PublicStaff } from "@/lib/types";
 
 export function LoginForm({
@@ -14,6 +15,7 @@ export function LoginForm({
   next: string;
   demo: boolean;
 }) {
+  const { t } = useLang();
   const [state, formAction, pending] = useActionState<LoginState, FormData>(loginAction, {});
   const [staffId, setStaffId] = useState<string>(staff[0] ? String(staff[0].id) : "");
   const [pin, setPin] = useState("");
@@ -22,6 +24,16 @@ export function LoginForm({
   const selected = staff.find((person) => String(person.id) === staffId);
   const owner = staff.find((person) => person.role === "owner");
   const greeter = staff.find((person) => person.role === "greeter");
+  const error =
+    state.code === "choose"
+      ? t.login.chooseName
+      : state.code === "pin"
+        ? t.login.badPin
+        : state.code === "throttle"
+          ? t.login.tooMany
+          : state.code === "wrong"
+            ? t.login.wrongPin
+            : state.error;
 
   function quickFill(person: PublicStaff | undefined, demoPin: string) {
     if (!person) return;
@@ -38,7 +50,7 @@ export function LoginForm({
 
         <div>
           <label className="label" htmlFor="staff">
-            Who&apos;s on shift?
+            {t.login.staffOnShift}
           </label>
           <select
             id="staff"
@@ -49,20 +61,18 @@ export function LoginForm({
           >
             {staff.map((person) => (
               <option key={person.id} value={person.id}>
-                {person.name} — {person.role === "owner" ? "Owner" : "Greeter"}
+                {person.name} — {person.role === "owner" ? t.login.ownerRole : t.login.greeterRole}
               </option>
             ))}
           </select>
-          <p className="mt-1.5 text-xs text-muted">
-            {selected?.role === "owner"
-              ? "Owner access includes the floor and the dashboard."
-              : "Greeter access opens the live host stand."}
+          <p className="mt-1.5 text-xs font-semibold text-muted">
+            {selected?.role === "owner" ? t.login.ownerDesc : t.login.greeterDesc}
           </p>
         </div>
 
         <div>
           <label className="label" htmlFor="pin">
-            Staff PIN
+            {t.login.pin}
           </label>
           <input
             id="pin"
@@ -81,41 +91,40 @@ export function LoginForm({
             }}
             required
           />
+          <p className="mt-1.5 text-[0.6875rem] font-semibold text-muted">{t.login.pinHint}</p>
         </div>
 
-        {state.error && (
+        {error && (
           <div
             role="alert"
-            className="flex items-start gap-2 rounded-xl border border-clay/25 bg-clay-soft px-3 py-2.5 text-sm font-medium text-clay-dark"
+            className="flex items-start gap-2 rounded-xl border-2 border-ink bg-pink px-3 py-2.5 text-sm font-semibold text-tomato-dark"
           >
             <AlertCircle className="mt-0.5 size-4 shrink-0" />
-            {state.error}
+            {error}
           </div>
         )}
 
         <button type="submit" className="btn btn-primary btn-lg w-full" disabled={pending}>
           {pending ? (
             <>
-              <Loader2 className="size-4 animate-spin" /> Signing in…
+              <Loader2 className="size-4 animate-spin" /> {t.login.submitting}
             </>
           ) : (
             <>
-              Open the floor <ArrowRight className="size-4" />
+              {t.login.submit} <ArrowRight className="size-4" />
             </>
           )}
         </button>
 
-        <p className="flex items-center justify-center gap-1.5 text-center text-[0.6875rem] text-muted">
-          <ShieldCheck className="size-3.5" /> Staff-only. Sessions expire after 12 hours.
+        <p className="flex items-center justify-center gap-1.5 text-center text-[0.6875rem] font-semibold text-muted">
+          <ShieldCheck className="size-3.5" /> {t.login.sessionNote}
         </p>
       </form>
 
       {demo && (owner || greeter) && (
-        <div className="mt-6 rounded-2xl border border-line bg-white/60 p-4">
-          <p className="eyebrow text-muted">Demo access</p>
-          <p className="mt-1 text-xs leading-relaxed text-muted">
-            This is a seeded demo restaurant. Use a shortcut, or type the PIN shown.
-          </p>
+        <div className="mt-6 rounded-2xl border-2 border-ink bg-cream p-4 shadow-[3px_3px_0_#262321]">
+          <p className="eyebrow text-tomato">{t.login.demoAccess}</p>
+          <p className="mt-1 text-xs font-semibold leading-relaxed text-ink/65">{t.login.demoHint}</p>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {owner && (
               <button
@@ -123,8 +132,8 @@ export function LoginForm({
                 onClick={() => quickFill(owner, "2468")}
                 className="btn btn-soft btn-sm justify-between text-left"
               >
-                <span>{owner.name.split(" ")[0]} · Owner</span>
-                <span className="num font-bold">2468</span>
+                <span className="truncate">{owner.name.split(" ")[0]} · {t.login.ownerDemo}</span>
+                <span className="num font-extrabold">2468</span>
               </button>
             )}
             {greeter && (
@@ -133,14 +142,14 @@ export function LoginForm({
                 onClick={() => quickFill(greeter, "1357")}
                 className="btn btn-soft btn-sm justify-between text-left"
               >
-                <span>{greeter.name.split(" ")[0]} · Host</span>
-                <span className="num font-bold">1357</span>
+                <span className="truncate">{greeter.name.split(" ")[0]} · {t.login.hostDemo}</span>
+                <span className="num font-extrabold">1357</span>
               </button>
             )}
           </div>
           {touched && (
-            <p className="mt-2.5 text-[0.6875rem] text-muted">
-              Filled the PIN — press <span className="font-bold text-ink">Open the floor</span>.
+            <p className="mt-2.5 text-[0.6875rem] font-semibold text-muted">
+              {t.login.filledPin}
             </p>
           )}
         </div>

@@ -5,7 +5,7 @@ import { listStaff } from "@/lib/store";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Team",
+  title: "Tim",
   robots: { index: false, follow: false },
 };
 

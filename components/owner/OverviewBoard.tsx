@@ -8,8 +8,8 @@ import {
   BellRing,
   CheckCircle2,
   CircleDot,
-  Clock3,
   DoorOpen,
+  LayoutGrid,
   PauseCircle,
   Settings2,
   Sparkles,
@@ -20,11 +20,18 @@ import {
   XCircle,
 } from "lucide-react";
 import { HourlyBars, WeekBars } from "@/components/owner/charts";
-import { dayInTz, formatDayLong, humanizeMinutes, relativeTime } from "@/lib/time";
+import { Mascot } from "@/components/Mascot";
+import { useLang } from "@/components/LanguageProvider";
+import { dayInTz, formatDayLong, relativeTime } from "@/lib/time";
+import { format } from "@/lib/i18n";
+import { zoneLabel } from "@/lib/labels";
 import type { ActivityItem, OwnerOverview } from "@/lib/types";
+
+type ActivityKey = keyof ReturnType<typeof useLang>["t"]["owner"]["overviewActivity"];
 
 export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
   const router = useRouter();
+  const { lang, t } = useLang();
   const [data, setData] = useState(initial);
 
   useEffect(() => {
@@ -46,7 +53,8 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
 
   const { restaurant, stats, today, week, hourly, activity, tables, waiting } = data;
   const status = restaurant.waitlistStatus;
-  const todayLabel = formatDayLong(dayInTz(new Date(), restaurant.timezone));
+  const locale = lang === "id" ? "id-ID" : "en-GB";
+  const todayLabel = formatDayLong(dayInTz(new Date(), restaurant.timezone), locale);
   const peak = [...hourly].sort((a, b) => b.joined - a.joined)[0];
   const weekTotals = week.reduce(
     (sum, day) => ({
@@ -61,53 +69,69 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="eyebrow text-clay">Owner dashboard</p>
-          <h1 className="mt-1 font-display text-[2.3rem] leading-none tracking-tight sm:text-[2.6rem]">
-            Service overview
+          <p className="eyebrow text-tomato">{t.owner.overviewKicker}</p>
+          <h1 className="mt-1 font-display text-[2.5rem] font-semibold leading-none tracking-tight sm:text-[2.8rem]">
+            {t.owner.overviewTitle}
           </h1>
-          <p className="mt-2 text-sm text-muted">
-            {todayLabel} · {restaurant.openTime}–{restaurant.closeTime} · updates every 8 seconds
+          <p className="mt-2 text-sm font-semibold text-muted">
+            {format(t.owner.overviewSub, {
+              date: todayLabel,
+              open: restaurant.openTime,
+              close: restaurant.closeTime,
+            })}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`pill ${status === "open" ? "status-seated" : status === "paused" ? "status-waiting" : "status-muted"}`}>
+          <span
+            className={`pill ${
+              status === "open" ? "status-seated" : status === "paused" ? "status-waiting" : "status-muted"
+            }`}
+          >
             {status === "open" && <span className="live-dot" />}
-            Waitlist {status}
+            {status === "open"
+              ? t.owner.waitlistOpen
+              : status === "paused"
+                ? t.owner.waitlistPaused
+                : t.owner.waitlistClosed}
           </span>
           <Link href="/host" className="btn btn-primary btn-sm">
-            <DoorOpen className="size-3.5" /> Open host stand
+            <DoorOpen className="size-3.5" /> {t.owner.openHost}
           </Link>
         </div>
       </header>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi
-          label="Waiting now"
+          label={t.owner.waitingNow}
           value={stats.waiting}
-          hint={`${stats.called} at the door · ${stats.longestWaitMinutes ? `longest ${stats.longestWaitMinutes}m` : "line clear"}`}
+          hint={format(t.owner.waitingHint, { called: stats.called })}
           icon={Users}
-          tone="gold"
+          tone="pink"
         />
         <Kpi
-          label="Average wait"
-          value={`${today.avgWaitMinutes || 0}m`}
-          hint={`${today.completed} visits completed today`}
-          icon={Clock3}
-          tone="clay"
+          label={t.owner.calledNow}
+          value={stats.called}
+          hint={format(t.owner.calledHint, { count: stats.called })}
+          icon={BellRing}
+          tone="butter"
         />
         <Kpi
-          label="Seated today"
+          label={t.owner.seatedToday}
           value={stats.seatedToday}
-          hint={`${stats.joinedToday} joined · ${stats.seated} at tables now`}
+          hint={format(t.owner.seatedHint, { joined: stats.joinedToday, seated: stats.seated })}
           icon={UtensilsCrossed}
-          tone="sage"
+          tone="leaf"
         />
         <Kpi
-          label="No-show rate"
-          value={`${today.noShowRate}%`}
-          hint={`${stats.noShowToday} no-shows · hold ${restaurant.holdMinutes}m`}
-          icon={UserX}
-          tone="ink"
+          label={t.host.tablesFreeLabel}
+          value={`${stats.availableTables}/${stats.totalTables}`}
+          hint={format(t.owner.floorSummary, {
+            free: stats.availableTables,
+            seated: stats.seated,
+            dirty: stats.dirtyTables,
+          })}
+          icon={LayoutGrid}
+          tone="white"
         />
       </div>
 
@@ -115,29 +139,29 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
         <section className="card p-4 sm:p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 className="font-display text-xl leading-tight">Service pulse</h2>
-              <p className="mt-0.5 text-xs text-muted">Guests joining vs parties seated, by hour</p>
+              <h2 className="font-display text-[1.5rem] font-semibold leading-tight">{t.owner.servicePulse}</h2>
+              <p className="mt-0.5 text-xs font-semibold text-muted">{t.owner.servicePulseSub}</p>
             </div>
-            <div className="flex items-center gap-3 text-[0.6875rem] text-muted">
-              <span>Peak {String(peak?.hour ?? 0).padStart(2, "0")}:00</span>
-              <span className="rounded-full border border-line px-2 py-1 font-semibold">Today</span>
+            <div className="flex items-center gap-3 text-[0.6875rem] font-bold text-muted">
+              <span>{format(t.owner.peak, { hour: String(peak?.hour ?? 0).padStart(2, "0") })}</span>
+              <span className="rounded-full border-2 border-ink bg-butter px-2 py-1">{t.owner.today}</span>
             </div>
           </div>
           <div className="mt-5">
             <HourlyBars points={hourly} />
           </div>
-          <div className="mt-4 grid grid-cols-3 divide-x divide-line border-t border-line pt-3 text-center">
+          <div className="mt-4 grid grid-cols-3 divide-x-2 divide-ink/10 border-t-2 border-dashed border-ink/15 pt-3 text-center">
             <div>
-              <p className="num text-lg font-extrabold">{stats.joinedToday}</p>
-              <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted">joined</p>
+              <p className="num font-display text-xl font-semibold">{stats.joinedToday}</p>
+              <p className="text-[0.625rem] font-extrabold uppercase tracking-[0.12em] text-muted">{t.owner.joined}</p>
             </div>
             <div>
-              <p className="num text-lg font-extrabold">{stats.seatedToday}</p>
-              <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted">seated</p>
+              <p className="num font-display text-xl font-semibold">{stats.seatedToday}</p>
+              <p className="text-[0.625rem] font-extrabold uppercase tracking-[0.12em] text-muted">{t.owner.seated}</p>
             </div>
             <div>
-              <p className="num text-lg font-extrabold">{today.walkIns}</p>
-              <p className="text-[0.625rem] uppercase tracking-[0.12em] text-muted">walk-ins</p>
+              <p className="num font-display text-xl font-semibold">{today.walkIns}</p>
+              <p className="text-[0.625rem] font-extrabold uppercase tracking-[0.12em] text-muted">{t.owner.walkIns}</p>
             </div>
           </div>
         </section>
@@ -145,12 +169,16 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
         <section className="card p-4 sm:p-5">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <h2 className="font-display text-xl leading-tight">Floor right now</h2>
-              <p className="mt-0.5 text-xs text-muted">
-                {stats.availableTables} open · {stats.seated} seated · {stats.dirtyTables} to reset
+              <h2 className="font-display text-[1.5rem] font-semibold leading-tight">{t.owner.floorNow}</h2>
+              <p className="mt-0.5 text-xs font-semibold text-muted">
+                {format(t.owner.floorSummary, {
+                  free: stats.availableTables,
+                  seated: stats.seated,
+                  dirty: stats.dirtyTables,
+                })}
               </p>
             </div>
-            <Link href="/host" className="btn btn-ghost btn-icon" aria-label="Open host stand">
+            <Link href="/host" className="btn btn-ghost btn-icon" aria-label={t.owner.openHost}>
               <ArrowUpRight className="size-4" />
             </Link>
           </div>
@@ -160,28 +188,30 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
               const zoneTables = tables.filter((table) => table.zone === zone);
               return (
                 <div key={zone}>
-                  <p className="mb-1 text-[0.5625rem] font-bold uppercase tracking-[0.14em] text-muted-soft">
-                    {zone}
+                  <p className="mb-1 text-[0.5625rem] font-extrabold uppercase tracking-[0.14em] text-ink/40">
+                    {zoneLabel(zone, lang)}
                   </p>
                   <div className="grid grid-cols-2 gap-1.5">
                     {zoneTables.map((table) => {
                       const color =
                         table.status === "available"
-                          ? "bg-sage"
+                          ? "bg-leaf"
                           : table.status === "seated"
-                            ? "bg-clay"
+                            ? "bg-tomato"
                             : table.status === "dirty"
                               ? "bg-gold"
                               : "bg-muted-soft";
                       return (
                         <div
                           key={table.id}
-                          className="flex items-center gap-2 rounded-lg border border-line bg-white px-2 py-1.5"
-                          title={`${table.zone} · seats ${table.capacity}`}
+                          className="flex items-center gap-2 rounded-lg border-2 border-ink/15 bg-white px-2 py-1.5"
+                          title={`${table.zone} · ${table.capacity} ${t.owner.seats}`}
                         >
                           <span className={`size-1.5 shrink-0 rounded-full ${color}`} />
-                          <span className="num text-[0.6875rem] font-bold">{table.label}</span>
-                          <span className="ml-auto text-[0.625rem] text-muted">{table.capacity}p</span>
+                          <span className="num text-[0.6875rem] font-extrabold">{table.label}</span>
+                          <span className="ml-auto text-[0.625rem] font-bold text-muted">
+                            {table.capacity} {t.common.paxShort}
+                          </span>
                         </div>
                       );
                     })}
@@ -191,11 +221,11 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
             })}
           </div>
 
-          <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 border-t border-line pt-3 text-[0.625rem] text-muted">
-            <Legend className="bg-sage" label="Open" />
-            <Legend className="bg-clay" label="Seated" />
-            <Legend className="bg-gold" label="Reset" />
-            <Legend className="bg-muted-soft" label="Blocked" />
+          <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 border-t-2 border-dashed border-ink/15 pt-3 text-[0.625rem] font-bold text-muted">
+            <Legend className="bg-leaf" label={t.owner.openLegend} />
+            <Legend className="bg-tomato" label={t.owner.seatedLegend} />
+            <Legend className="bg-gold" label={t.owner.resetLegend} />
+            <Legend className="bg-muted-soft" label={t.owner.blockedLegend} />
           </div>
         </section>
       </div>
@@ -204,36 +234,39 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
         <section className="card p-4 sm:p-5">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <h2 className="font-display text-xl leading-tight">In line right now</h2>
-              <p className="mt-0.5 text-xs text-muted">
-                {waiting.length} waiting · next call in order
+              <h2 className="font-display text-[1.5rem] font-semibold leading-tight">{t.owner.inLine}</h2>
+              <p className="mt-0.5 text-xs font-semibold text-muted">
+                {format(t.owner.inLineSub, { count: waiting.length })}
               </p>
             </div>
             <Link href="/host" className="btn btn-soft btn-sm">
-              Work the line <ArrowUpRight className="size-3.5" />
+              {t.owner.workLine} <ArrowUpRight className="size-3.5" />
             </Link>
           </div>
 
           <div className="mt-3">
             {waiting.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-line bg-cream/40 px-4 py-8 text-center">
-                <p className="font-display text-lg">Nobody waiting</p>
-                <p className="mt-1 text-xs text-muted">The host stand is clear. A good time to reset the floor.</p>
+              <div className="rounded-xl border-2 border-dashed border-ink/30 bg-cream/60 px-4 py-7 text-center">
+                <Mascot mood="calm" className="mx-auto w-24" />
+                <p className="mt-1 font-display text-lg">{t.owner.nobodyWaiting}</p>
+                <p className="mt-1 text-xs font-semibold text-muted">{t.owner.nobodyWaitingSub}</p>
               </div>
             ) : (
-              <div className="divide-y divide-line">
+              <div className="divide-y-2 divide-dashed divide-ink/10">
                 {waiting.slice(0, 6).map((entry, index) => (
                   <div key={entry.id} className="flex items-center gap-3 py-2.5">
-                    <span className="num w-5 text-xs font-bold text-muted-soft">{String(index + 1).padStart(2, "0")}</span>
+                    <span className="grid size-7 shrink-0 place-items-center rounded-full border-2 border-ink bg-cream font-display text-xs font-semibold">
+                      {index + 1}
+                    </span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold">{entry.guestName}</p>
-                      <p className="text-[0.6875rem] text-muted">
-                        {entry.code} · {entry.partySize} guests · waited {humanizeMinutes(entry.waitMinutes)}
+                      <p className="truncate text-sm font-extrabold">{entry.guestName}</p>
+                      <p className="text-[0.6875rem] font-semibold text-muted">
+                        {entry.code} · {entry.partySize} {t.guest.guestUnit}
                       </p>
                     </div>
-                    {index === 0 && <span className="pill status-waiting">Next</span>}
+                    {index === 0 && <span className="pill status-waiting">{t.owner.next}</span>}
                     {entry.notes && (
-                      <span className="hidden max-w-[9rem] truncate text-[0.625rem] text-muted sm:block" title={entry.notes}>
+                      <span className="hidden max-w-[9rem] truncate text-[0.625rem] font-medium text-muted sm:block" title={entry.notes}>
                         {entry.notes}
                       </span>
                     )}
@@ -247,25 +280,26 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
         <section className="card p-4 sm:p-5">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <h2 className="font-display text-xl leading-tight">Activity</h2>
-              <p className="mt-0.5 text-xs text-muted">The last few moves on the floor</p>
+              <h2 className="font-display text-[1.5rem] font-semibold leading-tight">{t.owner.activity}</h2>
+              <p className="mt-0.5 text-xs font-semibold text-muted">{t.owner.activitySub}</p>
             </div>
-            <span className="pill status-muted">Live</span>
+            <span className="pill status-muted">{t.owner.live}</span>
           </div>
 
           <div className="mt-3 max-h-[21rem] space-y-3 overflow-y-auto pr-1">
             {activity.length === 0 ? (
-              <p className="py-6 text-center text-xs text-muted">Quiet so far today.</p>
+              <p className="py-6 text-center text-xs font-semibold text-muted">{t.owner.quiet}</p>
             ) : (
               activity.map((item) => (
                 <div key={item.id} className="flex gap-2.5">
-                  <span className={`mt-0.5 grid size-7 shrink-0 place-items-center rounded-full ${activityTone(item.type)}`}>
+                  <span className={`mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border-2 border-ink ${activityTone(item.type)}`}>
                     {activityIcon(item.type)}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs leading-snug text-ink/85">{activityText(item)}</p>
-                    <p className="mt-0.5 text-[0.625rem] text-muted">
-                      {item.actor ?? "System"} · {relativeTime(item.createdAt)}
+                    <p className="text-xs font-semibold leading-snug text-ink/85">{activityText(item, t)}</p>
+                    <p className="mt-0.5 text-[0.625rem] font-semibold text-muted">
+                      {item.actor === "System" ? t.owner.system : item.actor === "Guest" ? t.owner.guest : item.actor ?? t.owner.system} ·{" "}
+                      {relativeTime(item.createdAt, new Date(), lang)}
                     </p>
                   </div>
                 </div>
@@ -279,13 +313,13 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
         <section className="card p-4 sm:p-5">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <h2 className="font-display text-xl leading-tight">Last 7 days</h2>
-              <p className="mt-0.5 text-xs text-muted">
-                {weekTotals.joined} joined · {weekTotals.seated} seated
+              <h2 className="font-display text-[1.5rem] font-semibold leading-tight">{t.owner.last7}</h2>
+              <p className="mt-0.5 text-xs font-semibold text-muted">
+                {format(t.owner.last7Summary, { joined: weekTotals.joined, seated: weekTotals.seated })}
               </p>
             </div>
             <Link href="/dashboard/reports" className="btn btn-ghost btn-sm">
-              Full reports <ArrowUpRight className="size-3.5" />
+              {t.owner.fullReports} <ArrowUpRight className="size-3.5" />
             </Link>
           </div>
           <div className="mt-4">
@@ -294,14 +328,13 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
         </section>
 
         <section className="card p-4 sm:p-5">
-          <h2 className="font-display text-xl leading-tight">Today&apos;s pacing</h2>
+          <h2 className="font-display text-[1.5rem] font-semibold leading-tight">{t.owner.pacing}</h2>
           <div className="mt-3 space-y-2.5">
-            <Pacing label="Average turn" value={humanizeMinutes(today.avgTurnMinutes)} />
-            <Pacing label="Floor occupancy" value={`${today.utilization}%`} />
-            <Pacing label="Walk-ins" value={`${today.walkIns} of ${stats.joinedToday}`} />
-            <Pacing label="Remote joins" value={String(today.remote)} />
-            <Pacing label="Cancelled" value={String(today.cancelled)} />
-            <Pacing label="No-shows" value={String(stats.noShowToday)} />
+            <Pacing label={t.owner.noShows} value={String(stats.noShowToday)} />
+            <Pacing label={t.owner.floorOccupancy} value={`${today.utilization}%`} />
+            <Pacing label={t.owner.walkInsPacing} value={`${today.walkIns} / ${stats.joinedToday}`} />
+            <Pacing label={t.owner.remoteJoins} value={String(today.remote)} />
+            <Pacing label={t.owner.cancelled} value={String(today.cancelled)} />
           </div>
         </section>
       </div>
@@ -320,35 +353,34 @@ function Kpi({
   value: string | number;
   hint: string;
   icon: typeof Users;
-  tone: "clay" | "sage" | "gold" | "ink";
+  tone: "pink" | "butter" | "leaf" | "white";
 }) {
   const tones = {
-    clay: { bar: "bg-clay", icon: "bg-clay-soft text-clay-dark" },
-    sage: { bar: "bg-sage", icon: "bg-sage-soft text-sage-dark" },
-    gold: { bar: "bg-gold", icon: "bg-gold-soft text-gold" },
-    ink: { bar: "bg-ink", icon: "bg-cream text-ink" },
+    pink: { bg: "bg-pink", icon: "bg-tomato text-white" },
+    butter: { bg: "bg-cream", icon: "bg-white text-ink" },
+    leaf: { bg: "bg-leaf-soft", icon: "bg-leaf text-white" },
+    white: { bg: "bg-white", icon: "bg-cream text-ink" },
   }[tone];
 
   return (
-    <div className="card relative overflow-hidden p-4">
-      <span className={`absolute inset-x-0 top-0 h-1 ${tones.bar}`} />
+    <div className={`rounded-2xl border-2 border-ink p-4 shadow-[3px_3px_0_#262321] ${tones.bg}`}>
       <div className="flex items-start justify-between gap-2">
-        <p className="text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-muted">{label}</p>
-        <span className={`grid size-7 place-items-center rounded-full ${tones.icon}`}>
+        <p className="text-[0.625rem] font-extrabold uppercase leading-tight tracking-[0.12em] text-ink/55">{label}</p>
+        <span className={`grid size-7 place-items-center rounded-full border-2 border-ink ${tones.icon}`}>
           <Icon className="size-3.5" />
         </span>
       </div>
-      <p className="stat-number mt-3 text-4xl">{value}</p>
-      <p className="mt-2 text-[0.6875rem] leading-relaxed text-muted">{hint}</p>
+      <p className="stat-number mt-3 text-[2.7rem]">{value}</p>
+      <p className="mt-2 text-[0.6875rem] font-semibold leading-relaxed text-ink/55">{hint}</p>
     </div>
   );
 }
 
 function Pacing({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between border-b border-line/70 pb-2 text-xs last:border-0 last:pb-0">
+    <div className="flex items-center justify-between border-b-2 border-dashed border-ink/10 pb-2 text-xs font-semibold last:border-0 last:pb-0">
       <span className="text-muted">{label}</span>
-      <span className="num font-bold">{value}</span>
+      <span className="num font-extrabold">{value}</span>
     </div>
   );
 }
@@ -362,11 +394,10 @@ function Legend({ className, label }: { className: string; label: string }) {
 }
 
 function activityTone(type: string): string {
-  if (type === "join" || type === "walkin") return "bg-gold-soft text-gold";
-  if (type === "call" || type === "extend" || type === "acknowledge") return "bg-clay-soft text-clay-dark";
-  if (type === "seat" || type === "acknowledge") return "bg-sage-soft text-sage-dark";
-  if (type === "complete" || type === "ready") return "bg-sage-soft text-sage-dark";
-  if (type === "no_show") return "bg-clay-soft text-clay-dark";
+  if (type === "join" || type === "walkin") return "bg-butter text-gold";
+  if (type === "call" || type === "extend" || type === "acknowledge") return "bg-pink text-tomato-dark";
+  if (type === "seat" || type === "complete" || type === "ready") return "bg-leaf-soft text-leaf-dark";
+  if (type === "no_show") return "bg-pink text-tomato-dark";
   if (type === "clear") return "bg-cream text-ink/70";
   return "bg-cream text-ink/60";
 }
@@ -375,7 +406,6 @@ function activityIcon(type: string) {
   const className = "size-3.5";
   switch (type) {
     case "join":
-      return <UserPlus className={className} />;
     case "walkin":
       return <UserPlus className={className} />;
     case "call":
@@ -389,7 +419,6 @@ function activityIcon(type: string) {
     case "cancel":
       return <XCircle className={className} />;
     case "clear":
-      return <Sparkles className={className} />;
     case "ready":
       return <Sparkles className={className} />;
     case "settings":
@@ -401,38 +430,13 @@ function activityIcon(type: string) {
   }
 }
 
-function activityText(item: ActivityItem): string {
-  const verb: Record<string, string> = {
-    join: "joined the waitlist",
-    walkin: "was added as a walk-in",
-    call: "was called",
-    seat: "was seated",
-    complete: "finished their visit",
-    no_show: "was marked as a no-show",
-    cancel: "cancelled their place",
-    clear: "table was cleared",
-    ready: "table is ready",
-    settings: "restaurant settings updated",
-    waitlist: "waitlist state changed",
-    acknowledge: "confirmed they're on the way",
-    extend: "hold was extended",
-    undo_call: "was returned to the line",
-    table_added: "table added",
-    table_updated: "table updated",
-    table_deleted: "table removed",
-    staff_added: "team member added",
-    staff_pin: "staff PIN reset",
-    staff_status: "team access changed",
-  };
-
-  const suffix = verb[item.type] ?? item.type.replace(/_/g, " ");
-  if (item.type === "call" && item.name) {
-    return `${item.code ? `${item.code} · ` : ""}${item.name} was called${item.tableLabel ? ` for ${item.tableLabel}` : ""}`;
-  }
+function activityText(item: ActivityItem, t: ReturnType<typeof useLang>["t"]): string {
+  const map = t.owner.overviewActivity;
+  const suffix = map[item.type as ActivityKey] ?? item.type.replace(/_/g, " ");
   if (item.name) {
-    const where = item.tableLabel ? ` at ${item.tableLabel}` : "";
+    const where = item.tableLabel ? ` · ${item.tableLabel}` : "";
     return `${item.code ? `${item.code} · ` : ""}${item.name} ${suffix}${where}`;
   }
   if (item.tableLabel) return `${item.tableLabel} ${suffix}`;
-  return suffix.charAt(0).toUpperCase() + suffix.slice(1);
+  return suffix;
 }

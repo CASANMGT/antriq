@@ -6,7 +6,10 @@ import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { Modal } from "@/components/Modal";
 import { Notice, type NoticeState } from "@/components/Notice";
 import { TablePill } from "@/components/Pills";
+import { useLang } from "@/components/LanguageProvider";
 import { postJson } from "@/lib/client-api";
+import { format } from "@/lib/i18n";
+import { zoneLabel } from "@/lib/labels";
 import type { DiningTable } from "@/lib/types";
 
 interface Draft {
@@ -19,6 +22,7 @@ const EMPTY: Draft = { label: "", capacity: 2, zone: "Main dining" };
 
 export function TablesManager({ tables }: { tables: DiningTable[] }) {
   const router = useRouter();
+  const { lang, t } = useLang();
   const [notice, setNotice] = useState<NoticeState | null>(null);
   const [pending, startTransition] = useTransition();
   const [createOpen, setCreateOpen] = useState(false);
@@ -60,10 +64,10 @@ export function TablesManager({ tables }: { tables: DiningTable[] }) {
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="eyebrow text-clay">Floor plan</p>
-          <h1 className="mt-1 font-display text-[2.3rem] leading-none tracking-tight">Tables</h1>
-          <p className="mt-2 text-sm text-muted">
-            {tables.length} tables · {totalSeats} seats · {available} open right now
+          <p className="eyebrow text-tomato">{t.owner.tablesKicker}</p>
+          <h1 className="mt-1 font-display text-[2.5rem] font-semibold leading-none tracking-tight">{t.owner.tablesTitle}</h1>
+          <p className="mt-2 text-sm font-semibold text-muted">
+            {format(t.owner.tablesSub, { tables: tables.length, seats: totalSeats, open: available })}
           </p>
         </div>
         <button
@@ -74,50 +78,51 @@ export function TablesManager({ tables }: { tables: DiningTable[] }) {
             setCreateOpen(true);
           }}
         >
-          <Plus className="size-3.5" /> Add table
+          <Plus className="size-3.5" /> {t.owner.addTable}
         </button>
       </header>
 
       <div className="space-y-5">
         {zones.map(([zone, zoneTables]) => (
           <section key={zone} className="card overflow-hidden">
-            <div className="flex items-center justify-between border-b border-line px-4 py-3 sm:px-5">
+            <div className="flex items-center justify-between border-b-2 border-ink bg-cream/70 px-4 py-3 sm:px-5">
               <div>
-                <h2 className="font-display text-xl leading-tight">{zone}</h2>
-                <p className="text-xs text-muted">
-                  {zoneTables.length} tables · {zoneTables.reduce((sum, table) => sum + table.capacity, 0)} seats
+                <h2 className="font-display text-[1.5rem] font-semibold leading-tight">{zoneLabel(zone, lang)}</h2>
+                <p className="text-xs font-semibold text-muted">
+                  {format(t.owner.tablesCount, { count: zoneTables.length })} ·{" "}
+                  {format(t.owner.seatsTotal, { count: zoneTables.reduce((sum, table) => sum + table.capacity, 0) })}
                 </p>
               </div>
               <span className="pill status-muted">
-                {zoneTables.filter((table) => table.status === "available").length} open
+                {format(t.owner.openCount, { count: zoneTables.filter((table) => table.status === "available").length })}
               </span>
             </div>
-            <div className="divide-y divide-line/70">
+            <div className="divide-y-2 divide-dashed divide-ink/10">
               {zoneTables.map((table) => (
                 <div key={table.id} className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-5">
-                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-ink text-sm font-extrabold text-paper">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl border-2 border-ink bg-ink font-display text-sm font-semibold text-paper">
                     {table.label}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold">
-                      {table.capacity} {table.capacity === 1 ? "seat" : "seats"}
+                    <p className="text-sm font-extrabold">
+                      {format(t.owner.seatsCount, { count: table.capacity })}
                     </p>
-                    <p className="text-xs text-muted">{table.zone}</p>
+                    <p className="text-xs font-semibold text-muted">{zoneLabel(table.zone, lang)}</p>
                   </div>
                   <TablePill status={table.status} />
                   <div className="flex gap-1">
                     <button
                       type="button"
                       className="btn btn-ghost btn-icon"
-                      aria-label={`Edit ${table.label}`}
+                      aria-label={format(t.owner.editTable, { label: table.label })}
                       onClick={() => setEditing(table)}
                     >
                       <Pencil className="size-3.5" />
                     </button>
                     <button
                       type="button"
-                      className="btn btn-ghost btn-icon text-muted hover:text-clay-dark"
-                      aria-label={`Delete ${table.label}`}
+                      className="btn btn-ghost btn-icon text-muted hover:text-tomato-dark"
+                      aria-label={`${t.common.delete} ${table.label}`}
                       onClick={() => setDeleting(table)}
                     >
                       <Trash2 className="size-3.5" />
@@ -130,23 +135,22 @@ export function TablesManager({ tables }: { tables: DiningTable[] }) {
         ))}
       </div>
 
-      <div className="rounded-2xl border border-dashed border-line bg-cream/40 p-4 text-xs leading-relaxed text-muted">
-        Tables are the physical seats your host can assign. Capacity is a hard limit: the board will never
-        seat a party larger than the table. Changes apply immediately at the host stand.
+      <div className="rounded-2xl border-2 border-dashed border-ink/30 bg-cream/50 p-4 text-xs font-semibold leading-relaxed text-muted">
+        {t.owner.tablesNote}
       </div>
 
       <Modal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        title="Add a table"
-        description="Use the name your team already says out loud — T9, Patio 2, Bar 1."
+        title={t.owner.addTableTitle}
+        description={t.owner.addTableDesc}
       >
         <TableForm
           draft={draft}
           setDraft={setDraft}
           zones={existingZones}
           pending={pending}
-          submitLabel="Add table"
+          submitLabel={t.owner.addTable}
           onSubmit={() =>
             run(
               () => postJson("/api/owner/action", { type: "tableCreate", ...draft }),
@@ -163,8 +167,8 @@ export function TablesManager({ tables }: { tables: DiningTable[] }) {
       <Modal
         open={Boolean(editing)}
         onClose={() => setEditing(null)}
-        title={editing ? `Edit ${editing.label}` : "Edit table"}
-        description="Changing capacity on a seated table is blocked if the party wouldn't fit."
+        title={editing ? format(t.owner.editTable, { label: editing.label }) : t.owner.tablesTitle}
+        description={t.owner.tablesNote}
       >
         {editing && (
           <TableForm
@@ -172,7 +176,7 @@ export function TablesManager({ tables }: { tables: DiningTable[] }) {
             setDraft={(next) => setEditing({ ...editing, ...next })}
             zones={existingZones}
             pending={pending}
-            submitLabel="Save changes"
+            submitLabel={t.owner.saveTable}
             onSubmit={() =>
               run(
                 () =>
@@ -194,12 +198,12 @@ export function TablesManager({ tables }: { tables: DiningTable[] }) {
       <Modal
         open={Boolean(deleting)}
         onClose={() => setDeleting(null)}
-        title="Remove this table?"
-        description="Removing a table is permanent. Seated tables must be cleared first."
+        title={t.owner.deleteTableTitle}
+        description={t.owner.deleteTableDesc}
         footer={
           <>
             <button type="button" className="btn btn-ghost" onClick={() => setDeleting(null)}>
-              Keep table
+              {t.owner.keepTable}
             </button>
             <button
               type="button"
@@ -211,14 +215,15 @@ export function TablesManager({ tables }: { tables: DiningTable[] }) {
                 if (table) run(() => postJson("/api/owner/action", { type: "tableDelete", id: table.id }));
               }}
             >
-              {pending ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />} Remove
+              {pending ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />} {t.owner.remove}
             </button>
           </>
         }
       >
         {deleting && (
-          <div className="rounded-xl border border-line bg-white px-4 py-3 text-sm">
-            <span className="font-bold">{deleting.label}</span> · {deleting.capacity} seats · {deleting.zone}
+          <div className="rounded-xl border-2 border-ink bg-cream px-4 py-3 text-sm font-semibold">
+            <span className="font-extrabold">{deleting.label}</span> · {format(t.owner.seatsCount, { count: deleting.capacity })} ·{" "}
+            {zoneLabel(deleting.zone, lang)}
           </div>
         )}
       </Modal>
@@ -245,6 +250,7 @@ function TableForm({
   onSubmit: () => void;
   onCancel: () => void;
 }) {
+  const { lang, t } = useLang();
   return (
     <form
       onSubmit={(event) => {
@@ -255,7 +261,7 @@ function TableForm({
     >
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="label" htmlFor="table-label">Table name</label>
+          <label className="label" htmlFor="table-label">{t.owner.tableName}</label>
           <input
             id="table-label"
             className="input"
@@ -267,7 +273,7 @@ function TableForm({
           />
         </div>
         <div>
-          <label className="label" htmlFor="table-capacity">Seats</label>
+          <label className="label" htmlFor="table-capacity">{t.owner.seatsLabel}</label>
           <input
             id="table-capacity"
             type="number"
@@ -282,14 +288,14 @@ function TableForm({
       </div>
 
       <div>
-        <label className="label" htmlFor="table-zone">Zone</label>
+        <label className="label" htmlFor="table-zone">{t.owner.zone}</label>
         <input
           id="table-zone"
           className="input"
           list="zones"
           value={draft.zone}
           onChange={(event) => setDraft({ ...draft, zone: event.target.value })}
-          placeholder="Main dining"
+          placeholder={zoneLabel("Main dining", lang)}
           maxLength={40}
           required
         />
@@ -302,7 +308,7 @@ function TableForm({
 
       <div className="flex gap-2 pt-1">
         <button type="button" className="btn btn-ghost flex-1" onClick={onCancel}>
-          Cancel
+          {t.common.cancel}
         </button>
         <button type="submit" className="btn btn-primary flex-1" disabled={pending}>
           {pending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />} {submitLabel}

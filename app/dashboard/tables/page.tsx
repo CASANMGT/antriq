@@ -5,7 +5,7 @@ import { listTables } from "@/lib/store";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Tables",
+  title: "Meja",
   robots: { index: false, follow: false },
 };
 

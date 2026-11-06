@@ -1,6 +1,10 @@
+"use client";
+
+import { useLang } from "@/components/LanguageProvider";
 import type { DayPoint, HourPoint } from "@/lib/types";
 
 export function HourlyBars({ points }: { points: HourPoint[] }) {
+  const { t } = useLang();
   const max = Math.max(1, ...points.map((point) => Math.max(point.joined, point.seated)));
 
   return (
@@ -10,28 +14,28 @@ export function HourlyBars({ points }: { points: HourPoint[] }) {
           <div key={point.hour} className="group flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
             <div className="flex h-full w-full items-end justify-center gap-[3px]">
               <div
-                className="w-[42%] max-w-[14px] rounded-t-[3px] bg-clay/85 transition group-hover:bg-clay"
+                className="w-[42%] max-w-[14px] rounded-t-[4px] bg-tomato transition group-hover:bg-tomato-dark"
                 style={{ height: `${(point.joined / max) * 100}%`, minHeight: point.joined ? 3 : 0 }}
-                title={`${point.joined} joined at ${point.hour}:00`}
+                title={`${point.joined} ${t.owner.joined} · ${point.hour}:00`}
               />
               <div
-                className="w-[42%] max-w-[14px] rounded-t-[3px] bg-sage/80 transition group-hover:bg-sage"
+                className="w-[42%] max-w-[14px] rounded-t-[4px] bg-leaf transition group-hover:bg-leaf-dark"
                 style={{ height: `${(point.seated / max) * 100}%`, minHeight: point.seated ? 3 : 0 }}
-                title={`${point.seated} seated at ${point.hour}:00`}
+                title={`${point.seated} ${t.owner.seated} · ${point.hour}:00`}
               />
             </div>
-            <span className="num text-[0.5625rem] font-semibold text-muted-soft">
+            <span className="num text-[0.5625rem] font-extrabold text-ink/35">
               {String(point.hour).padStart(2, "0")}
             </span>
           </div>
         ))}
       </div>
-      <div className="mt-3 flex items-center gap-4 text-[0.6875rem] font-medium text-muted">
+      <div className="mt-3 flex items-center gap-4 text-[0.6875rem] font-bold text-muted">
         <span className="inline-flex items-center gap-1.5">
-          <span className="size-2 rounded-sm bg-clay" /> Joined
+          <span className="size-2 rounded-sm bg-tomato" /> {t.owner.joined}
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="size-2 rounded-sm bg-sage" /> Seated
+          <span className="size-2 rounded-sm bg-leaf" /> {t.owner.seated}
         </span>
       </div>
     </div>
@@ -39,6 +43,8 @@ export function HourlyBars({ points }: { points: HourPoint[] }) {
 }
 
 export function WeekBars({ days }: { days: DayPoint[] }) {
+  const { lang } = useLang();
+  const locale = lang === "id" ? "id-ID" : "en-GB";
   const max = Math.max(1, ...days.map((day) => Math.max(day.joined, day.seated)));
 
   return (
@@ -47,18 +53,18 @@ export function WeekBars({ days }: { days: DayPoint[] }) {
         <div key={day.day} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5">
           <div className="flex h-full w-full items-end justify-center gap-[3px]">
             <div
-              className="w-[40%] max-w-[18px] rounded-t-[4px] bg-clay/80"
+              className="w-[40%] max-w-[18px] rounded-t-[4px] bg-tomato/85"
               style={{ height: `${(day.joined / max) * 100}%`, minHeight: day.joined ? 3 : 0 }}
               title={`${day.joined} joined`}
             />
             <div
-              className="w-[40%] max-w-[18px] rounded-t-[4px] bg-sage/80"
+              className="w-[40%] max-w-[18px] rounded-t-[4px] bg-leaf/85"
               style={{ height: `${(day.seated / max) * 100}%`, minHeight: day.seated ? 3 : 0 }}
               title={`${day.seated} seated`}
             />
           </div>
-          <span className="truncate text-[0.5625rem] font-semibold text-muted">
-            {new Intl.DateTimeFormat("en-GB", { weekday: "short", timeZone: "UTC" }).format(
+          <span className="truncate text-[0.5625rem] font-extrabold text-ink/40">
+            {new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(
               new Date(`${day.day}T12:00:00Z`),
             )}
           </span>
