@@ -6,7 +6,8 @@ import { ArrowLeft, ExternalLink, ScanLine, Smartphone, Timer, UtensilsCrossed }
 import { CopyLinkButton, PrintButton } from "@/components/owner/QrActions";
 import { Logo } from "@/components/Logo";
 import { Mascot } from "@/components/Mascot";
-import { getRestaurant } from "@/lib/store";
+import { getBrand, getBranch } from "@/lib/store";
+import { resolveOwnerScope } from "@/lib/scope";
 import { getLang } from "@/lib/lang";
 import { format, getDict } from "@/lib/i18n";
 
@@ -17,14 +18,22 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function QrPage() {
-  const [restaurant, lang] = await Promise.all([getRestaurant(), getLang()]);
+export default async function QrPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ branch?: string }>;
+}) {
+  const params = await searchParams;
+  const { active } = await resolveOwnerScope(params.branch);
+  const branch = await getBranch(active.id);
+  const brand = await getBrand(branch.brandId);
+  const lang = await getLang();
   const t = getDict(lang);
   const headerStore = await headers();
   const host = headerStore.get("host");
   const proto = headerStore.get("x-forwarded-proto") ?? (process.env.NODE_ENV === "production" ? "https" : "http");
   const base = (process.env.NEXT_PUBLIC_APP_URL || (host ? `${proto}://${host}` : "http://localhost:3000")).replace(/\/$/, "");
-  const url = `${base}/`;
+  const url = `${base}/b/${brand?.slug ?? "brand"}/${branch.slug}`;
 
   const qr = await QRCode.toDataURL(url, {
     width: 760,
@@ -37,7 +46,7 @@ export default async function QrPage() {
     <div className="space-y-5">
       <header className="no-print flex flex-wrap items-end justify-between gap-3">
         <div>
-          <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-xs font-extrabold text-muted hover:text-ink">
+          <Link href={`/dashboard?branch=${active.id}`} className="inline-flex items-center gap-1.5 text-xs font-extrabold text-muted hover:text-ink">
             <ArrowLeft className="size-3.5" /> {t.owner.overview}
           </Link>
           <p className="eyebrow mt-3 text-tomato">{t.owner.qrKicker}</p>
@@ -61,13 +70,13 @@ export default async function QrPage() {
         <article className="poster w-full max-w-[640px] overflow-hidden rounded-[2rem] border-2 border-ink bg-paper shadow-[8px_8px_0_#262321] print:max-w-none">
           <div className="relative bg-tomato px-8 py-6 text-white sm:px-10">
             <div className="flex items-center justify-between">
-              <Logo tone="light" href="/" />
+              <Logo tone="light" href={`/b/${brand?.slug ?? ""}/${branch.slug}`} />
               <span className="rounded-full border-2 border-white/50 px-2.5 py-1 text-[0.625rem] font-extrabold uppercase tracking-[0.16em] text-white/85">
                 AntriQ
               </span>
             </div>
             <p className="mt-7 text-[0.6875rem] font-extrabold uppercase tracking-[0.2em] text-white/70">
-              {restaurant.name}
+              {brand?.name ? `${brand.name} · ` : ""}{branch.name}
             </p>
             <h2 className="mt-2 font-display text-[3.2rem] font-semibold leading-[0.88] tracking-tight sm:text-[3.9rem]">
               {t.owner.posterHeadline1}
@@ -116,7 +125,7 @@ export default async function QrPage() {
               <div className="order-1 shrink-0 sm:order-2">
                 <div className="rounded-2xl border-2 border-ink bg-white p-3 shadow-[3px_3px_0_#262321]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={qr} alt={`QR code to join the ${restaurant.name} queue`} className="size-48 sm:size-52" />
+                  <img src={qr} alt={`QR code to join the ${branch.name} queue`} className="size-48 sm:size-52" />
                 </div>
                 <p className="mt-2 text-center text-[0.5625rem] font-extrabold uppercase tracking-[0.14em] text-ink/45">
                   {t.owner.scanCamera}

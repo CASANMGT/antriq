@@ -24,7 +24,20 @@ AntriQ is deliberately small. This roadmap protects that: every item must make t
 - [x] Daily demo reset on warm serverless instances
 - [x] Deployed at antriq1.vercel.app
 
-## Next — v0.3 “Trust & reach” (6–8 weeks)
+## Shipped — v0.3 “Multi-brand, multi-branch” (7 Nov 2026)
+
+- [x] Brands → branches schema with branch-scoped operational tables
+- [x] Public brand URL `/b/[brand]` and branch URL `/b/[brand]/[branch]`
+- [x] Platform owner / brand owner / branch owner scopes enforced in every page and API
+- [x] Brand logo + menu PDF upload (Postgres `bytea`), Instagram, accent, description
+- [x] Branch create/edit, branch switcher, per-branch QR and reports
+- [x] Cashier role with branch-scoped host access
+- [x] Team assignment by role + brand + branch, role editing
+- [x] Seat number picker and `opened_by` PIC on ticket, floor cards, activity and CSV
+- [x] Singapore function region, serverless Postgres pool tuning, staging guide
+- [x] Demo split: Nikumaru Senopati + Kemang, Tenka Senopati
+
+## Next — v0.4 “Trust & reach” (6–8 weeks)
 
 ### Reservations that respect the floor
 - A booking date/time, party size, and grace period.
@@ -52,16 +65,16 @@ AntriQ is deliberately small. This roadmap protects that: every item must make t
 - Audit log filter (by actor, type, day) in owner settings.
 - Acceptance: calls appear in under 1s; expiry does not depend on a page being open.
 
-## Later — v0.4 “One more location”
+## Later — v0.5 “One more location”
 
-### Multi-location
-- `restaurant_id` scoping, location switcher, per-location staff and tables.
-- Consolidated owner view and per-location reports.
-- Shared guest entry per location; QR encodes location.
-- Acceptance: an owner can compare two outlets’ wait and no-show without spreadsheets.
+### Consolidated operations
+- Group view across every brand and branch (joined, seated, no-shows, queue pressure).
+- Cross-branch staff lending without changing their home branch.
+- Shared guest entry per group; QR always encodes the exact branch.
+- Acceptance: a group owner can compare branches without spreadsheets.
 
 ### Better floor
-- Drag-and-drop floor plan (zones, table shapes) with a mobile list fallback.
+- Drag-and-drop floor plan (zones, table shapes, explicit seat positions) with a mobile list fallback.
 - Table combining for large parties.
 - Reserved table hold with a timer.
 - Acceptance: a 10-top can be seated across two joined tables without breaking capacity math.

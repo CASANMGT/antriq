@@ -5,6 +5,7 @@ import { AutoRefresh } from "@/components/AutoRefresh";
 import { WeekBars } from "@/components/owner/charts";
 import { Mascot } from "@/components/Mascot";
 import { getOwnerOverview } from "@/lib/store";
+import { resolveOwnerScope } from "@/lib/scope";
 import { formatDayLong } from "@/lib/time";
 import { getLang } from "@/lib/lang";
 import { format, getDict } from "@/lib/i18n";
@@ -21,12 +22,13 @@ const RANGES = [7, 30, 90] as const;
 export default async function ReportsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ days?: string }>;
+  searchParams: Promise<{ days?: string; branch?: string }>;
 }) {
   const params = await searchParams;
   const requested = Number(params.days ?? "7");
   const days = RANGES.includes(requested as (typeof RANGES)[number]) ? requested : 7;
-  const [overview, lang] = await Promise.all([getOwnerOverview(days), getLang()]);
+  const { active } = await resolveOwnerScope(params.branch);
+  const [overview, lang] = await Promise.all([getOwnerOverview(active.id, days), getLang()]);
   const t = getDict(lang);
   const locale = lang === "id" ? "id-ID" : "en-GB";
   const { week } = overview;
@@ -52,13 +54,13 @@ export default async function ReportsPage({
 
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-xs font-extrabold text-muted hover:text-ink">
+          <Link href={`/dashboard?branch=${active.id}`} className="inline-flex items-center gap-1.5 text-xs font-extrabold text-muted hover:text-ink">
             <ArrowLeft className="size-3.5" /> {t.owner.overview}
           </Link>
           <p className="eyebrow mt-3 text-tomato">{t.owner.reportsKicker}</p>
           <h1 className="mt-1 font-display text-[2.5rem] font-semibold leading-none tracking-tight">{t.owner.reportsTitle}</h1>
           <p className="mt-2 text-sm font-semibold text-muted">
-            {format(t.owner.reportsSub, {
+            {active.brandName} · {active.name} · {format(t.owner.reportsSub, {
               from: formatDayLong(week[0]?.day ?? "", locale),
               to: formatDayLong(week[week.length - 1]?.day ?? "", locale),
               days,
@@ -70,7 +72,7 @@ export default async function ReportsPage({
             {RANGES.map((range) => (
               <Link
                 key={range}
-                href={`/dashboard/reports?days=${range}`}
+                href={`/dashboard/reports?days=${range}&branch=${active.id}`}
                 className={`rounded-full px-3 py-1.5 text-xs font-extrabold transition ${
                   range === days ? "bg-ink text-paper" : "text-muted hover:text-ink"
                 }`}
@@ -79,7 +81,7 @@ export default async function ReportsPage({
               </Link>
             ))}
           </div>
-          <a href={`/api/owner/export?days=${days}`} className="btn btn-soft btn-sm" download>
+          <a href={`/api/owner/export?days=${days}&branch=${active.id}`} className="btn btn-soft btn-sm" download>
             <Download className="size-3.5" /> {t.owner.exportCsv}
           </a>
         </div>

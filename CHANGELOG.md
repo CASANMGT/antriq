@@ -10,6 +10,40 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.3.0] — 2026-11-07
+
+The **multi-brand, multi-branch** release: brand and branch URLs, scoped owners, cashier access, seat numbers with PIC tracking, and brand asset uploads.
+
+### Added
+- **Brands → branches** data model. Brands own name, slug, Instagram, description, accent, logo and menu PDF. Branches own URL slug, hours, timezone, announcement, tables, staff and queue.
+- Public brand page `/b/[brand]` and branch page `/b/[brand]/[branch]`. `/` redirects to the primary branch.
+- Demo split into **Nikumaru** (Senopati, Kemang) and **Tenka** (Senopati).
+- Scope model: platform owner (all), brand owner (`brand_id`), branch owner (`brand_id` + `branch_id`), greeter/cashier (fixed branch).
+- **Cashier** role with the same branch-scoped live floor access as a greeter.
+- Team assignment UI for role + brand + branch, with role editing and scoped staff lists.
+- Owner **Brands** page: edit identity and upload logo / menu PDF; public asset routes `/api/brands/[id]/logo` and `/api/brands/[id]/menu` (stored as Postgres `bytea`).
+- Owner **Branches** page: create/edit branches, link to per-branch settings and public page.
+- Host **seat number picker** (1..capacity or “Let the host decide”), recording `opened_by` + `opened_by_staff_id` (PIC).
+- Guest ticket shows the assigned table, seat number and the staff member who opened it.
+- Table cards and activity/CSV include seat number and PIC.
+- Branch switcher on the host stand and owner shell; every service/report/QR link carries `?branch=`.
+- `vercel.json` pins functions to Singapore (`sin1`); Postgres pool tuned for serverless (max 5, 15-minute lifetime).
+- `npm run db:reset -- --yes` one-time schema reset for v0.2 → v0.3.
+- Automatic v0.2 migration: legacy tables are moved to an `antriq_v2_backup` schema on first boot (data preserved), then the new model is created and seeded.
+- Staging/production guidance: separate database and `AUTH_SECRET` per environment.
+
+### Changed
+- Login resolves the correct branch and routes owners to `/dashboard?branch=` and staff to `/host?branch=`.
+- Guest join, host state/actions, owner overview/export and ticket reads are all branch-scoped.
+- Brand identity (Instagram, logo, menu) is managed at brand level; branch settings no longer pretend to own Instagram.
+- Owner overview links, reports range links and QR poster URLs preserve the active branch.
+
+### Fixed
+- Postgres combined brand/branch queries now fetch the branch and brand separately, avoiding duplicate `id` columns.
+- Branch-level Instagram falls back to the brand’s Instagram.
+- Menu/logo caching can be busted after upload.
+- Dashboard pages no longer assume a single restaurant.
+
 ## [0.2.0] — 2026-11-07
 
 The **brand + queue-first** release: Nikumaru & Tenka, Indonesian-first, and a visual system built from the AntriQ brand boards.

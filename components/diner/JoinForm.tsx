@@ -7,11 +7,13 @@ import { useLang } from "@/components/LanguageProvider";
 import { postJson } from "@/lib/client-api";
 
 export function JoinForm({
+  branchId,
   maxPartySize,
   disabled,
   disabledTitle,
   disabledNote,
 }: {
+  branchId: number;
   maxPartySize: number;
   disabled: boolean;
   disabledTitle: string;
@@ -32,6 +34,7 @@ export function JoinForm({
 
     startTransition(async () => {
       const result = await postJson<{ token: string; code: string }>("/api/join", {
+        branchId,
         guestName: String(data.get("guestName") ?? ""),
         phone: String(data.get("phone") ?? ""),
         notes: String(data.get("notes") ?? ""),
@@ -48,7 +51,7 @@ export function JoinForm({
       try {
         window.localStorage.setItem(
           "antriq:ticket",
-          JSON.stringify({ token: ticket.token, code: ticket.code, at: Date.now() }),
+          JSON.stringify({ token: ticket.token, code: ticket.code, branchId, at: Date.now() }),
         );
       } catch {
         // A private window can block storage; the ticket URL still works.

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { TablePill } from "@/components/Pills";
 import { useLang } from "@/components/LanguageProvider";
+import { format } from "@/lib/i18n";
 import type { DiningTable, HostStats, QueueEntry } from "@/lib/types";
 
 const sourceLabel: Record<string, string> = {
@@ -196,6 +197,12 @@ export function TableCard({
           <p className="text-[0.625rem] font-semibold text-muted">
             {entry.code} · {entry.partySize} {t.guest.guestUnit}
           </p>
+          {entry.seatNumber !== null && (
+            <p className="mt-0.5 text-[0.625rem] font-bold text-leaf-dark">
+              {format(t.host.seatValue, { seat: entry.seatNumber })}
+              {entry.openedBy ? ` · ${entry.openedBy}` : ""}
+            </p>
+          )}
         </div>
       ) : (
         <p className="mt-1.5 text-[0.625rem] font-semibold text-ink/45">

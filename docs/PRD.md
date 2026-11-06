@@ -1,14 +1,16 @@
-# AntriQ — Product Requirements Document (v1.1)
+# AntriQ — Product Requirements Document (v1.2)
 
 | | |
 | --- | --- |
 | **Product** | AntriQ — restaurant queue, table flow and floor insight |
-| **Version** | 1.1 (brand + queue-first release) |
+| **Version** | 1.2 (multi-brand, multi-branch release) |
 | **Date** | 7 November 2026 |
 | **Owner** | Product / Engineering |
-| **Status** | Released (v0.1.0) |
+| **Status** | Released (v0.3.0) |
 | **Reference study** | WaitHub (`web.waithub.id`), F&B vertical — see [REVERSE_ENGINEERING.md](REVERSE_ENGINEERING.md) |
-| **Scope** | One restaurant, one location, walk-in queue (no advance reservations in v1) |
+| **Scope** | Multiple brands → multiple branches, walk-in queue, seat numbers + PIC (no advance reservations in v1) |
+
+> **v1.2 amendment — 7 November 2026.** AntriQ now supports **multiple brands and multiple branches**. Brands own identity and assets (logo, menu PDF, Instagram); branches own URL, hours, tables, staff and queue. Every operational row is branch-scoped, and owner/staff access is scoped to platform, brand, or branch. Guests can be seated at a table with an optional **seat number**; the greeter/cashier who opened the seat is recorded as PIC and shown on the guest ticket. See §22 for the full amendment; any remaining “single restaurant” wording below is superseded.
 
 > **v1.1 amendment — 7 November 2026.** AntriQ now ships with the Nikumaru & Tenka demo, a full Fredoka/tomato/butter/pink visual system, **Indonesian as the default language with an English toggle**, and a **queue-first guest experience**. Guests no longer see wait-time estimates or hold countdowns; the queue number, position, parties ahead and the called code are the product. The hold engine and ETA maths remain internal (auto no-show / analytics) but are not surfaced. Sections below that describe ETA/hold in the UI are superseded by §21.
 
@@ -16,13 +18,11 @@
 
 ## 1. Summary
 
-AntriQ gives a single restaurant three connected surfaces:
+AntriQ gives a hospitality group three connected surfaces:
 
-1. **A guest page** that turns “how long is the wait?” into a clear answer and a live ticket.
-2. **A host stand** that helps a greeter call, seat and turn tables without a clipboard, shouting, or guesswork.
-3. **An owner dashboard** that shows the room now and the service over time, with the knobs to configure the restaurant.
-
-The product is deliberately narrow. It is not a POS, not a reservation marketplace, and not a multi-outlet chain platform. It does one job well: **move a waiting party from the door to the right table, fairly and calmly.**
+1. **Guest pages per branch** (`/b/[brand]/[branch]`) that turn “how long is the wait?” into a clear answer and a live ticket.
+2. **A host stand** that helps a greeter or cashier call, seat and turn tables without a clipboard, shouting, or guesswork.
+3. **An owner dashboard** that shows the room now and the service over time, scoped to the brand or branch the owner can manage.
 
 ## 2. Problem
 
@@ -589,3 +589,58 @@ The guest does **not** see an ETA, a hold countdown, a “time left” meter, or
 **Visual system:** Fredoka + Plus Jakarta Sans; tomato `#F24B3F`, butter `#FFF1CA`, ink `#262321`, soft pink `#FFD6DF`, leaf `#2E7D4F`; 2px outlines, sticker shadows, brush accents, toast mascot, paper backgrounds.
 
 **Demo:** seeded floor with a called guest that stays at the door for demonstration; the floor resets on the first request of each new service day. Production URL: https://antriq1.vercel.app.
+
+---
+
+## 22. v1.2 — multi-brand, multi-branch amendment
+
+### 22.1 Hierarchy
+
+```text
+brand (identity, logo, menu PDF, Instagram, accent)
+  └── branch (public slug, address, phone, timezone, hours, announcement,
+              queue policy, tables, staff, queue)
+```
+
+- **Brand URLs:** `/b/[brand]` lists branches and brand assets.
+- **Branch URLs:** `/b/[brand]/[branch]` is the guest queue for that branch. `/` redirects to the primary branch.
+- **Assets:** logos and menu PDFs are stored in Postgres `bytea` and served from `/api/brands/[id]/logo` and `/api/brands/[id]/menu`; no object-storage vendor is required.
+- **QR posters** encode the exact branch URL.
+
+### 22.2 Roles and scope
+
+| Role | `brand_id` | `branch_id` | Can manage |
+| --- | --- | --- | --- |
+| Platform owner | null | null | Every brand and branch, brand creation |
+| Brand owner | set | null | Their brand, every branch in it, brand staff |
+| Branch owner | set | set | Their branch, branch settings/tables, branch staff |
+| Greeter | set | set | Live floor for their branch |
+| Cashier | set | set | Live floor for their branch |
+
+- `canManageBranch`, `canManageBrand`, `canOperateBranch` and `listBranchesForStaff` enforce scope in `lib/store.ts`.
+- Host/owner APIs reject out-of-scope branch requests with 403.
+- Branch owners cannot create brands or branches and cannot promote someone to owner.
+
+### 22.3 Staff assignment
+
+- Owners can create/edit staff with **name, role, brand, branch, PIN**.
+- Owners can edit role/brand/branch without changing the PIN; PIN reset is separate.
+- At least one active platform owner is always required.
+- Greeters and cashiers require a branch; owners may be platform-level, brand-level, or branch-level.
+
+### 22.4 Seating and PIC
+
+- Seating requires an available table whose capacity is at least the party size.
+- The host may choose a **seat number** from `1..capacity`, or leave it as **“Let the host decide”** (`seat_number = null`).
+- On seat: `opened_by` stores the acting staff name and `opened_by_staff_id` stores their id.
+- The guest ticket shows table, seat number and the staff member who opened it.
+- Table cards, activity and CSV include seat + PIC.
+- Greeters, cashiers and owners (with scope) can perform seating; the guest sees the result.
+
+### 22.5 Environment and deployment
+
+- **Production:** `antriq1` on Vercel, Neon Postgres in Singapore, `NEXT_PUBLIC_APP_URL=https://antriq1.vercel.app`.
+- **Staging:** separate Vercel environment/project, separate Neon branch/project, separate `AUTH_SECRET`.
+- Functions are pinned to `sin1` in `vercel.json`; the Postgres pool uses a small max, short idle timeout and 15-minute max lifetime for serverless.
+- The v0.2 schema is not compatible. v0.3 automatically moves the old tables into `antriq_v2_backup` and seeds the new model; `npm run db:reset -- --yes` is available when you want a clean slate.
+- `DEMO_MODE=1` seeds the lived-in queue; without it, brands/branches/staff/tables are still created on an empty database but the queue starts empty.

@@ -30,8 +30,10 @@ function createDatabase(): Database {
     const sql = postgres(url, {
       max: 5,
       idle_timeout: 20,
+      max_lifetime: 60 * 15,
       connect_timeout: 15,
       prepare: false,
+      connection: { application_name: "antriq" },
       onnotice: () => {
         // CREATE TABLE IF NOT EXISTS is intentionally idempotent; suppress
         // expected "already exists, skipping" notices on every cold start.
@@ -116,15 +118,44 @@ async function applySchema(db: Queryable) {
   }
 }
 
+const LEGACY_TABLES = [
+  "activity",
+  "queue_sequence",
+  "queue_entries",
+  "dining_tables",
+  "staff",
+  "restaurant",
+];
+
+/**
+ * v0.2 used a single `restaurant` table. Move the old tables (and their
+ * indexes/constraints) into a separate schema so the v0.3 brands/branches
+ * tables can be created without name collisions. Data is preserved, not
+ * dropped, and this is a no-op on a fresh v0.3 database.
+ */
+async function migrateLegacySchema(db: Queryable) {
+  const rows = await db.query<{ legacy: string | null; current: string | null }>(
+    "select to_regclass('public.restaurant')::text as legacy, to_regclass('public.brands')::text as current",
+  );
+  if (!rows[0]?.legacy || rows[0]?.current) return;
+
+  await db.query("create schema if not exists antriq_v2_backup");
+  for (const table of LEGACY_TABLES) {
+    await db.query(`alter table if exists public.${table} set schema antriq_v2_backup`);
+  }
+}
+
 async function initialize(db: Database) {
   if (db.kind === "postgres") {
     await db.tx(async (q) => {
       // Serialize first boot across serverless instances.
       await q.query("select pg_advisory_xact_lock(918273645)");
+      await migrateLegacySchema(q);
       await applySchema(q);
       await seedDatabase(q);
     });
   } else {
+    await migrateLegacySchema(db);
     await applySchema(db);
     await seedDatabase(db);
   }

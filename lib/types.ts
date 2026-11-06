@@ -1,4 +1,4 @@
-export type Role = "owner" | "greeter";
+export type Role = "owner" | "greeter" | "cashier";
 export type WaitlistStatus = "open" | "paused" | "closed";
 export type EntryStatus =
   | "waiting"
@@ -10,9 +10,26 @@ export type EntryStatus =
 export type TableStatus = "available" | "seated" | "dirty" | "blocked";
 export type QueueSource = "qr" | "online" | "walkin";
 
-export interface Restaurant {
+export interface Brand {
   id: number;
   name: string;
+  slug: string;
+  instagram: string | null;
+  description: string | null;
+  accent: string;
+  hasLogo: boolean;
+  hasMenu: boolean;
+  menuFilename: string | null;
+  createdAt: string;
+}
+
+export interface Branch {
+  id: number;
+  brandId: number;
+  brandName?: string;
+  brandSlug?: string;
+  name: string;
+  slug: string;
   tagline: string | null;
   address: string | null;
   phone: string | null;
@@ -32,8 +49,12 @@ export interface Restaurant {
   updatedAt: string;
 }
 
+/** @deprecated use Branch — kept for existing component props. */
+export type Restaurant = Branch;
+
 export interface DiningTable {
   id: number;
+  branchId: number;
   label: string;
   capacity: number;
   zone: string;
@@ -44,6 +65,7 @@ export interface DiningTable {
 
 export interface QueueEntry {
   id: number;
+  branchId: number;
   code: string;
   day: string;
   seq: number;
@@ -55,6 +77,9 @@ export interface QueueEntry {
   status: EntryStatus;
   tableId: number | null;
   tableLabel: string | null;
+  seatNumber: number | null;
+  openedBy: string | null;
+  openedByStaffId: number | null;
   calledCount: number;
   acknowledged: boolean;
   joinedAt: string;
@@ -73,6 +98,10 @@ export interface PublicStaff {
   name: string;
   role: Role;
   initials: string | null;
+  brandId: number | null;
+  branchId: number | null;
+  brandName?: string | null;
+  branchName?: string | null;
 }
 
 export interface HostStats {
@@ -91,7 +120,8 @@ export interface HostStats {
 }
 
 export interface HostState {
-  restaurant: Restaurant;
+  branch: Branch;
+  brand: Brand | null;
   tables: DiningTable[];
   waiting: QueueEntry[];
   called: QueueEntry[];
@@ -103,7 +133,8 @@ export interface HostState {
 }
 
 export interface PublicSnapshot {
-  restaurant: Restaurant;
+  branch: Branch;
+  brand: Brand | null;
   waiting: number;
   availableTables: number;
   lastCalledCode: string | null;
@@ -113,7 +144,8 @@ export interface PublicSnapshot {
 }
 
 export interface TicketView {
-  restaurant: Restaurant;
+  branch: Branch;
+  brand: Brand | null;
   entry: QueueEntry;
   position: number | null;
   peopleAhead: number | null;
@@ -134,6 +166,7 @@ export interface ActivityItem {
   name: string | null;
   partySize: number | null;
   tableLabel: string | null;
+  seatNumber: number | null;
 }
 
 export interface DayPoint {
@@ -153,7 +186,8 @@ export interface HourPoint {
 }
 
 export interface OwnerOverview {
-  restaurant: Restaurant;
+  branch: Branch;
+  brand: Brand | null;
   stats: HostStats;
   today: {
     avgWaitMinutes: number;
@@ -178,4 +212,22 @@ export interface ActionResult<T = unknown> {
   ok: boolean;
   message?: string;
   data?: T;
+}
+
+export interface BranchSummary {
+  id: number;
+  name: string;
+  slug: string;
+  brandId: number;
+  brandName: string;
+  brandSlug: string;
+  tagline: string | null;
+  address: string | null;
+  phone: string | null;
+  timezone: string;
+  openTime: string;
+  closeTime: string;
+  accent: string;
+  announcement: string | null;
+  waitlistStatus: WaitlistStatus;
 }

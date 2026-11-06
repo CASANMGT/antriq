@@ -1,16 +1,17 @@
 {
   "name": "antriq",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "AntriQ — restaurant waitlist, table & guest flow for a single restaurant. Diner, greeter, owner.",
+  "description": "AntriQ — multi-brand, multi-branch restaurant waitlist, table, seat and guest flow.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:reset": "node scripts/reset-db.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.15",

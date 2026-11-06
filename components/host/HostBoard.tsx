@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
   BellRing,
+  Check,
+  ChevronDown,
   LayoutDashboard,
   Loader2,
   LogOut,
@@ -27,16 +29,20 @@ import { postJson } from "@/lib/client-api";
 import { dayInTz, formatDayLong } from "@/lib/time";
 import { format } from "@/lib/i18n";
 import { zoneLabel } from "@/lib/labels";
-import type { ActionResult, DiningTable, HostState, QueueEntry } from "@/lib/types";
+import type { ActionResult, BranchSummary, DiningTable, HostState, QueueEntry, Role } from "@/lib/types";
 
 type Tab = "queue" | "called" | "tables";
 
 export function HostBoard({
   initial,
   staff,
+  branches,
+  activeBranchId,
 }: {
   initial: HostState;
-  staff: { name: string; role: "owner" | "greeter"; initials: string | null };
+  staff: { name: string; role: Role; initials: string | null };
+  branches: BranchSummary[];
+  activeBranchId: number;
 }) {
   const router = useRouter();
   const { lang, t } = useLang();
@@ -50,12 +56,20 @@ export function HostBoard({
   const [pauseOpen, setPauseOpen] = useState(false);
   const [pauseReason, setPauseReason] = useState("");
   const [seatTarget, setSeatTarget] = useState<QueueEntry | null>(null);
+  const [seatTableId, setSeatTableId] = useState<number | null>(null);
+  const [seatNumber, setSeatNumber] = useState<number | null>(null);
   const [noShowTarget, setNoShowTarget] = useState<QueueEntry | null>(null);
   const [query, setQuery] = useState("");
   const [muted, setMuted] = useState(false);
   const [pending, startTransition] = useTransition();
 
-  const { restaurant, stats } = state;
+  const { branch, brand, stats } = state;
+
+  const hostAction = useCallback(
+    (type: string, extra: Record<string, unknown> = {}) =>
+      postJson("/api/host/action", { type, branchId: activeBranchId, ...extra }),
+    [activeBranchId],
+  );
 
   const show = useCallback((message: string, tone: NoticeState["tone"]) => {
     setNotice({ message, tone });
@@ -63,7 +77,7 @@ export function HostBoard({
 
   const refresh = useCallback(async () => {
     try {
-      const response = await fetch("/api/host/state", { cache: "no-store" });
+      const response = await fetch(`/api/host/state?branch=${activeBranchId}`, { cache: "no-store" });
       if (response.status === 401) {
         router.push("/login?next=/host");
         return;
@@ -73,7 +87,7 @@ export function HostBoard({
     } catch {
       // Keep the last board on a transient network blip.
     }
-  }, [router]);
+  }, [activeBranchId, router]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -184,7 +198,18 @@ export function HostBoard({
       .sort((a, b) => a.capacity - b.capacity || a.sortOrder - b.sortOrder);
   }, [seatTarget, state.tables]);
 
-  const status = restaurant.waitlistStatus;
+  const seatTable = useMemo(
+    () => seatOptions.find((table) => table.id === seatTableId) ?? null,
+    [seatOptions, seatTableId],
+  );
+
+  function resetSeatDialog() {
+    setSeatTarget(null);
+    setSeatTableId(null);
+    setSeatNumber(null);
+  }
+
+  const status = branch.waitlistStatus;
   const statusLabel =
     status === "open" ? t.host.waitlistOpen : status === "paused" ? t.host.waitlistPaused : t.host.waitlistClosed;
   const statusTone = status === "open" ? "status-seated" : status === "paused" ? "status-waiting" : "status-muted";
@@ -195,6 +220,7 @@ export function HostBoard({
     setWalkInError(null);
     startTransition(async () => {
       const result = await postJson<{ code: string }>("/api/host/action", {
+        branchId: activeBranchId,
         type: "walkin",
         guestName: String(form.get("guestName") ?? ""),
         phone: String(form.get("phone") ?? ""),
@@ -222,7 +248,7 @@ export function HostBoard({
       const key = event.key.toLowerCase();
       if (key === "n") {
         event.preventDefault();
-        run(() => postJson("/api/host/action", { type: "callNext" }));
+        run(() => hostAction("callNext"));
       } else if (key === "w") {
         event.preventDefault();
         setWalkInOpen(true);
@@ -233,7 +259,7 @@ export function HostBoard({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [noShowTarget, pauseOpen, run, seatTarget, walkInOpen]);
+  }, [hostAction, noShowTarget, pauseOpen, run, seatTarget, walkInOpen]);
 
   function toggleMuted() {
     setMuted((value) => {
@@ -252,20 +278,40 @@ export function HostBoard({
       <header className="sticky top-0 z-40 border-b-2 border-ink bg-paper/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1500px] flex-wrap items-center gap-2 px-3 py-2.5 sm:px-5">
           <div className="flex min-w-0 items-center gap-2.5">
-            <Logo compact href="/host" />
+            <Logo compact href={`/host?branch=${activeBranchId}`} />
             <div className="min-w-0">
-              <p className="eyebrow text-tomato">{t.host.hostStand}</p>
+              <p className="eyebrow text-tomato">{brand?.name ?? branch.brandName ?? t.host.hostStand}</p>
               <div className="flex items-center gap-2">
-                <h1 className="truncate font-display text-[1.2rem] font-semibold leading-tight">{restaurant.name}</h1>
+                <h1 className="truncate font-display text-[1.2rem] font-semibold leading-tight">{branch.name}</h1>
                 <span className={`pill ${statusTone}`}>{statusLabel}</span>
               </div>
             </div>
           </div>
 
           <div className="ml-auto flex items-center gap-1 sm:gap-1.5">
+            {branches.length > 1 && (
+              <div className="relative">
+                <label className="sr-only" htmlFor="host-branch">
+                  {t.common.branch}
+                </label>
+                <select
+                  id="host-branch"
+                  className="input h-9 max-w-[10.5rem] appearance-none bg-white py-0 pr-7 text-xs font-extrabold"
+                  value={activeBranchId}
+                  onChange={(event) => router.push(`/host?branch=${event.target.value}`)}
+                >
+                  {branches.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.brandName} · {item.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 size-3.5 -translate-y-1/2 text-muted" />
+              </div>
+            )}
             <div className="hidden items-center gap-1.5 rounded-full border-2 border-ink bg-cream px-3 py-1.5 text-xs font-bold text-ink sm:flex">
               <span className="live-dot" />
-              <LiveClock timezone={restaurant.timezone} />
+              <LiveClock timezone={branch.timezone} />
             </div>
             <LanguageToggle compact />
             <button
@@ -279,7 +325,7 @@ export function HostBoard({
             </button>
             {staff.role === "owner" && (
               <Link
-                href="/dashboard"
+                href={`/dashboard?branch=${activeBranchId}`}
                 className="btn btn-ghost btn-icon hidden sm:inline-flex"
                 aria-label={t.common.ownerDashboard}
                 title={t.common.ownerDashboard}
@@ -319,7 +365,7 @@ export function HostBoard({
       <main className="mx-auto max-w-[1500px] px-3 pb-28 pt-4 sm:px-5 lg:pb-8">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="eyebrow text-ink/45">{formatDayLong(dayInTz(new Date(), restaurant.timezone), locale)}</p>
+            <p className="eyebrow text-ink/45">{formatDayLong(dayInTz(new Date(), branch.timezone), locale)}</p>
             <h2 className="mt-0.5 font-display text-[2rem] font-semibold leading-none tracking-tight">
               {format(t.host.goodService, { name: staff.name.split(" ")[0] })}
             </h2>
@@ -351,7 +397,7 @@ export function HostBoard({
                 <button
                   type="button"
                   className="btn btn-primary btn-sm"
-                  onClick={() => run(() => postJson("/api/host/action", { type: "callNext" }))}
+                  onClick={() => run(() => hostAction("callNext"))}
                   disabled={pending || state.waiting.length === 0}
                 >
                   {pending ? <Loader2 className="size-3.5 animate-spin" /> : <BellRing className="size-3.5" />}
@@ -361,7 +407,7 @@ export function HostBoard({
                   <button
                     type="button"
                     className="text-[0.625rem] font-bold text-muted underline decoration-dotted underline-offset-2 hover:text-tomato"
-                    onClick={() => run(() => postJson("/api/host/action", { type: "callNext", force: true }))}
+                    onClick={() => run(() => hostAction("callNext", { force: true }))}
                     disabled={pending}
                   >
                     {t.host.callAnyway}
@@ -395,10 +441,14 @@ export function HostBoard({
                     position={index + 1}
                     next={index === 0 && !query}
                     busy={pending}
-                    onCall={() => run(() => postJson("/api/host/action", { type: "callEntry", entryId: entry.id }))}
-                    onSeat={() => setSeatTarget(entry)}
+                    onCall={() => run(() => hostAction("callEntry", { entryId: entry.id }))}
+                    onSeat={() => {
+                      setSeatTarget(entry);
+                      setSeatTableId(null);
+                      setSeatNumber(null);
+                    }}
                     onNoShow={() => setNoShowTarget(entry)}
-                    onUndo={() => run(() => postJson("/api/host/action", { type: "undoCall", entryId: entry.id }))}
+                    onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
                   />
                 ))
               )}
@@ -428,10 +478,14 @@ export function HostBoard({
                     position={index + 1}
                     next={false}
                     busy={pending}
-                    onCall={() => run(() => postJson("/api/host/action", { type: "callEntry", entryId: entry.id }))}
-                    onSeat={() => setSeatTarget(entry)}
+                    onCall={() => run(() => hostAction("callEntry", { entryId: entry.id }))}
+                    onSeat={() => {
+                      setSeatTarget(entry);
+                      setSeatTableId(null);
+                      setSeatNumber(null);
+                    }}
                     onNoShow={() => setNoShowTarget(entry)}
-                    onUndo={() => run(() => postJson("/api/host/action", { type: "undoCall", entryId: entry.id }))}
+                    onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
                   />
                 ))
               )}
@@ -483,9 +537,9 @@ export function HostBoard({
                         table={table}
                         entry={table.id ? seatedByTable.get(table.id) ?? null : null}
                         busy={pending}
-                        onClear={() => run(() => postJson("/api/host/action", { type: "clearTable", tableId: table.id }))}
-                        onReady={() => run(() => postJson("/api/host/action", { type: "tableStatus", tableId: table.id, status: "available" }))}
-                        onBlock={() => run(() => postJson("/api/host/action", { type: "tableStatus", tableId: table.id, status: "blocked" }))}
+                        onClear={() => run(() => hostAction("clearTable", { tableId: table.id }))}
+                        onReady={() => run(() => hostAction("tableStatus", { tableId: table.id, status: "available" }))}
+                        onBlock={() => run(() => hostAction("tableStatus", { tableId: table.id, status: "blocked" }))}
                       />
                     ))}
                   </div>
@@ -527,7 +581,7 @@ export function HostBoard({
           ))}
           {staff.role === "owner" && (
             <Link
-              href="/dashboard"
+              href={`/dashboard?branch=${activeBranchId}`}
               className="flex flex-1 items-center justify-center gap-1.5 rounded-full px-2 py-2 text-xs font-extrabold text-ink/60 transition hover:bg-white"
             >
               <LayoutDashboard className="size-3.5" />
@@ -540,7 +594,7 @@ export function HostBoard({
       {/* Seat dialog */}
       <Modal
         open={Boolean(seatTarget)}
-        onClose={() => setSeatTarget(null)}
+        onClose={resetSeatDialog}
         title={seatTarget ? format(t.host.seatTitle, { code: seatTarget.code }) : t.host.seat}
         description={
           seatTarget
@@ -550,42 +604,113 @@ export function HostBoard({
               })
             : undefined
         }
+        footer={
+          seatTarget ? (
+            <>
+              <button type="button" className="btn btn-ghost" onClick={resetSeatDialog}>
+                {t.common.cancel}
+              </button>
+              <button
+                type="button"
+                className="btn btn-sage"
+                disabled={!seatTableId || pending}
+                onClick={() => {
+                  const target = seatTarget;
+                  const tableId = seatTableId;
+                  if (!target || !tableId) return;
+                  run(
+                    () =>
+                      hostAction("seat", {
+                        entryId: target.id,
+                        tableId,
+                        seatNumber,
+                      }),
+                    resetSeatDialog,
+                  );
+                }}
+              >
+                {pending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+                {t.host.seatGuest}
+              </button>
+            </>
+          ) : undefined
+        }
       >
         {seatTarget && seatOptions.length === 0 ? (
           <div className="rounded-xl border-2 border-ink bg-cream px-4 py-4 text-sm font-semibold leading-relaxed text-ink/70">
             {format(t.host.noFit, { count: seatTarget.partySize })}
           </div>
         ) : (
-          <div className="grid gap-2">
-            {seatOptions.map((table, index) => (
-              <button
-                key={table.id}
-                type="button"
-                disabled={pending}
-                onClick={() =>
-                  run(
-                    () => postJson("/api/host/action", { type: "seat", entryId: seatTarget!.id, tableId: table.id }),
-                    () => setSeatTarget(null),
-                  )
-                }
-                className={`flex items-center justify-between rounded-xl border-2 border-ink p-3 text-left shadow-[2px_2px_0_#262321] transition hover:-translate-y-0.5 ${
-                  index === 0 ? "bg-leaf-soft" : "bg-white"
-                }`}
-              >
-                <span className="flex items-center gap-3">
-                  <span className="grid size-10 place-items-center rounded-lg border-2 border-ink bg-ink font-display text-sm font-semibold text-paper">
-                    {table.label}
-                  </span>
-                  <span>
-                    <span className="block text-sm font-extrabold">{format(t.host.seatAt, { table: table.label })}</span>
-                    <span className="block text-xs font-semibold text-muted">
-                      {format(t.host.seats, { count: table.capacity })} · {table.zone}
+          <div className="space-y-4">
+            <div className="grid gap-2">
+              {seatOptions.map((table, index) => {
+                const active = table.id === seatTableId;
+                return (
+                  <button
+                    key={table.id}
+                    type="button"
+                    disabled={pending}
+                    onClick={() => {
+                      setSeatTableId(table.id);
+                      setSeatNumber(null);
+                    }}
+                    className={`flex items-center justify-between rounded-xl border-2 border-ink p-3 text-left shadow-[2px_2px_0_#262321] transition hover:-translate-y-0.5 ${
+                      active ? "bg-leaf-soft" : index === 0 ? "bg-white" : "bg-white/80"
+                    }`}
+                    aria-pressed={active}
+                  >
+                    <span className="flex items-center gap-3">
+                      <span className="grid size-10 place-items-center rounded-lg border-2 border-ink bg-ink font-display text-sm font-semibold text-paper">
+                        {table.label}
+                      </span>
+                      <span>
+                        <span className="block text-sm font-extrabold">{format(t.host.seatAt, { table: table.label })}</span>
+                        <span className="block text-xs font-semibold text-muted">
+                          {format(t.host.seats, { count: table.capacity })} · {zoneLabel(table.zone, lang)}
+                        </span>
+                      </span>
                     </span>
-                  </span>
-                </span>
-                {index === 0 && <span className="pill status-seated">{t.host.bestFit}</span>}
-              </button>
-            ))}
+                    {active ? (
+                      <Check className="size-4 text-leaf-dark" />
+                    ) : index === 0 ? (
+                      <span className="pill status-seated">{t.host.bestFit}</span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+
+            {seatTable && (
+              <div className="rounded-xl border-2 border-dashed border-ink/25 bg-cream/60 p-3">
+                <p className="label mb-1.5">{t.host.seatNumber}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setSeatNumber(null)}
+                    className={`rounded-lg border-2 border-ink px-2.5 py-1.5 text-xs font-extrabold transition ${
+                      seatNumber === null ? "bg-ink text-paper" : "bg-white hover:bg-pink"
+                    }`}
+                    aria-pressed={seatNumber === null}
+                  >
+                    {t.host.letHostDecide}
+                  </button>
+                  {Array.from({ length: seatTable.capacity }, (_, index) => index + 1).map((seat) => (
+                    <button
+                      key={seat}
+                      type="button"
+                      onClick={() => setSeatNumber(seat)}
+                      className={`num size-8 rounded-lg border-2 border-ink text-xs font-extrabold transition ${
+                        seatNumber === seat ? "bg-ink text-paper" : "bg-white hover:bg-pink"
+                      }`}
+                      aria-pressed={seatNumber === seat}
+                    >
+                      {seat}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-1.5 text-[0.625rem] font-semibold leading-relaxed text-muted">{t.host.seatNumberHint}</p>
+              </div>
+            )}
           </div>
         )}
       </Modal>
@@ -608,7 +733,7 @@ export function HostBoard({
               onClick={() => {
                 const target = noShowTarget;
                 setNoShowTarget(null);
-                if (target) run(() => postJson("/api/host/action", { type: "noShow", entryId: target.id }));
+                if (target) run(() => hostAction("noShow", { entryId: target.id }));
               }}
             >
               {t.host.markNoShow}
@@ -635,7 +760,7 @@ export function HostBoard({
           setWalkInError(null);
         }}
         title={t.host.walkInTitle}
-        description={format(t.host.walkInDesc, { name: restaurant.name })}
+        description={format(t.host.walkInDesc, { name: branch.name })}
       >
         <form onSubmit={submitWalkIn} className="space-y-4">
           <div>
@@ -654,8 +779,8 @@ export function HostBoard({
               <button
                 type="button"
                 className="grid size-10 place-items-center rounded-xl border-2 border-ink bg-white font-bold transition hover:bg-pink disabled:opacity-40"
-                onClick={() => setWalkInParty((size) => Math.min(restaurant.maxPartySize, size + 1))}
-                disabled={walkInParty >= restaurant.maxPartySize}
+                onClick={() => setWalkInParty((size) => Math.min(branch.maxPartySize, size + 1))}
+                disabled={walkInParty >= branch.maxPartySize}
                 aria-label={lang === "id" ? "Tambah satu tamu" : "One guest more"}
               >
                 +
@@ -733,7 +858,7 @@ export function HostBoard({
                 disabled={pending}
                 onClick={() =>
                   run(
-                    () => postJson("/api/host/action", { type: "waitlist", status: "paused", reason: pauseReason || null }),
+                    () => hostAction("waitlist", { status: "paused", reason: pauseReason || null }),
                     () => {
                       setPauseOpen(false);
                       setPauseReason("");
@@ -749,7 +874,7 @@ export function HostBoard({
                 disabled={pending}
                 onClick={() =>
                   run(
-                    () => postJson("/api/host/action", { type: "waitlist", status: "closed", reason: pauseReason || null }),
+                    () => hostAction("waitlist", { status: "closed", reason: pauseReason || null }),
                     () => {
                       setPauseOpen(false);
                       setPauseReason("");
@@ -767,7 +892,7 @@ export function HostBoard({
               disabled={pending}
               onClick={() =>
                 run(
-                  () => postJson("/api/host/action", { type: "waitlist", status: "open" }),
+                  () => hostAction("waitlist", { status: "open" }),
                   () => setPauseOpen(false),
                 )
               }

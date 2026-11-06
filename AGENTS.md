@@ -12,7 +12,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Project conventions
 
-- **Product:** one restaurant. Do not add a tenant switcher, marketplace, or generic queue builder without a product decision.
+- **Product:** multi-brand, multi-branch restaurant queues. Brands own identity/assets; branches own hours, tables, staff and the live queue. Do not add a marketplace or generic queue builder without a product decision.
+- **Scope:** platform owner = no brand/branch; brand owner = `brand_id`; branch owner = `brand_id` + `branch_id`; greeter/cashier = fixed `branch_id`. Enforce scope in every page and API.
 - **Writes** go through JSON route handlers (`app/api/*`), not client-side DB access. Server Actions are only for login/logout.
 - **Queue rules** live in `lib/queue.ts` and must stay pure. Add tests for any rule change.
 - **SQL** is positional and lives in `lib/store.ts`; schema changes go in `lib/schema.ts` and must be idempotent.
@@ -27,7 +28,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - `docker compose up -d db` (Postgres on 5433)
 - copy `.env.example` to `.env.local`
 - `npm run dev`
-- Demo: owner Rani / 2468, greeter Ayu / 1357, greeter Bima / 1122.
+- Demo: platform owner Rani / 2468, greeter Ayu / 1357, cashier Sari / 4321. Branches: `/b/nikumaru/senopati`, `/b/nikumaru/kemang`, `/b/tenka/senopati`.
 
 ## Key files
 
@@ -35,10 +36,12 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 | --- | --- |
 | `lib/queue.ts` | Pure queue/ETA/table rules |
 | `lib/store.ts` | SQL + DTO mapping + domain composition |
+| `lib/scope.ts` | Owner branch resolution |
 | `lib/db.ts` | Postgres/PGlite adapter and init lock |
-| `lib/schema.ts` | Idempotent DDL |
-| `lib/seed.ts` | Demo restaurant + lived-in floor |
-| `app/api/host/action/route.ts` | Every greeter mutation |
-| `app/api/owner/action/route.ts` | Every owner mutation |
+| `lib/schema.ts` | Idempotent DDL (brands → branches) |
+| `lib/seed.ts` | Demo brands, branches + lived-in floor |
+| `app/api/host/action/route.ts` | Every greeter/cashier mutation |
+| `app/api/owner/action/route.ts` | Every owner mutation + brand/branch/staff CRUD |
+| `scripts/reset-db.mjs` | One-time v0.2 → v0.3 schema reset |
 | `docs/PRD.md` | Requirements, metrics, edge cases |
 | `docs/ARCHITECTURE.md` | Decisions and trade-offs |

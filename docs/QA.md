@@ -8,7 +8,7 @@ npm test         # 21 domain + integration tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **6 Nov 2026** — lint clean, 21/21 tests passing, production build green.
+Last run: **7 Nov 2026** — lint clean, 21/21 tests passing, production build green (v0.3 multi-brand).
 
 ### Deployment verification
 
@@ -19,6 +19,25 @@ Last run: **6 Nov 2026** — lint clean, 21/21 tests passing, production build g
 - [x] Live guest join → owner call → seat → clear flow
 - [x] Live ticket states (waiting, called, seated, completed)
 - [x] Demo floor reseeded after the smoke test
+
+### v1.2 multi-brand, multi-branch checks
+
+- [x] `/` redirects to `/b/nikumaru/senopati`
+- [x] Brand page `/b/nikumaru` lists Senopati + Kemang with logo/menu/IG
+- [x] `/b/tenka/senopati` renders the Tenka branch and its own queue
+- [x] Unknown brand/branch returns 404
+- [x] Platform owner sees all branches; brand owner only Tenka; branch owner only their branch
+- [x] Host board switcher changes branch and all actions carry `branchId`
+- [x] Greeter/cashier cannot open a branch outside their assignment (403)
+- [x] Team add/edit supports owner/greeter/cashier + brand + branch
+- [x] Branch settings/tables/QR/report links keep `?branch=`
+- [x] Brand logo and menu PDF upload + public asset routes
+- [x] Seat number picker: “Let the host decide” and `1..capacity`
+- [x] Seat action records `opened_by` + `opened_by_staff_id`
+- [x] Guest ticket shows table, seat and PIC after seating
+- [x] Table card and CSV include seat + PIC
+- [x] ID/EN dictionaries cover every new label
+- [x] `vercel.json` pins `sin1`; staging uses a separate database and secret
 
 ### v1.1 visual & language checks
 
@@ -55,10 +74,11 @@ Last run: **6 Nov 2026** — lint clean, 21/21 tests passing, production build g
 ### Integration suite (`tests/store.test.ts`)
 
 - [x] Demo seed is believable and public snapshot is correct
+- [x] Two brands + three branches resolve by slug
 - [x] Staff PIN verification (right, wrong, unknown)
-- [x] Join → ticket → position/ETA → cancel
+- [x] Join → ticket → position → cancel
 - [x] Call next and hold timer
-- [x] Seat at the best-fit table
+- [x] Seat at the best-fit table with seat number + PIC
 - [x] Refuse a party that doesn’t fit
 - [x] No-show + undo back to the line
 - [x] Acknowledge once (idempotent, no stacking extensions)

@@ -1,37 +1,70 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { KeyRound, Loader2, Plus, Shield, UserRound, Users } from "lucide-react";
+import { KeyRound, Loader2, Pencil, Plus, Shield, Store, UserRound, Users } from "lucide-react";
 import { Modal } from "@/components/Modal";
 import { Notice, type NoticeState } from "@/components/Notice";
 import { useLang } from "@/components/LanguageProvider";
 import { postJson } from "@/lib/client-api";
 import { format } from "@/lib/i18n";
-import type { PublicStaff, Role } from "@/lib/types";
+import type { BranchSummary, PublicStaff, Role } from "@/lib/types";
 
 interface StaffRow extends PublicStaff {
   active: boolean;
   createdAt: string;
 }
 
-export function TeamManager({ staff }: { staff: StaffRow[] }) {
+interface Draft {
+  name: string;
+  role: Role;
+  pin: string;
+  brandId: string;
+  branchId: string;
+}
+
+export function TeamManager({
+  staff,
+  brands,
+  branches,
+  defaultBranchId,
+  scope,
+}: {
+  staff: StaffRow[];
+  brands: { id: number; name: string }[];
+  branches: BranchSummary[];
+  defaultBranchId: number;
+  scope: { role: Role; brandId: number | null; branchId: number | null };
+}) {
   const router = useRouter();
   const { t } = useLang();
   const [notice, setNotice] = useState<NoticeState | null>(null);
   const [pending, startTransition] = useTransition();
-  const [addOpen, setAddOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<StaffRow | null>(null);
   const [resetting, setResetting] = useState<StaffRow | null>(null);
   const [pin, setPin] = useState("");
-  const [draft, setDraft] = useState<{ name: string; role: Role; pin: string }>({
+  const [draft, setDraft] = useState<Draft>({
     name: "",
     role: "greeter",
     pin: "",
+    brandId: "",
+    branchId: "",
   });
 
   const active = staff.filter((person) => person.active);
   const owners = staff.filter((person) => person.role === "owner");
   const greeters = staff.filter((person) => person.role === "greeter");
+  const cashiers = staff.filter((person) => person.role === "cashier");
+
+  const branchOptions = useMemo(() => {
+    const brandId = Number(draft.brandId);
+    return branches.filter((branch) => !brandId || branch.brandId === brandId);
+  }, [branches, draft.brandId]);
+
+  const lockedBrand = scope.brandId !== null;
+  const lockedBranch = scope.branchId !== null;
+  const canOwners = !lockedBranch;
 
   function show(message: string, tone: NoticeState["tone"]) {
     setNotice({ message, tone });
@@ -48,6 +81,55 @@ export function TeamManager({ staff }: { staff: StaffRow[] }) {
     });
   }
 
+  function openCreate() {
+    const branch = branches.find((item) => item.id === defaultBranchId) ?? branches[0];
+    setEditing(null);
+    setDraft({
+      name: "",
+      role: "greeter",
+      pin: "",
+      brandId: String(scope.brandId ?? branch?.brandId ?? brands[0]?.id ?? ""),
+      branchId: String(scope.branchId ?? branch?.id ?? ""),
+    });
+    setFormOpen(true);
+  }
+
+  function openEdit(person: StaffRow) {
+    setEditing(person);
+    setDraft({
+      name: person.name,
+      role: person.role,
+      pin: "",
+      brandId: person.brandId ? String(person.brandId) : "",
+      branchId: person.branchId ? String(person.branchId) : "",
+    });
+    setFormOpen(true);
+  }
+
+  function submit() {
+    const payload = {
+      name: draft.name,
+      role: draft.role,
+      pin: draft.pin || undefined,
+      brandId: draft.brandId ? Number(draft.brandId) : null,
+      branchId: draft.branchId ? Number(draft.branchId) : null,
+    };
+    run(
+      () =>
+        editing
+          ? postJson("/api/owner/action", { type: "staffUpdate", id: editing.id, ...payload })
+          : postJson("/api/owner/action", { type: "staffCreate", ...payload }),
+      () => {
+        setFormOpen(false);
+        setEditing(null);
+      },
+    );
+  }
+
+  function roleLabel(role: Role): string {
+    return role === "owner" ? t.login.ownerRole : role === "cashier" ? t.login.cashierRole : t.login.greeterRole;
+  }
+
   return (
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
@@ -55,25 +137,19 @@ export function TeamManager({ staff }: { staff: StaffRow[] }) {
           <p className="eyebrow text-tomato">{t.owner.teamKicker}</p>
           <h1 className="mt-1 font-display text-[2.5rem] font-semibold leading-none tracking-tight">{t.owner.teamTitle}</h1>
           <p className="mt-2 text-sm font-semibold text-muted">
-            {format(t.owner.teamSub, { active: active.length, owners: owners.length, greeters: greeters.length })}
+            {format(t.owner.teamSub, { active: active.length, owners: owners.length, greeters: greeters.length + cashiers.length })}
           </p>
         </div>
-        <button
-          type="button"
-          className="btn btn-primary btn-sm"
-          onClick={() => {
-            setDraft({ name: "", role: "greeter", pin: "" });
-            setAddOpen(true);
-          }}
-        >
+        <button type="button" className="btn btn-primary btn-sm" onClick={openCreate}>
           <Plus className="size-3.5" /> {t.owner.addMember}
         </button>
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-4">
         <Stat icon={Users} label={t.owner.activeAccess} value={active.length} tone="bg-pink" />
         <Stat icon={Shield} label={t.owner.owners} value={owners.length} hint={t.owner.ownerAccess} tone="bg-cream" />
         <Stat icon={UserRound} label={t.owner.greeters} value={greeters.length} hint={t.owner.greeterAccess} tone="bg-leaf-soft" />
+        <Stat icon={Store} label={t.owner.cashiers} value={cashiers.length} hint={t.owner.cashierAccess} tone="bg-white" />
       </div>
 
       <section className="card overflow-hidden">
@@ -95,15 +171,19 @@ export function TeamManager({ staff }: { staff: StaffRow[] }) {
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-sm font-extrabold">{person.name}</p>
                   <span className={`pill ${person.role === "owner" ? "status-called" : "status-muted"}`}>
-                    {person.role === "owner" ? t.owner.owners.replace(/s$/i, "") : t.owner.greeters.replace(/s$/i, "")}
+                    {roleLabel(person.role)}
                   </span>
                   {!person.active && <span className="pill status-muted">{t.owner.paused}</span>}
                 </div>
                 <p className="mt-0.5 text-xs font-semibold text-muted">
-                  {person.role === "owner" ? t.owner.ownerAccess : t.owner.greeterAccess} · {t.owner.pinProtected}
+                  {person.brandName ?? t.owner.allBrands}
+                  {person.branchName ? ` · ${person.branchName}` : ""} · {t.owner.pinProtected}
                 </p>
               </div>
               <div className="flex items-center gap-1.5">
+                <button type="button" className="btn btn-ghost btn-icon" aria-label={t.owner.editMember} title={t.owner.editMember} onClick={() => openEdit(person)}>
+                  <Pencil className="size-3.5" />
+                </button>
                 <button
                   type="button"
                   className="btn btn-soft btn-sm"
@@ -140,17 +220,16 @@ export function TeamManager({ staff }: { staff: StaffRow[] }) {
         {t.owner.teamNote}
       </div>
 
-      <Modal open={addOpen} onClose={() => setAddOpen(false)} title={t.owner.addMemberTitle} description={t.owner.addMemberDesc}>
+      <Modal
+        open={formOpen}
+        onClose={() => setFormOpen(false)}
+        title={editing ? format(t.owner.editMemberTitle, { name: editing.name }) : t.owner.addMemberTitle}
+        description={editing ? t.owner.editMemberDesc : t.owner.addMemberDesc}
+      >
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            run(
-              () => postJson("/api/owner/action", { type: "staffCreate", ...draft }),
-              () => {
-                setAddOpen(false);
-                setDraft({ name: "", role: "greeter", pin: "" });
-              },
-            );
+            submit();
           }}
           className="space-y-4"
         >
@@ -174,14 +253,74 @@ export function TeamManager({ staff }: { staff: StaffRow[] }) {
                 id="staff-role"
                 className="input bg-white"
                 value={draft.role}
-                onChange={(event) => setDraft({ ...draft, role: event.target.value as Role })}
+                onChange={(event) => {
+                  const role = event.target.value as Role;
+                  setDraft({
+                    ...draft,
+                    role,
+                    branchId: role === "greeter" || role === "cashier" ? draft.branchId || String(defaultBranchId) : draft.branchId,
+                  });
+                }}
               >
                 <option value="greeter">{t.login.greeterRole}</option>
-                <option value="owner">{t.login.ownerRole}</option>
+                <option value="cashier">{t.login.cashierRole}</option>
+                {canOwners && <option value="owner">{t.login.ownerRole}</option>}
               </select>
             </div>
             <div>
-              <label className="label" htmlFor="staff-pin">{t.owner.clearPin}</label>
+              <label className="label" htmlFor="staff-brand">{t.owner.brand}</label>
+              <select
+                id="staff-brand"
+                className="input bg-white"
+                value={draft.brandId}
+                disabled={lockedBrand}
+                onChange={(event) => {
+                  const brandId = event.target.value;
+                  const firstBranch = branches.find((branch) => String(branch.brandId) === brandId);
+                  setDraft({
+                    ...draft,
+                    brandId,
+                    branchId: draft.role === "owner" ? draft.branchId : firstBranch ? String(firstBranch.id) : "",
+                  });
+                }}
+              >
+                {draft.role === "owner" && scope.brandId === null && <option value="">{t.owner.allBrands}</option>}
+                {brands.map((brand) => (
+                  <option key={brand.id} value={brand.id}>
+                    {brand.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="label" htmlFor="staff-branch">
+                {t.owner.branch}
+                {draft.role !== "owner" && <span className="ml-1 text-tomato">*</span>}
+              </label>
+              <select
+                id="staff-branch"
+                className="input bg-white"
+                value={draft.branchId}
+                disabled={lockedBranch}
+                required={draft.role !== "owner"}
+                onChange={(event) => setDraft({ ...draft, branchId: event.target.value })}
+              >
+                {draft.role === "owner" && <option value="">{t.owner.allBranches}</option>}
+                {!draft.branchId && draft.role !== "owner" && <option value="">{t.owner.chooseBranch}</option>}
+                {branchOptions.map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.brandName} · {branch.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="label" htmlFor="staff-pin">
+                {editing ? t.owner.newPinOptional : t.owner.clearPin}
+              </label>
               <input
                 id="staff-pin"
                 className="input num tracking-[0.25em]"
@@ -191,17 +330,22 @@ export function TeamManager({ staff }: { staff: StaffRow[] }) {
                 value={draft.pin}
                 onChange={(event) => setDraft({ ...draft, pin: event.target.value.replace(/\D/g, "").slice(0, 8) })}
                 placeholder="••••"
-                required
+                required={!editing}
               />
             </div>
           </div>
 
+          <p className="rounded-xl border-2 border-dashed border-ink/25 bg-cream/60 px-3 py-2 text-[0.6875rem] font-semibold leading-relaxed text-muted">
+            {t.owner.staffScopeNote}
+          </p>
+
           <div className="flex gap-2 pt-1">
-            <button type="button" className="btn btn-ghost flex-1" onClick={() => setAddOpen(false)}>
+            <button type="button" className="btn btn-ghost flex-1" onClick={() => setFormOpen(false)}>
               {t.common.cancel}
             </button>
             <button type="submit" className="btn btn-primary flex-1" disabled={pending}>
-              {pending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />} {t.owner.addMemberBtn}
+              {pending ? <Loader2 className="size-4 animate-spin" /> : editing ? <Pencil className="size-4" /> : <Plus className="size-4" />}
+              {editing ? t.common.save : t.owner.addMemberBtn}
             </button>
           </div>
         </form>

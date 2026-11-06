@@ -14,6 +14,7 @@ import type { DiningTable, QueueEntry } from "@/lib/types";
 
 function entry(overrides: Partial<QueueEntry> & { id: number; joinedAt: string }): QueueEntry {
   return {
+    branchId: 1,
     code: `A-00${overrides.id}`,
     day: "2026-11-06",
     seq: overrides.id,
@@ -25,6 +26,9 @@ function entry(overrides: Partial<QueueEntry> & { id: number; joinedAt: string }
     status: "waiting",
     tableId: null,
     tableLabel: null,
+    seatNumber: null,
+    openedBy: null,
+    openedByStaffId: null,
     calledCount: 0,
     acknowledged: false,
     calledAt: null,
@@ -42,6 +46,7 @@ function entry(overrides: Partial<QueueEntry> & { id: number; joinedAt: string }
 function table(id: number, label: string, capacity: number, status: DiningTable["status"] = "available"): DiningTable {
   return {
     id,
+    branchId: 1,
     label,
     capacity,
     zone: "Main",

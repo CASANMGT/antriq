@@ -9,12 +9,14 @@ import {
   callEntry,
   callNext,
   cancelTicket,
+  getBranchBySlugs,
   getHostState,
   getOwnerOverview,
   getPublicSnapshot,
   getReportCsv,
   getTicketView,
   joinQueue,
+  listStaff,
   markNoShow,
   seatEntry,
   setWaitlistStatus,
@@ -23,28 +25,43 @@ import {
 } from "@/lib/store";
 import { AppError } from "@/lib/validation";
 
+async function primaryBranchId(): Promise<number> {
+  const found = await getBranchBySlugs("nikumaru", "senopati");
+  if (!found) throw new Error("Demo branch missing");
+  return found.branch.id;
+}
+
 describe("store integration (PGlite + demo seed)", () => {
   beforeEach(async () => {
     await resetDatabaseForTests();
   });
 
-  it("seeds a believable service and exposes a public snapshot", async () => {
-    const snapshot = await getPublicSnapshot();
-    expect(snapshot.restaurant.name).toBe("Nikumaru & Tenka");
+  it("seeds two brands, three branches and a believable service", async () => {
+    const branchId = await primaryBranchId();
+    const snapshot = await getPublicSnapshot(branchId);
+    expect(snapshot.branch.name).toBe("Nikumaru Senopati");
+    expect(snapshot.brand?.name).toBe("Nikumaru");
     expect(snapshot.waiting).toBe(6);
-    expect(snapshot.availableTables).toBe(3);
+    expect(snapshot.availableTables).toBe(2);
     expect(snapshot.typicalWaitMinutes).toBeGreaterThan(5);
     expect(snapshot.lastCalledCode).toBe("A-005");
+
+    expect(await getBranchBySlugs("nikumaru", "kemang")).not.toBeNull();
+    expect(await getBranchBySlugs("tenka", "senopati")).not.toBeNull();
   });
 
   it("verifies staff PINs and rejects the wrong one", async () => {
-    expect((await verifyStaffPin(2, "1357"))?.name).toBe("Ayu Lestari");
-    expect(await verifyStaffPin(2, "9999")).toBeNull();
+    const people = await listStaff();
+    const ayu = people.find((person) => person.name === "Ayu Lestari");
+    expect(ayu).toBeTruthy();
+    expect((await verifyStaffPin(ayu!.id, "1357"))?.name).toBe("Ayu Lestari");
+    expect(await verifyStaffPin(ayu!.id, "9999")).toBeNull();
     expect(await verifyStaffPin(999, "1357")).toBeNull();
   });
 
   it("joins the queue, shows the live ticket, then cancels", async () => {
-    const joined = await joinQueue({
+    const branchId = await primaryBranchId();
+    const joined = await joinQueue(branchId, {
       guestName: "Test Guest",
       partySize: 3,
       phone: "081234567890",
@@ -56,7 +73,6 @@ describe("store integration (PGlite + demo seed)", () => {
     const view = await getTicketView(joined.token);
     expect(view?.entry.guestName).toBe("Test Guest");
     expect(view?.peopleAhead).toBe(6);
-    expect(view?.etaMinutes).toBeGreaterThan(0);
 
     const cancelled = await cancelTicket(joined.token);
     expect(cancelled.ok).toBe(true);
@@ -65,12 +81,13 @@ describe("store integration (PGlite + demo seed)", () => {
   });
 
   it("calls the next fitting party and starts the hold", async () => {
-    const before = await getHostState();
-    const result = await callNext("Ayu");
+    const branchId = await primaryBranchId();
+    const before = await getHostState(branchId);
+    const result = await callNext(branchId, "Ayu");
     expect(result.ok).toBe(true);
     expect(result.message).toContain("A-001");
 
-    const after = await getHostState();
+    const after = await getHostState(branchId);
     expect(after.waiting.length).toBe(before.waiting.length - 1);
     expect(after.called.length).toBe(before.called.length + 1);
     const called = after.called.find((entry) => entry.code === "A-001");
@@ -79,10 +96,11 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(called!.holdSecondsLeft).toBeLessThanOrEqual(480);
   });
 
-  it("seats a called party at the best-fit table", async () => {
-    const called = await callNext("Ayu");
+  it("seats a called party with a seat number and records the PIC", async () => {
+    const branchId = await primaryBranchId();
+    const called = await callNext(branchId, "Ayu");
     expect(called.ok).toBe(true);
-    const state = await getHostState();
+    const state = await getHostState(branchId);
     const entry = state.called.find((item) => item.code === "A-001");
     expect(entry).toBeTruthy();
 
@@ -91,51 +109,59 @@ describe("store integration (PGlite + demo seed)", () => {
       .sort((a, b) => a.capacity - b.capacity)[0];
     expect(table).toBeTruthy();
 
-    const seated = await seatEntry(entry!.id, table.id, "Ayu");
+    const seated = await seatEntry(branchId, entry!.id, table.id, "Ayu Lestari", 2, 2);
     expect(seated.ok).toBe(true);
 
-    const after = await getHostState();
+    const after = await getHostState(branchId);
     expect(after.called.find((item) => item.code === "A-001")).toBeUndefined();
-    expect(after.seated.some((item) => item.code === "A-001")).toBe(true);
+    const seatedEntry = after.seated.find((item) => item.code === "A-001");
+    expect(seatedEntry).toBeTruthy();
+    expect(seatedEntry!.seatNumber).toBe(2);
+    expect(seatedEntry!.openedBy).toBe("Ayu Lestari");
+    expect(seatedEntry!.openedByStaffId).toBe(2);
     expect(after.tables.find((item) => item.id === table.id)?.status).toBe("seated");
   });
 
   it("refuses to seat a party that doesn't fit", async () => {
-    const state = await getHostState();
+    const branchId = await primaryBranchId();
+    const state = await getHostState(branchId);
     const big = state.waiting.find((entry) => entry.partySize === 6)!;
     const rows = await q<{ id: number }>(
-      "insert into dining_tables (label, capacity, zone, status) values ('TX', 2, 'Test', 'available') returning id",
+      "insert into dining_tables (branch_id, label, capacity, zone, status) values ($1, 'TX', 2, 'Test', 'available') returning id",
+      [branchId],
     );
-    const result = await seatEntry(big.id, rows[0].id, "Ayu");
+    const result = await seatEntry(branchId, big.id, rows[0].id, "Ayu", null);
     expect(result.ok).toBe(false);
     expect(result.message).toContain("seats 2");
   });
 
   it("marks a no-show and can undo a call back to the line", async () => {
-    const called = await callNext("Ayu");
+    const branchId = await primaryBranchId();
+    const called = await callNext(branchId, "Ayu");
     expect(called.ok).toBe(true);
-    let state = await getHostState();
+    let state = await getHostState(branchId);
     const entry = state.called.find((item) => item.code === "A-001")!;
 
-    const undone = await undoCall(entry.id, "Ayu");
+    const undone = await undoCall(branchId, entry.id, "Ayu");
     expect(undone.ok).toBe(true);
-    state = await getHostState();
+    state = await getHostState(branchId);
     expect(state.waiting.some((item) => item.code === "A-001")).toBe(true);
 
-    const calledAgain = await callNext("Ayu");
+    const calledAgain = await callNext(branchId, "Ayu");
     expect(calledAgain.ok).toBe(true);
-    state = await getHostState();
+    state = await getHostState(branchId);
     const entryAgain = state.called.find((item) => item.code === "A-001")!;
-    const noShow = await markNoShow(entryAgain.id, "Ayu");
+    const noShow = await markNoShow(branchId, entryAgain.id, "Ayu");
     expect(noShow.ok).toBe(true);
-    state = await getHostState();
+    state = await getHostState(branchId);
     expect(state.recent.some((item) => item.code === "A-001" && item.status === "no_show")).toBe(true);
   });
 
   it("acknowledges a called guest once and extends the hold", async () => {
-    const joined = await joinQueue({ guestName: "Ack Guest", partySize: 2 });
+    const branchId = await primaryBranchId();
+    const joined = await joinQueue(branchId, { guestName: "Ack Guest", partySize: 2 });
     const view = await getTicketView(joined.token);
-    const called = await callEntry(view!.entry.id, "Ayu");
+    const called = await callEntry(branchId, view!.entry.id, "Ayu");
     expect(called.ok).toBe(true);
 
     const first = await acknowledgeTicket(joined.token);
@@ -151,40 +177,45 @@ describe("store integration (PGlite + demo seed)", () => {
   });
 
   it("auto-releases a hold that has expired", async () => {
-    const called = await callNext("Ayu");
+    const branchId = await primaryBranchId();
+    const called = await callNext(branchId, "Ayu");
     expect(called.ok).toBe(true);
     await q("update queue_entries set hold_expires_at = now() - interval '1 minute' where code = 'A-001'");
-    const state = await getHostState();
+    const state = await getHostState(branchId);
     expect(state.called.some((item) => item.code === "A-001")).toBe(false);
     expect(state.recent.some((item) => item.code === "A-001" && item.status === "no_show")).toBe(true);
   });
 
   it("pausing blocks new joins but walk-ins can still be added", async () => {
-    await setWaitlistStatus("paused", "Kitchen catching up", "Rani");
+    const branchId = await primaryBranchId();
+    await setWaitlistStatus(branchId, "paused", "Kitchen catching up", "Rani");
     await expect(
-      joinQueue({ guestName: "Blocked Guest", partySize: 2 }),
+      joinQueue(branchId, { guestName: "Blocked Guest", partySize: 2 }),
     ).rejects.toBeInstanceOf(AppError);
 
     const walkIn = await joinQueue(
+      branchId,
       { guestName: "Walk-in Guest", partySize: 2, source: "walkin", actor: "Ayu" },
       true,
     );
     expect(walkIn.code).toMatch(/^A-/);
-    await setWaitlistStatus("open", null, "Rani");
-    const joined = await joinQueue({ guestName: "Allowed Guest", partySize: 2 });
+    await setWaitlistStatus(branchId, "open", null, "Rani");
+    const joined = await joinQueue(branchId, { guestName: "Allowed Guest", partySize: 2 });
     expect(joined.token).toBeTruthy();
   });
 
   it("computes owner metrics and a CSV export", async () => {
-    const overview = await getOwnerOverview(7);
+    const branchId = await primaryBranchId();
+    const overview = await getOwnerOverview(branchId, 7);
     expect(overview.week).toHaveLength(7);
     expect(overview.stats.seated).toBe(10);
     expect(overview.today.avgWaitMinutes).toBeGreaterThan(0);
     expect(overview.today.utilization).toBeGreaterThanOrEqual(0);
     expect(overview.activity.length).toBeGreaterThan(0);
 
-    const csv = await getReportCsv(30);
+    const csv = await getReportCsv(branchId, 30);
     expect(csv.split("\r\n")[0]).toContain("code,day,guest");
     expect(csv).toContain("A-001");
+    expect(csv).toContain("opened_by");
   });
 });

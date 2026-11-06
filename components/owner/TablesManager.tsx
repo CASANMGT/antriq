@@ -20,7 +20,7 @@ interface Draft {
 
 const EMPTY: Draft = { label: "", capacity: 2, zone: "Main dining" };
 
-export function TablesManager({ tables }: { tables: DiningTable[] }) {
+export function TablesManager({ tables, branchId }: { tables: DiningTable[]; branchId: number }) {
   const router = useRouter();
   const { lang, t } = useLang();
   const [notice, setNotice] = useState<NoticeState | null>(null);
@@ -153,7 +153,7 @@ export function TablesManager({ tables }: { tables: DiningTable[] }) {
           submitLabel={t.owner.addTable}
           onSubmit={() =>
             run(
-              () => postJson("/api/owner/action", { type: "tableCreate", ...draft }),
+              () => postJson("/api/owner/action", { type: "tableCreate", branchId, ...draft }),
               () => {
                 setCreateOpen(false);
                 setDraft(EMPTY);
@@ -182,6 +182,7 @@ export function TablesManager({ tables }: { tables: DiningTable[] }) {
                 () =>
                   postJson("/api/owner/action", {
                     type: "tableUpdate",
+                    branchId,
                     id: editing.id,
                     label: editing.label,
                     capacity: editing.capacity,
@@ -212,7 +213,7 @@ export function TablesManager({ tables }: { tables: DiningTable[] }) {
               onClick={() => {
                 const table = deleting;
                 setDeleting(null);
-                if (table) run(() => postJson("/api/owner/action", { type: "tableDelete", id: table.id }));
+                if (table) run(() => postJson("/api/owner/action", { type: "tableDelete", branchId, id: table.id }));
               }}
             >
               {pending ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />} {t.owner.remove}

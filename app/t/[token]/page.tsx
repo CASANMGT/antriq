@@ -14,8 +14,8 @@ export async function generateMetadata({
   const view = await getTicketView(token);
   if (!view) return { title: "Ticket not found" };
   return {
-    title: `${view.entry.code} · ${view.restaurant.name}`,
-    description: `Your live waitlist ticket at ${view.restaurant.name}.`,
+    title: `${view.entry.code} · ${view.branch.name}`,
+    description: `Your live waitlist ticket at ${view.branch.name}.`,
     robots: { index: false, follow: false },
   };
 }

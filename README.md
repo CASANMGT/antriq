@@ -5,7 +5,7 @@
 **Antrean restoran, lebih praktis.**  
 *Makan enak. Nunggu santai.*
 
-A bold, warm restaurant queue for guests, hosts and owners — built for **Nikumaru & Tenka**.
+A bold, warm restaurant queue for guests, hosts, cashiers and owners — built for multi-brand, multi-branch hospitality groups like **Nikumaru** and **Tenka**.
 
 [Live demo](https://antriq1.vercel.app) · [GitHub](https://github.com/CASANMGT/antriq) · [PRD](docs/PRD.md) · [Architecture](docs/ARCHITECTURE.md) · [Reverse engineering](docs/REVERSE_ENGINEERING.md) · [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md)
 
@@ -15,13 +15,15 @@ A bold, warm restaurant queue for guests, hosts and owners — built for **Nikum
 
 ## What it is
 
-AntriQ is a single-restaurant queue system with three connected surfaces:
+AntriQ is a multi-brand, multi-branch queue system with three connected surfaces:
 
 | Surface | Who | What they can do |
 | --- | --- | --- |
-| **Guest** | Diner, no account | See the live queue, take a number, watch position and now-serving, get called, walk to the table |
-| **Host stand** | Greeter or owner (PIN) | Work the line, call the next fitting party, seat, mark no-shows, add walk-ins, manage tables, pause the queue |
-| **Owner dashboard** | Owner (PIN) | Live queue counts, service pulse, floor map, activity, reports, CSV, tables, team, settings, QR poster |
+| **Guest** | Diner, no account | Open a brand or branch URL, see the live queue, take a number, watch position and now-serving, get called, see the assigned table/seat and the host who opened it |
+| **Host stand** | Greeter, cashier or owner (PIN) | Work the line, call the next fitting party, seat at a table and optional seat number, record the PIC, mark no-shows, add walk-ins, manage tables, pause the queue |
+| **Owner dashboard** | Owner (PIN, scoped by brand/branch) | Live queue counts, service pulse, floor map, activity, reports, CSV, tables, team, brand assets, branches, settings, QR poster |
+
+Brands own identity and assets (logo, menu PDF, Instagram); branches own hours, tables, staff, the queue and their own public URL. A platform owner manages every brand, a brand owner manages every branch in their brand, and a branch owner manages only their branch.
 
 **Queue-first by design:** guests see a queue number, position, parties ahead and the code being called. There are **no wait-time estimates and no hold countdowns** in the interface. The operational hold still exists behind the scenes for auto no-show, but it is not a guest-facing promise.
 
@@ -36,13 +38,23 @@ AntriQ is a single-restaurant queue system with three connected surfaces:
 
 ## Demo access — Nikumaru & Tenka
 
-A fictional **ramen & izakaya** house in Senopati, with 14 tables and a lived-in service floor.
+A fictional **ramen & izakaya** group with two brands and three branches:
 
-| Role | Name | PIN |
+| Brand | Branch | Public URL |
 | --- | --- | --- |
-| Owner | Rani Wijaya | `2468` |
-| Greeter | Ayu Lestari | `1357` |
-| Greeter | Bima Pratama | `1122` |
+| Nikumaru | Senopati | `/b/nikumaru/senopati` |
+| Nikumaru | Kemang | `/b/nikumaru/kemang` |
+| Tenka | Senopati | `/b/tenka/senopati` |
+
+| Role | Name | Scope | PIN |
+| --- | --- | --- | --- |
+| Platform owner | Rani Wijaya | All brands & branches | `2468` |
+| Greeter | Ayu Lestari | Nikumaru Senopati | `1357` |
+| Greeter | Bima Pratama | Nikumaru Senopati | `1122` |
+| Cashier | Sari Kasir | Nikumaru Senopati | `4321` |
+| Greeter | Dewi Larasati | Nikumaru Kemang | `2244` |
+| Brand owner | Kenji Sato | Tenka | `8765` |
+| Cashier | Akira Tanaka | Tenka Senopati | `3344` |
 
 Open `/login`. With `DEMO_MODE=1`, the login page also shows one-click demo shortcuts.
 
@@ -67,33 +79,39 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 ## Features
 
 ### Guest
-- Live queue snapshot: parties waiting, tables open, now serving, restaurant status.
+- Brand page (`/b/[brand]`) with logo, menu PDF, Instagram and branch cards.
+- Branch page (`/b/[brand]/[branch]`) with live queue snapshot: parties waiting, tables open, now serving, branch status.
 - Take a number in about 20 seconds: party size, name, optional phone/note.
 - Ticket with a human code (`A-024`), queue position, parties ahead, now-serving code.
 - Called state: **“Meja siap!”** with “Saya menuju host”, directions and release.
-- Seated, completed, no-show and cancelled end states.
+- Seated state shows the assigned **table and seat number**, plus the host/cashier PIC who opened it.
+- Completed, no-show and cancelled end states.
 - Capability URL + local ticket memory; no account.
 - Mobile-first, installable, reduced-motion aware, Indonesian/English.
 
-### Greeter
-- PIN login, 12-hour signed session.
+### Greeter / cashier
+- PIN login, 12-hour signed session, branch-scoped access.
 - Three-column board: **Antrean / Dipanggil / Lantai** — tabs on phones.
+- Branch switcher for owners and brand owners.
 - Queue positions on every card, not waiting-time guesses.
 - **Panggil berikutnya** selects the first party a free table can physically seat; suggests the smallest fitting table.
-- Seat from waiting or called, with hard capacity validation.
+- Seat from waiting or called at a specific table and optional **seat number**; records the staff member as PIC.
 - No-show with confirmation, undo call, walk-in add, search.
-- Table lifecycle: seated → dirty → ready, plus blocked.
+- Table lifecycle: seated → dirty → ready, plus blocked. Seated cards show seat and PIC.
 - Pause / close / reopen queue, optional call chime, shortcuts (`N`, `W`, `P`).
 - Live stats: waiting, called, seated, tables open, seated today, no-shows.
 
 ### Owner
+- Brand → branch switcher; every view, report and QR link is branch-scoped.
 - Queue-focused KPIs: waiting, called, seated today, tables open.
 - Hourly service pulse (joined vs seated), floor map by zone, live queue, activity feed.
-- 7/30/90-day reports: joined, seated, attendance, no-shows, cancellations, CSV.
+- 7/30/90-day reports: joined, seated, attendance, no-shows, cancellations, CSV (incl. table, seat, PIC).
 - Tables CRUD with capacity/zone and seated-table protection.
-- Team management: add owner/greeter, reset PIN, pause access, last-owner protection.
+- Team management: owner/greeter/cashier, brand + branch assignment, reset PIN, pause access, last-owner protection.
+- **Brands:** name, slug, Instagram, accent, logo upload, menu PDF upload.
+- **Branches:** create/edit name, slug, address, phone, timezone, hours, announcement.
 - Settings: identity, accent, timezone, hours, max party, queue cap, auto no-show, announcement.
-- Printable A4 QR poster with mascot and queue-first copy.
+- Printable A4 QR poster whose QR points at the branch URL.
 
 ## Stack
 
@@ -137,12 +155,20 @@ npm run dev
 
 Open:
 
-- Guest — http://localhost:3000
+- Guest (primary branch) — http://localhost:3000 redirects to `/b/nikumaru/senopati`
+- Brand — http://localhost:3000/b/nikumaru
+- Other branch — http://localhost:3000/b/nikumaru/kemang or `/b/tenka/senopati`
 - Staff login — http://localhost:3000/login
 - Owner — http://localhost:3000/dashboard
 - Health — http://localhost:3000/api/health
 
-The schema is created and seeded automatically on the first request. `docker compose down -v` resets the database.
+The schema is created and seeded automatically on the first request. v0.3 detects a legacy v0.2 database and moves the old tables into an `antriq_v2_backup` schema (data preserved) before creating the new brands/branches model. If you prefer a clean reset:
+
+```bash
+DATABASE_URL=postgres://… npm run db:reset -- --yes
+```
+
+`docker compose down -v` also resets the local database.
 
 ```bash
 npm run dev       # development
@@ -162,14 +188,22 @@ The current production deployment is **https://antriq1.vercel.app** (Vercel proj
 
 | Variable | Example | Notes |
 | --- | --- | --- |
-| `DATABASE_URL` | `postgres://…` | **Required.** Pooled URL. |
+| `DATABASE_URL` | `postgres://…` | **Required.** Pooled URL in Singapore (`sin1`). |
 | `AUTH_SECRET` | 32+ random chars | Required in production. |
 | `NEXT_PUBLIC_APP_URL` | `https://antriq1.vercel.app` | Metadata + QR poster. |
 | `DEMO_MODE` | `1` | Optional; seeds the demo floor. Omit for real use. |
 
 4. Deploy. The first request runs idempotent schema creation and seeding under a Postgres advisory lock.
+5. `vercel.json` pins functions to **Singapore (`sin1`)**; keep the Neon primary region in Singapore too. Use a separate Neon branch/project and a separate Vercel Preview environment for **staging**.
 
 > The app also has a PGlite fallback for local experiments, but production **must** use `DATABASE_URL`; serverless instances do not share `/tmp`.
+
+### Staging and production
+
+- **Production:** `antriq1` project + `NEXT_PUBLIC_APP_URL=https://antriq1.vercel.app` + production Neon database.
+- **Staging:** a second Vercel environment (Preview or a separate project) with its own Neon branch, `AUTH_SECRET`, and `NEXT_PUBLIC_APP_URL`.
+- Run `npm run db:reset -- --yes` once against each new database when moving from v0.2, then let the app seed.
+- Never point staging and production at the same database.
 
 ### CI
 
@@ -180,36 +214,43 @@ The initial GitHub token lacked the `workflow` scope, so the CI definition lives
 | Method | Route | Auth | Purpose |
 | --- | --- | --- | --- |
 | `GET` | `/api/health` | public | Liveness + DB check |
-| `POST` | `/api/join` | public (rate-limited) | Take a queue number |
+| `POST` | `/api/join` | public (rate-limited) | Take a queue number at a branch (`branchId`) |
 | `GET` | `/api/ticket/[token]` | capability token | Live ticket |
 | `POST` | `/api/ticket/[token]/action` | capability token | `cancel` / `acknowledge` |
-| `GET` | `/api/host/state` | staff | Full host board snapshot |
-| `POST` | `/api/host/action` | staff | `callNext`, `callEntry`, `seat`, `noShow`, `undoCall`, `walkin`, `clearTable`, `tableStatus`, `waitlist` |
-| `GET` | `/api/owner/overview?days=7` | owner | Queue counts, chart, activity, floor |
-| `POST` | `/api/owner/action` | owner | `settings`, `waitlist`, `table*`, `staff*` |
-| `GET` | `/api/owner/export?days=30` | owner | CSV download |
+| `GET` | `/api/host/state?branch=` | staff | Branch host board snapshot |
+| `POST` | `/api/host/action` | staff | `callNext`, `callEntry`, `seat` (+ `seatNumber`), `noShow`, `undoCall`, `walkin`, `clearTable`, `tableStatus`, `waitlist` |
+| `GET` | `/api/owner/overview?branch=&days=7` | owner | Branch queue counts, chart, activity, floor |
+| `POST` | `/api/owner/action` | owner | `settings`, `brand*`, `branch*`, `waitlist`, `table*`, `staff*` |
+| `POST` | `/api/owner/brand/asset` | owner | Multipart logo/menu upload |
+| `GET` | `/api/owner/export?branch=&days=30` | owner | Branch CSV download |
+| `GET` | `/api/brands/[id]/logo` | public | Brand logo bytes |
+| `GET` | `/api/brands/[id]/menu` | public | Brand menu PDF |
 
-All writes are validated, parameterised, and return `{ ok, message, data }`.
+All writes are validated, parameterised, and return `{ ok, message, data }`. Host and owner APIs enforce the session's brand/branch scope.
 
 ## Data model
 
 ```text
-restaurant (1)
-  ├─ staff (owner | greeter, scrypt pin_hash)
-  ├─ dining_tables (capacity, zone, status)
-  ├─ queue_entries (token, code, day+seq, party, status, table, hold_expires_at)
-  ├─ queue_sequence (per-day atomic ticket counter)
-  └─ activity (audit feed, jsonb detail)
+brands (identity, logo bytea, menu bytea, Instagram)
+  └─ branches (URL slug, hours, queue policy, announcement)
+       ├─ staff (owner | greeter | cashier, brand_id / branch_id scope, scrypt pin_hash)
+       ├─ dining_tables (capacity, zone, status)
+       ├─ queue_entries (branch_id, token, code, day+seq, party, status,
+       │                  table_id, seat_number, opened_by, opened_by_staff_id,
+       │                  hold_expires_at)
+       ├─ queue_sequence (per branch + day atomic ticket counter)
+       └─ activity (branch audit feed, jsonb detail)
 ```
 
-Full DDL: [`lib/schema.ts`](lib/schema.ts). State machines and invariants: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Brand assets live in Postgres (`bytea`) and are streamed by `/api/brands/[id]/…`; no object-storage vendor is required. Full DDL: [`lib/schema.ts`](lib/schema.ts). State machines and invariants: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Security & privacy
 
 - Diner tickets are **capability URLs** (`/t/<22-char random>`).
 - Staff sessions: HMAC-signed, HTTP-only, SameSite=Lax, 12h.
 - PINs: salted **scrypt** hashes; never logged or returned.
-- Owner guards on every owner page and API.
+- Owner guards and brand/branch scope on every owner page and API.
+- Host/cashier branch scope on every host API.
 - Rate limits on joins, ticket actions and login attempts.
 - Positional SQL only; input length/enum validation.
 - No third-party analytics or tracking scripts.
@@ -223,7 +264,7 @@ npm test
 ```
 
 - **Domain:** ticket codes, FIFO, best-fit table, smart call, ETA engine (internal), stats, hourly buckets, turn fallback.
-- **Integration on PGlite:** seed, PIN verification, join → ticket → cancel, call next, seat, capacity refusal, no-show, undo, hold expiry, pause + walk-in, owner metrics, CSV.
+- **Integration on PGlite:** multi-brand/branch seed, PIN verification, join → ticket → cancel, call next, table + seat number + PIC, capacity refusal, no-show, undo, hold expiry, pause + walk-in, owner metrics, CSV.
 
 See [docs/QA.md](docs/QA.md) for the release checklist.
 
@@ -231,11 +272,13 @@ See [docs/QA.md](docs/QA.md) for the release checklist.
 
 ```text
 app/
-  page.tsx                 Guest landing + join
+  page.tsx                 Root redirect to the primary branch
+  b/[brand]/               Brand page: logo, menu, Instagram, branch cards
+  b/[brand]/[branch]/      Guest branch landing + join
   t/[token]/               Live ticket
   login/                   Staff PIN login
-  host/                    Greeter board
-  dashboard/               Owner: overview, reports, tables, team, settings, QR
+  host/                    Greeter/cashier board (?branch=)
+  dashboard/               Owner: overview, reports, tables, team, brands, branches, settings, QR
   api/                     JSON reads/writes
 components/
   diner/ host/ owner/ ticket/ login/   Surface components
@@ -243,14 +286,16 @@ components/
 lib/
   queue.ts                 Pure domain rules
   store.ts                 Queries + mutations
+  scope.ts                 Owner branch resolution
   db.ts                    Postgres / PGlite adapter
   schema.ts                Idempotent SQL schema
-  seed.ts                  Demo restaurant
+  seed.ts                  Demo brands, branches and floor
   i18n.ts                  Indonesian + English dictionary
   auth.ts                  Sessions + throttling
   labels.ts                Zone labels
+scripts/reset-db.mjs       One-time v0.2 → v0.3 schema reset
 tests/                     Vitest suites
-docs/                      PRD, architecture, reverse engineering, QA
+docs/                      PRD, architecture, migration, reverse engineering, QA
 ```
 
 ## Why “AntriQ”?

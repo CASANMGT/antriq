@@ -11,14 +11,17 @@ import {
   orderWaiting,
   pickNext,
   positionOf,
-  selectBestTable,
   statsFrom,
 } from "./queue";
 import { addDaysToDay, dayInTz, elapsedMinutes, isOpenAt, parseTimeToMinutes } from "./time";
 import { isDemoMode, seedDatabase } from "./seed";
+import { PRIMARY_BRANCH_ID } from "./schema";
 import type {
   ActionResult,
   ActivityItem,
+  Brand,
+  Branch,
+  BranchSummary,
   DayPoint,
   DiningTable,
   EntryStatus,
@@ -28,7 +31,6 @@ import type {
   PublicStaff,
   QueueEntry,
   QueueSource,
-  Restaurant,
   Role,
   TableStatus,
   TicketView,
@@ -38,6 +40,7 @@ import {
   AppError,
   cleanText,
   clampInt,
+  normalizePhone,
   validateAccent,
   validateGuestName,
   validateNotes,
@@ -46,19 +49,23 @@ import {
   validateTableLabel,
   validateTime,
   validateZone,
-  normalizePhone,
 } from "./validation";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Row = Record<string, any>;
 
 const ENTRY_COLUMNS = `
-  qe.id, qe.token, qe.code, to_char(qe.day, 'YYYY-MM-DD') as day_text, qe.seq,
+  qe.id, qe.branch_id, qe.token, qe.code, to_char(qe.day, 'YYYY-MM-DD') as day_text, qe.seq,
   qe.guest_name, qe.phone, qe.party_size, qe.notes, qe.source, qe.status,
-  qe.table_id, qe.called_count, qe.acknowledged, qe.joined_at, qe.called_at,
+  qe.table_id, qe.seat_number, qe.opened_by, qe.opened_by_staff_id,
+  qe.called_count, qe.acknowledged, qe.joined_at, qe.called_at,
   qe.hold_expires_at, qe.seated_at, qe.closed_at, qe.cancelled_by,
   t.label as table_label
 `;
+
+const BRAND_COLUMNS = `b.id, b.name, b.slug, b.instagram, b.description, b.accent,
+  (b.logo_data is not null) as has_logo, (b.menu_data is not null) as has_menu,
+  b.menu_filename, b.created_at`;
 
 function toIso(value: unknown): string | null {
   if (value === null || value === undefined) return null;
@@ -71,18 +78,37 @@ function toNumber(value: unknown, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
-function mapRestaurant(row: Row): Restaurant {
+export function mapBrand(row: Row): Brand {
   return {
-    id: toNumber(row.id, 1),
+    id: toNumber(row.id),
     name: String(row.name),
+    slug: String(row.slug),
+    instagram: row.instagram ?? null,
+    description: row.description ?? null,
+    accent: String(row.accent ?? "#F24B3F"),
+    hasLogo: Boolean(row.has_logo),
+    hasMenu: Boolean(row.has_menu),
+    menuFilename: row.menu_filename ?? null,
+    createdAt: toIso(row.created_at) ?? new Date().toISOString(),
+  };
+}
+
+function mapBranch(row: Row): Branch {
+  return {
+    id: toNumber(row.id),
+    brandId: toNumber(row.brand_id),
+    brandName: row.brand_name ?? undefined,
+    brandSlug: row.brand_slug ?? undefined,
+    name: String(row.name),
+    slug: String(row.slug),
     tagline: row.tagline ?? null,
     address: row.address ?? null,
     phone: row.phone ?? null,
-    instagram: row.instagram ?? null,
+    instagram: row.instagram ?? row.brand_instagram ?? null,
     timezone: String(row.timezone ?? "Asia/Jakarta"),
     openTime: String(row.open_time ?? "11:00"),
     closeTime: String(row.close_time ?? "23:30"),
-    accent: String(row.accent ?? "#C8452B"),
+    accent: String(row.accent ?? row.brand_accent ?? "#F24B3F"),
     announcement: row.announcement ?? null,
     waitlistStatus: (row.waitlist_status ?? "open") as WaitlistStatus,
     pauseReason: row.pause_reason ?? null,
@@ -98,6 +124,7 @@ function mapRestaurant(row: Row): Restaurant {
 function mapTable(row: Row): DiningTable {
   return {
     id: toNumber(row.id),
+    branchId: toNumber(row.branch_id),
     label: String(row.label),
     capacity: toNumber(row.capacity),
     zone: String(row.zone ?? "Main dining"),
@@ -118,6 +145,7 @@ function mapEntry(row: Row, tablesById: Map<number, string>, now = new Date()): 
 
   return {
     id: toNumber(row.id),
+    branchId: toNumber(row.branch_id),
     code: String(row.code),
     day: String(row.day_text ?? row.day ?? "").slice(0, 10),
     seq: toNumber(row.seq),
@@ -129,6 +157,9 @@ function mapEntry(row: Row, tablesById: Map<number, string>, now = new Date()): 
     status: (row.status ?? "waiting") as EntryStatus,
     tableId,
     tableLabel: row.table_label ?? (tableId ? tablesById.get(tableId) ?? null : null),
+    seatNumber: row.seat_number === null || row.seat_number === undefined ? null : toNumber(row.seat_number),
+    openedBy: row.opened_by ?? null,
+    openedByStaffId: row.opened_by_staff_id ? toNumber(row.opened_by_staff_id) : null,
     calledCount: toNumber(row.called_count),
     acknowledged: Boolean(row.acknowledged),
     joinedAt,
@@ -145,12 +176,26 @@ function mapEntry(row: Row, tablesById: Map<number, string>, now = new Date()): 
   };
 }
 
+function mapStaff(row: Row): PublicStaff {
+  return {
+    id: toNumber(row.id),
+    name: String(row.name),
+    role: (row.role ?? "greeter") as Role,
+    initials: row.initials ?? null,
+    brandId: row.brand_id === null || row.brand_id === undefined ? null : toNumber(row.brand_id),
+    branchId: row.branch_id === null || row.branch_id === undefined ? null : toNumber(row.branch_id),
+    brandName: row.brand_name ?? null,
+    branchName: row.branch_name ?? null,
+  };
+}
+
 function tablesByIdMap(tables: DiningTable[]): Map<number, string> {
   return new Map(tables.map((table) => [table.id, table.label]));
 }
 
 async function logActivity(
   db: Queryable | null,
+  branchId: number | null,
   type: string,
   actor: string | null,
   payload: {
@@ -160,15 +205,17 @@ async function logActivity(
     name?: string | null;
     partySize?: number | null;
     tableLabel?: string | null;
+    seatNumber?: number | null;
     note?: string | null;
   },
   at?: string,
 ): Promise<void> {
   const runner: Queryable = db ?? { query: q };
   await runner.query(
-    `insert into activity (type, entry_id, table_id, actor, detail, created_at)
-     values ($1, $2, $3, $4, $5::jsonb, coalesce($6::timestamptz, now()))`,
+    `insert into activity (branch_id, type, entry_id, table_id, actor, detail, created_at)
+     values ($1,$2,$3,$4,$5,$6::jsonb, coalesce($7::timestamptz, now()))`,
     [
+      branchId,
       type,
       payload.entryId ?? null,
       payload.tableId ?? null,
@@ -178,6 +225,7 @@ async function logActivity(
         name: payload.name ?? null,
         partySize: payload.partySize ?? null,
         tableLabel: payload.tableLabel ?? null,
+        seatNumber: payload.seatNumber ?? null,
         note: payload.note ?? null,
       }),
       at ?? null,
@@ -185,41 +233,415 @@ async function logActivity(
   );
 }
 
-/* ------------------------------- reads ---------------------------------- */
+/* ------------------------------- brands --------------------------------- */
 
-export async function getRestaurant(): Promise<Restaurant> {
-  const rows = await q<Row>("select * from restaurant where id = 1");
-  if (!rows[0]) throw new Error("Restaurant not initialised");
-  return mapRestaurant(rows[0]);
+export async function listBrands(): Promise<Brand[]> {
+  const rows = await q<Row>(`select ${BRAND_COLUMNS} from brands b order by b.name asc`);
+  return rows.map(mapBrand);
 }
 
-export async function listTables(db: Queryable | null = null): Promise<DiningTable[]> {
-  const runner: Queryable = db ?? { query: q };
-  const rows = await runner.query<Row>(
-    "select * from dining_tables order by zone, sort_order, label",
-  );
-  return rows.map(mapTable);
+export async function getBrand(id: number): Promise<Brand | null> {
+  const rows = await q<Row>(`select ${BRAND_COLUMNS} from brands b where b.id = $1`, [id]);
+  return rows[0] ? mapBrand(rows[0]) : null;
 }
 
-export async function listStaffPublic(): Promise<PublicStaff[]> {
+export async function getBrandBySlug(slug: string): Promise<Brand | null> {
+  const rows = await q<Row>(`select ${BRAND_COLUMNS} from brands b where b.slug = $1`, [slug]);
+  return rows[0] ? mapBrand(rows[0]) : null;
+}
+
+export interface BrandPatch {
+  name?: string;
+  slug?: string;
+  instagram?: string | null;
+  description?: string | null;
+  accent?: string;
+}
+
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}
+
+export async function createBrand(input: BrandPatch, actor: string): Promise<Brand> {
+  const name = cleanText(input.name, 80);
+  if (!name) throw new AppError("Brand name is required.");
+  const slug = slugify(input.slug || name);
+  if (!slug) throw new AppError("Brand slug is required.");
+  try {
+    const rows = await q<Row>(
+      `insert into brands (name, slug, instagram, description, accent)
+       values ($1,$2,$3,$4,$5) returning *`,
+      [
+        name,
+        slug,
+        input.instagram ? cleanText(input.instagram, 60) : null,
+        input.description ? cleanText(input.description, 300) : null,
+        validateAccent(input.accent ?? "#F24B3F"),
+      ],
+    );
+    await logActivity(null, null, "brand_added", actor, { note: `${name} added` });
+    return mapBrand({ ...rows[0], has_logo: false, has_menu: false });
+  } catch (error) {
+    if (String(error).includes("duplicate key")) throw new AppError("That brand slug is already used.");
+    throw error;
+  }
+}
+
+export async function updateBrand(id: number, input: BrandPatch, actor: string): Promise<Brand> {
+  const current = await getBrand(id);
+  if (!current) throw new AppError("Brand not found.");
+  const name = input.name !== undefined ? cleanText(input.name, 80) : current.name;
+  const slug = input.slug !== undefined ? slugify(input.slug) : current.slug;
+  if (!name || !slug) throw new AppError("Brand name and slug are required.");
+  try {
+    const rows = await q<Row>(
+      `update brands set name=$2, slug=$3, instagram=$4, description=$5, accent=$6, updated_at=now()
+       where id=$1 returning *`,
+      [
+        id,
+        name,
+        slug,
+        input.instagram !== undefined ? cleanText(input.instagram, 60) || null : current.instagram,
+        input.description !== undefined ? cleanText(input.description, 300) || null : current.description,
+        input.accent !== undefined ? validateAccent(input.accent) : current.accent,
+      ],
+    );
+    await logActivity(null, null, "brand_updated", actor, { note: `${name} updated` });
+    return mapBrand({
+      ...rows[0],
+      has_logo: current.hasLogo,
+      has_menu: current.hasMenu,
+    });
+  } catch (error) {
+    if (String(error).includes("duplicate key")) throw new AppError("That brand slug is already used.");
+    throw error;
+  }
+}
+
+export async function setBrandAsset(
+  id: number,
+  kind: "logo" | "menu",
+  data: Uint8Array,
+  mime: string,
+  filename: string | null,
+  actor: string,
+): Promise<void> {
+  const brand = await getBrand(id);
+  if (!brand) throw new AppError("Brand not found.");
+  if (kind === "logo") {
+    await q("update brands set logo_data=$2, logo_mime=$3, updated_at=now() where id=$1", [id, Buffer.from(data), mime]);
+  } else {
+    await q(
+      "update brands set menu_data=$2, menu_mime=$3, menu_filename=$4, updated_at=now() where id=$1",
+      [id, Buffer.from(data), mime, filename],
+    );
+  }
+  await logActivity(null, null, "brand_asset", actor, { note: `${kind} uploaded for ${brand.name}` });
+}
+
+export async function getBrandAsset(
+  id: number,
+  kind: "logo" | "menu",
+): Promise<{ data: Uint8Array; mime: string; filename: string | null } | null> {
   const rows = await q<Row>(
-    "select id, name, role, initials from staff where active = true order by role desc, name asc",
+    kind === "logo"
+      ? "select logo_data as data, logo_mime as mime, null as filename from brands where id=$1 and logo_data is not null"
+      : "select menu_data as data, menu_mime as mime, menu_filename as filename from brands where id=$1 and menu_data is not null",
+    [id],
+  );
+  const row = rows[0];
+  if (!row) return null;
+  return {
+    data: row.data as Uint8Array,
+    mime: String(row.mime ?? "application/octet-stream"),
+    filename: row.filename ?? null,
+  };
+}
+
+/* ------------------------------ branches -------------------------------- */
+
+const BRANCH_SELECT = `br.*, b.name as brand_name, b.slug as brand_slug, b.instagram as brand_instagram,
+  b.accent as brand_accent, b.description as brand_description`;
+
+export async function getBranch(id: number): Promise<Branch> {
+  const rows = await q<Row>(
+    `select ${BRANCH_SELECT} from branches br join brands b on b.id = br.brand_id where br.id = $1`,
+    [id],
+  );
+  if (!rows[0]) throw new Error("Branch not found");
+  return mapBranch(rows[0]);
+}
+
+/** @deprecated use getBranch */
+export async function getRestaurant(branchId = PRIMARY_BRANCH_ID): Promise<Branch> {
+  return getBranch(branchId);
+}
+
+export async function getPrimaryBranch(): Promise<{ branch: Branch; brand: Brand }> {
+  const rows = await q<Row>(
+    `select br.id from branches br order by br.id asc limit 1`,
+  );
+  if (!rows[0]) throw new Error("No branch configured");
+  const branch = await getBranch(toNumber(rows[0].id));
+  const brand = await getBrand(branch.brandId);
+  if (!brand) throw new Error("Brand not configured");
+  return { branch, brand };
+}
+
+export async function getBranchBySlugs(
+  brandSlug: string,
+  branchSlug: string,
+): Promise<{ branch: Branch; brand: Brand } | null> {
+  const rows = await q<Row>(
+    `select br.id
+     from branches br join brands b on b.id = br.brand_id
+     where b.slug = $1 and br.slug = $2`,
+    [brandSlug, branchSlug],
+  );
+  if (!rows[0]) return null;
+  const branch = await getBranch(toNumber(rows[0].id));
+  const brand = await getBrand(branch.brandId);
+  if (!brand) return null;
+  return { branch, brand };
+}
+
+export async function listBranches(brandId?: number): Promise<BranchSummary[]> {
+  const rows = await q<Row>(
+    `select br.id, br.name, br.slug, br.brand_id, b.name as brand_name, b.slug as brand_slug,
+            br.tagline, br.address, br.phone, br.timezone, br.open_time, br.close_time,
+            coalesce(br.accent, b.accent) as accent, br.announcement, br.waitlist_status
+     from branches br join brands b on b.id = br.brand_id
+     ${brandId ? "where br.brand_id = $1" : ""}
+     order by b.name asc, br.name asc`,
+    brandId ? [brandId] : [],
   );
   return rows.map((row) => ({
     id: toNumber(row.id),
     name: String(row.name),
-    role: row.role as Role,
-    initials: row.initials ?? null,
+    slug: String(row.slug),
+    brandId: toNumber(row.brand_id),
+    brandName: String(row.brand_name),
+    brandSlug: String(row.brand_slug),
+    tagline: row.tagline ?? null,
+    address: row.address ?? null,
+    phone: row.phone ?? null,
+    timezone: String(row.timezone ?? "Asia/Jakarta"),
+    openTime: String(row.open_time ?? "11:00"),
+    closeTime: String(row.close_time ?? "23:30"),
+    accent: String(row.accent ?? "#F24B3F"),
+    announcement: row.announcement ?? null,
+    waitlistStatus: (row.waitlist_status ?? "open") as WaitlistStatus,
   }));
 }
 
+export async function listBranchesForStaff(staff: {
+  role: Role;
+  brandId: number | null;
+  branchId: number | null;
+}): Promise<BranchSummary[]> {
+  const all = await listBranches();
+  if (staff.role === "owner" && !staff.brandId && !staff.branchId) return all;
+  if (staff.role === "owner" && staff.brandId && !staff.branchId) {
+    return all.filter((branch) => branch.brandId === staff.brandId);
+  }
+  if (staff.branchId) return all.filter((branch) => branch.id === staff.branchId);
+  return [];
+}
+
+export async function canManageBranch(
+  staff: { role: Role; brandId: number | null; branchId: number | null },
+  branchId: number,
+): Promise<boolean> {
+  if (staff.role !== "owner") return false;
+  if (!staff.brandId && !staff.branchId) return true;
+  const branches = await listBranchesForStaff(staff);
+  return branches.some((branch) => branch.id === branchId);
+}
+
+export async function canManageBrand(
+  staff: { role: Role; brandId: number | null; branchId: number | null },
+  brandId: number,
+): Promise<boolean> {
+  if (staff.role !== "owner") return false;
+  if (!staff.brandId && !staff.branchId) return true;
+  if (staff.brandId === brandId) return true;
+  if (staff.branchId) {
+    const branch = await getBranch(staff.branchId);
+    return branch.brandId === brandId;
+  }
+  return false;
+}
+
+export async function canOperateBranch(
+  staff: { role: Role; brandId: number | null; branchId: number | null },
+  branchId: number,
+): Promise<boolean> {
+  if (staff.role === "owner") return canManageBranch(staff, branchId);
+  if (!staff.branchId) return false;
+  return staff.branchId === branchId;
+}
+
+export interface BranchPatch {
+  name?: string;
+  slug?: string;
+  tagline?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  timezone?: string;
+  openTime?: string;
+  closeTime?: string;
+  accent?: string | null;
+  announcement?: string | null;
+  avgTurnMinutes?: number;
+  holdMinutes?: number;
+  maxPartySize?: number;
+  maxQueueSize?: number;
+  autoNoShow?: boolean;
+}
+
+export async function createBranch(brandId: number, input: BranchPatch, actor: string): Promise<Branch> {
+  const brand = await getBrand(brandId);
+  if (!brand) throw new AppError("Brand not found.");
+  const name = cleanText(input.name, 80);
+  if (!name) throw new AppError("Branch name is required.");
+  const slug = slugify(input.slug || name);
+  const timezone = input.timezone ? cleanText(input.timezone, 60) : "Asia/Jakarta";
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: timezone });
+  } catch {
+    throw new AppError("That timezone isn't recognised.");
+  }
+  try {
+    const rows = await q<Row>(
+      `insert into branches
+        (brand_id, name, slug, tagline, address, phone, timezone, open_time, close_time, accent, announcement,
+         avg_turn_minutes, hold_minutes, max_party_size, max_queue_size, auto_no_show)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+       returning *`,
+      [
+        brandId,
+        name,
+        slug,
+        input.tagline ? cleanText(input.tagline, 120) : null,
+        input.address ? cleanText(input.address, 200) : null,
+        input.phone ? cleanText(input.phone, 40) : null,
+        timezone,
+        input.openTime ? validateTime(input.openTime, "Opening time") : "11:00",
+        input.closeTime ? validateTime(input.closeTime, "Closing time") : "23:30",
+        input.accent ? validateAccent(input.accent) : null,
+        input.announcement ? cleanText(input.announcement, 300) : null,
+        clampInt(input.avgTurnMinutes ?? 55, 10, 240, 55),
+        clampInt(input.holdMinutes ?? 8, 2, 30, 8),
+        clampInt(input.maxPartySize ?? 12, 1, 40, 12),
+        clampInt(input.maxQueueSize ?? 40, 1, 500, 40),
+        input.autoNoShow ?? true,
+      ],
+    );
+    await logActivity(null, toNumber(rows[0].id), "branch_added", actor, { note: `${name} added` });
+    return getBranch(toNumber(rows[0].id));
+  } catch (error) {
+    if (String(error).includes("duplicate key")) throw new AppError("That branch slug is already used for this brand.");
+    throw error;
+  }
+}
+
+export async function updateBranch(
+  branchId: number,
+  patch: BranchPatch,
+  actor: string,
+): Promise<Branch> {
+  const current = await getBranch(branchId);
+  const next = {
+    name: patch.name !== undefined ? cleanText(patch.name, 80) : current.name,
+    slug: patch.slug !== undefined ? slugify(patch.slug) : current.slug,
+    tagline: patch.tagline !== undefined ? cleanText(patch.tagline, 120) || null : current.tagline,
+    address: patch.address !== undefined ? cleanText(patch.address, 200) || null : current.address,
+    phone: patch.phone !== undefined ? cleanText(patch.phone, 40) || null : current.phone,
+    timezone: patch.timezone ? cleanText(patch.timezone, 60) : current.timezone,
+    openTime: patch.openTime !== undefined ? validateTime(patch.openTime, "Opening time") : current.openTime,
+    closeTime: patch.closeTime !== undefined ? validateTime(patch.closeTime, "Closing time") : current.closeTime,
+    accent: patch.accent !== undefined ? (patch.accent ? validateAccent(patch.accent) : null) : current.accent,
+    announcement:
+      patch.announcement !== undefined ? cleanText(patch.announcement, 300) || null : current.announcement,
+    avgTurnMinutes: clampInt(patch.avgTurnMinutes ?? current.avgTurnMinutes, 10, 240, current.avgTurnMinutes),
+    holdMinutes: clampInt(patch.holdMinutes ?? current.holdMinutes, 2, 30, current.holdMinutes),
+    maxPartySize: clampInt(patch.maxPartySize ?? current.maxPartySize, 1, 40, current.maxPartySize),
+    maxQueueSize: clampInt(patch.maxQueueSize ?? current.maxQueueSize, 1, 500, current.maxQueueSize),
+    autoNoShow: patch.autoNoShow ?? current.autoNoShow,
+  };
+  if (!next.name || !next.slug) throw new AppError("Branch name and slug are required.");
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: next.timezone });
+  } catch {
+    throw new AppError("That timezone isn't recognised.");
+  }
+  if (parseTimeToMinutes(next.openTime) === parseTimeToMinutes(next.closeTime)) {
+    throw new AppError("Opening and closing times cannot be the same.");
+  }
+  try {
+    await q<Row>(
+      `update branches set name=$2, slug=$3, tagline=$4, address=$5, phone=$6, timezone=$7,
+        open_time=$8, close_time=$9, accent=$10, announcement=$11, avg_turn_minutes=$12,
+        hold_minutes=$13, max_party_size=$14, max_queue_size=$15, auto_no_show=$16, updated_at=now()
+       where id=$1 returning *`,
+      [
+        branchId,
+        next.name,
+        next.slug,
+        next.tagline,
+        next.address,
+        next.phone,
+        next.timezone,
+        next.openTime,
+        next.closeTime,
+        next.accent,
+        next.announcement,
+        next.avgTurnMinutes,
+        next.holdMinutes,
+        next.maxPartySize,
+        next.maxQueueSize,
+        next.autoNoShow,
+      ],
+    );
+    await logActivity(null, branchId, "settings", actor, { note: "Branch settings updated" });
+    return getBranch(branchId);
+  } catch (error) {
+    if (String(error).includes("duplicate key")) throw new AppError("That branch slug is already used for this brand.");
+    throw error;
+  }
+}
+
+/* -------------------------------- staff --------------------------------- */
+
+export async function listStaffPublic(): Promise<PublicStaff[]> {
+  const rows = await q<Row>(
+    `select s.id, s.name, s.role, s.initials, s.brand_id, s.branch_id,
+            b.name as brand_name, br.name as branch_name
+     from staff s
+     left join brands b on b.id = s.brand_id
+     left join branches br on br.id = s.branch_id
+     where s.active = true
+     order by s.role desc, s.name asc`,
+  );
+  return rows.map(mapStaff);
+}
+
 export async function listStaff(): Promise<(PublicStaff & { active: boolean; createdAt: string })[]> {
-  const rows = await q<Row>("select id, name, role, initials, active, created_at from staff order by role desc, name asc");
+  const rows = await q<Row>(
+    `select s.id, s.name, s.role, s.initials, s.brand_id, s.branch_id, s.active, s.created_at,
+            b.name as brand_name, br.name as branch_name
+     from staff s
+     left join brands b on b.id = s.brand_id
+     left join branches br on br.id = s.branch_id
+     order by s.role desc, s.name asc`,
+  );
   return rows.map((row) => ({
-    id: toNumber(row.id),
-    name: String(row.name),
-    role: row.role as Role,
-    initials: row.initials ?? null,
+    ...mapStaff(row),
     active: Boolean(row.active),
     createdAt: toIso(row.created_at) ?? new Date().toISOString(),
   }));
@@ -227,32 +649,167 @@ export async function listStaff(): Promise<(PublicStaff & { active: boolean; cre
 
 export async function verifyStaffPin(id: number, pin: string): Promise<PublicStaff | null> {
   const rows = await q<Row>(
-    "select id, name, role, initials, pin_hash, active from staff where id = $1",
+    `select s.id, s.name, s.role, s.initials, s.brand_id, s.branch_id, s.pin_hash, s.active,
+            b.name as brand_name, br.name as branch_name
+     from staff s
+     left join brands b on b.id = s.brand_id
+     left join branches br on br.id = s.branch_id
+     where s.id = $1`,
     [id],
   );
   const row = rows[0];
   if (!row || !row.active) return null;
   const { verifyPin } = await import("./pin");
   if (!verifyPin(pin, String(row.pin_hash))) return null;
-  return {
-    id: toNumber(row.id),
-    name: String(row.name),
-    role: row.role as Role,
-    initials: row.initials ?? null,
-  };
+  return mapStaff(row);
 }
 
-async function entriesForDay(day: string, db: Queryable | null = null): Promise<QueueEntry[]> {
+export async function createStaff(
+  input: { name: string; role: Role; pin: string; brandId: number | null; branchId: number | null },
+  actor: string,
+): Promise<ActionResult> {
+  const name = validateGuestName(input.name);
+  const pin = validatePin(input.pin);
+  const role: Role = input.role === "owner" ? "owner" : input.role === "cashier" ? "cashier" : "greeter";
+  if (role !== "owner" && !input.branchId) {
+    return { ok: false, message: "Greeters and cashiers need a branch." };
+  }
+  if (role === "owner" && !input.brandId && input.branchId) {
+    return { ok: false, message: "A branch cannot exist without a brand." };
+  }
+  const { hashPin } = await import("./pin");
+  const initials = name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  await q<Row>(
+    "insert into staff (name, role, pin_hash, initials, brand_id, branch_id) values ($1,$2,$3,$4,$5,$6) returning id",
+    [name, role, hashPin(pin), initials, input.brandId, input.branchId],
+  );
+  await logActivity(null, input.branchId, "staff_added", actor, {
+    note: `${name} · ${role}`,
+  });
+  return { ok: true, message: `${name} can now sign in.` };
+}
+
+export async function updateStaff(
+  id: number,
+  input: { name?: string; role: Role; pin?: string; brandId: number | null; branchId: number | null },
+  actor: string,
+): Promise<ActionResult> {
+  const rows = await q<Row>("select id, name, role, brand_id, branch_id from staff where id = $1", [id]);
+  const current = rows[0];
+  if (!current) return { ok: false, message: "Team member not found." };
+  const name = input.name !== undefined ? validateGuestName(input.name) : String(current.name);
+  const role: Role = input.role === "owner" ? "owner" : input.role === "cashier" ? "cashier" : "greeter";
+  if (role !== "owner" && !input.branchId) {
+    return { ok: false, message: "Greeters and cashiers need a branch." };
+  }
+  if (role === "owner" && !input.brandId && input.branchId) {
+    return { ok: false, message: "A branch cannot exist without a brand." };
+  }
+  if (current.role === "owner" && role !== "owner") {
+    const owners = await q<Row>(
+      "select count(*)::int as count from staff where role = 'owner' and active = true and brand_id is null and branch_id is null",
+    );
+    if (toNumber(owners[0]?.count) <= 1) {
+      return { ok: false, message: "You need at least one platform owner." };
+    }
+  }
+  const initials = name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  await q(
+    `update staff set name=$2, role=$3, brand_id=$4, branch_id=$5, initials=$6
+     where id=$1`,
+    [id, name, role, input.brandId, input.branchId, initials],
+  );
+  if (input.pin) {
+    const { hashPin } = await import("./pin");
+    await q("update staff set pin_hash=$2 where id=$1", [id, hashPin(validatePin(input.pin))]);
+  }
+  await logActivity(null, input.branchId, "staff_status", actor, {
+    note: `${name} · ${role}`,
+  });
+  return { ok: true, message: `${name} updated.` };
+}
+
+export async function setStaffPin(id: number, pin: string, actor: string): Promise<ActionResult> {
+  const safePin = validatePin(pin);
+  const { hashPin } = await import("./pin");
+  const rows = await q<Row>("update staff set pin_hash = $2 where id = $1 returning name, branch_id", [
+    id,
+    hashPin(safePin),
+  ]);
+  if (!rows[0]) return { ok: false, message: "Team member not found." };
+  await logActivity(null, rows[0].branch_id ?? null, "staff_pin", actor, {
+    note: `PIN reset for ${rows[0].name}`,
+  });
+  return { ok: true, message: `PIN updated for ${rows[0].name}.` };
+}
+
+export async function setStaffActive(id: number, active: boolean, actor: string): Promise<ActionResult> {
+  const target = await q<Row>("select id, name, role, active, brand_id, branch_id from staff where id = $1", [id]);
+  if (!target[0]) return { ok: false, message: "Team member not found." };
+  if (!active && target[0].role === "owner") {
+    const owners = await q<Row>(
+      "select count(*)::int as count from staff where role = 'owner' and active = true and brand_id is null and branch_id is null",
+    );
+    if (toNumber(owners[0]?.count) <= 1) {
+      return { ok: false, message: "You need at least one platform owner." };
+    }
+  }
+  await q("update staff set active = $2 where id = $1", [id, active]);
+  await logActivity(null, target[0].branch_id ?? null, "staff_status", actor, {
+    note: `${target[0].name} ${active ? "reactivated" : "deactivated"}`,
+  });
+  return { ok: true, message: `${target[0].name} ${active ? "is active" : "is paused"}.` };
+}
+
+/* ------------------------------- reads --------------------------------- */
+
+async function ensureDemoDay(): Promise<void> {
+  if (!isDemoMode()) return;
+  const primary = await getPrimaryBranch();
+  const today = dayInTz(new Date(), primary.branch.timezone);
+  const rows = await q<Row>(
+    "select count(*)::int as count from queue_entries where branch_id = $1 and day = $2::date",
+    [primary.branch.id, today],
+  );
+  if (toNumber(rows[0]?.count) === 0) {
+    await seedDatabase({ query: q });
+  }
+}
+
+export async function listTables(branchId: number, db: Queryable | null = null): Promise<DiningTable[]> {
+  const runner: Queryable = db ?? { query: q };
+  const rows = await runner.query<Row>(
+    "select * from dining_tables where branch_id = $1 order by zone, sort_order, label",
+    [branchId],
+  );
+  return rows.map(mapTable);
+}
+
+async function entriesForDay(
+  branchId: number,
+  day: string,
+  db: Queryable | null = null,
+): Promise<QueueEntry[]> {
   const runner: Queryable = db ?? { query: q };
   const rows = await runner.query<Row>(
     `select ${ENTRY_COLUMNS}
      from queue_entries qe
      left join dining_tables t on t.id = qe.table_id
-     where qe.day = $1::date
+     where qe.branch_id = $1 and qe.day = $2::date
      order by qe.joined_at asc`,
-    [day],
+    [branchId, day],
   );
-  const tables = await listTables(runner);
+  const tables = await listTables(branchId, runner);
   const map = tablesByIdMap(tables);
   return rows.map((row) => mapEntry(row, map));
 }
@@ -266,52 +823,37 @@ async function entryByToken(token: string): Promise<QueueEntry | null> {
     [token],
   );
   if (!rows[0]) return null;
-  return mapEntry(rows[0], tablesByIdMap(await listTables()));
+  return mapEntry(rows[0], tablesByIdMap(await listTables(toNumber(rows[0].branch_id))));
 }
 
-/**
- * Demo mode should look alive on the first request of every new service day,
- * even when a warm serverless instance survived midnight.
- */
-async function ensureDemoDay(restaurant: Restaurant): Promise<void> {
-  if (!isDemoMode()) return;
-  const today = dayInTz(new Date(), restaurant.timezone);
+async function expireHolds(branchId: number): Promise<void> {
   const rows = await q<Row>(
-    "select count(*)::int as count from queue_entries where day = $1::date",
-    [today],
-  );
-  if (toNumber(rows[0]?.count) === 0) {
-    await seedDatabase({ query: q });
-  }
-}
-
-async function expireHolds(restaurant: Restaurant): Promise<void> {
-  if (!restaurant.autoNoShow) return;
-  const expired = await q<Row>(
     `update queue_entries
      set status = 'no_show', closed_at = now(), hold_expires_at = null
-     where status = 'called' and hold_expires_at is not null and hold_expires_at < now()
+     where branch_id = $1 and status = 'called' and hold_expires_at is not null and hold_expires_at < now()
      returning id, code, guest_name, party_size`,
+    [branchId],
   );
-  for (const row of expired) {
-    await logActivity(null, "no_show", "System", {
+  for (const row of rows) {
+    await logActivity(null, branchId, "no_show", "System", {
       entryId: toNumber(row.id),
       code: String(row.code),
       name: String(row.guest_name),
       partySize: toNumber(row.party_size),
-      note: "Hold expired",
+      note: "Call expired",
     });
   }
 }
 
-export async function getHostState(): Promise<HostState> {
-  const restaurant = await getRestaurant();
-  await ensureDemoDay(restaurant);
-  await expireHolds(restaurant);
+export async function getHostState(branchId: number): Promise<HostState> {
+  await ensureDemoDay();
+  const branch = await getBranch(branchId);
+  const brand = await getBrand(branch.brandId);
+  await expireHolds(branchId);
   const now = new Date();
-  const today = dayInTz(now, restaurant.timezone);
-  const tables = await listTables();
-  const entries = await entriesForDay(today);
+  const today = dayInTz(now, branch.timezone);
+  const tables = await listTables(branchId);
+  const entries = await entriesForDay(branchId, today);
   const waiting = orderWaiting(entries.filter((entry) => entry.status === "waiting"));
   const called = entries
     .filter((entry) => entry.status === "called")
@@ -324,7 +866,8 @@ export async function getHostState(): Promise<HostState> {
   const stats = statsFrom(entries, tables, now);
 
   return {
-    restaurant,
+    branch,
+    brand,
     tables,
     waiting,
     called,
@@ -336,30 +879,32 @@ export async function getHostState(): Promise<HostState> {
   };
 }
 
-export async function getPublicSnapshot(): Promise<PublicSnapshot> {
-  const restaurant = await getRestaurant();
-  await ensureDemoDay(restaurant);
-  await expireHolds(restaurant);
+export async function getPublicSnapshot(branchId: number): Promise<PublicSnapshot> {
+  await ensureDemoDay();
+  const branch = await getBranch(branchId);
+  const brand = await getBrand(branch.brandId);
+  await expireHolds(branchId);
   const now = new Date();
-  const today = dayInTz(now, restaurant.timezone);
-  const tables = await listTables();
-  const entries = await entriesForDay(today);
+  const today = dayInTz(now, branch.timezone);
+  const tables = await listTables(branchId);
+  const entries = await entriesForDay(branchId, today);
   const waiting = orderWaiting(entries.filter((entry) => entry.status === "waiting"));
   const lastCalledRows = await q<Row>(
     `select code from queue_entries
-     where day = $1::date and called_at is not null
+     where branch_id = $1 and day = $2::date and called_at is not null
      order by called_at desc limit 1`,
-    [today],
+    [branchId, today],
   );
-  const avgTurn = averageTurn(entries, restaurant.avgTurnMinutes);
+  const avgTurn = averageTurn(entries, branch.avgTurnMinutes);
   const fittable = tables.filter((table) => table.capacity >= 2);
 
   return {
-    restaurant,
+    branch,
+    brand,
     waiting: waiting.length,
     availableTables: tables.filter((table) => table.status === "available").length,
     lastCalledCode: lastCalledRows[0]?.code ?? null,
-    isOpenNow: isOpenAt(restaurant, now),
+    isOpenNow: isOpenAt(branch, now),
     typicalWaitMinutes:
       waiting.length === 0
         ? null
@@ -374,21 +919,22 @@ export async function getPublicSnapshot(): Promise<PublicSnapshot> {
 }
 
 export async function getTicketView(token: string): Promise<TicketView | null> {
-  const restaurant = await getRestaurant();
-  await expireHolds(restaurant);
-  const entry = await entryByToken(token);
-  if (!entry) return null;
-
+  const initial = await entryByToken(token);
+  if (!initial) return null;
+  const branch = await getBranch(initial.branchId);
+  const brand = await getBrand(branch.brandId);
+  await expireHolds(branch.id);
+  const entry = (await entryByToken(token)) ?? initial;
   const now = new Date();
-  const today = dayInTz(now, restaurant.timezone);
-  const tables = await listTables();
-  const entries = await entriesForDay(today);
+  const today = dayInTz(now, branch.timezone);
+  const tables = await listTables(branch.id);
+  const entries = await entriesForDay(branch.id, today);
   const waiting = orderWaiting(entries.filter((item) => item.status === "waiting"));
   const waitingEntry = waiting.find((item) => item.id === entry.id) ?? null;
   const position = waitingEntry ? positionOf(waitingEntry.id, waiting) : null;
   const fittable = tables.filter((table) => table.capacity >= entry.partySize);
   const availableFittable = fittable.filter((table) => table.status === "available").length;
-  const avgTurn = averageTurn(entries, restaurant.avgTurnMinutes);
+  const avgTurn = averageTurn(entries, branch.avgTurnMinutes);
   const eta =
     position === null
       ? null
@@ -398,16 +944,16 @@ export async function getTicketView(token: string): Promise<TicketView | null> {
           tableCount: Math.max(1, fittable.length),
           availableTables: availableFittable,
         });
-
   const lastCalledRows = await q<Row>(
     `select code from queue_entries
-     where day = $1::date and called_at is not null
+     where branch_id = $1 and day = $2::date and called_at is not null
      order by called_at desc limit 1`,
-    [today],
+    [branch.id, today],
   );
 
   return {
-    restaurant,
+    branch,
+    brand,
     entry,
     position,
     peopleAhead: position === null ? null : Math.max(0, position - 1),
@@ -416,7 +962,7 @@ export async function getTicketView(token: string): Promise<TicketView | null> {
     waitingCount: waiting.length,
     availableTables: tables.filter((table) => table.status === "available").length,
     serverNow: now.toISOString(),
-    isOpenNow: isOpenAt(restaurant, now),
+    isOpenNow: isOpenAt(branch, now),
   };
 }
 
@@ -438,49 +984,46 @@ export interface JoinResult {
   etaMinutes: number;
 }
 
-export async function joinQueue(input: JoinInput, allowPaused = false): Promise<JoinResult> {
-  const restaurant = await getRestaurant();
+export async function joinQueue(branchId: number, input: JoinInput, allowPaused = false): Promise<JoinResult> {
+  const branch = await getBranch(branchId);
   const name = validateGuestName(input.guestName);
-  const partySize = validatePartySize(input.partySize, restaurant.maxPartySize);
+  const partySize = validatePartySize(input.partySize, branch.maxPartySize);
   const phone = normalizePhone(input.phone);
   const notes = validateNotes(input.notes);
   const source: QueueSource = input.source === "walkin" ? "walkin" : input.source === "online" ? "online" : "qr";
 
-  if (!allowPaused && restaurant.waitlistStatus !== "open") {
+  if (!allowPaused && branch.waitlistStatus !== "open") {
     throw new AppError(
-      restaurant.waitlistStatus === "paused"
-        ? "The waitlist is paused right now. Please ask the host."
-        : "The waitlist is closed for today.",
-      "waitlist_closed",
+      branch.waitlistStatus === "paused"
+        ? "The queue is paused right now. Please ask the host."
+        : "The queue is closed for today.",
+      "queue_closed",
       409,
     );
   }
 
   return tx(async (db) => {
-    const today = dayInTz(new Date(), restaurant.timezone);
+    const today = dayInTz(new Date(), branch.timezone);
     const counts = await db.query<Row>(
-      `select
-         count(*) filter (where status = 'waiting')::int as waiting,
-         count(*) filter (where status in ('waiting','called'))::int as active
-       from queue_entries where day = $1::date`,
-      [today],
+      `select count(*) filter (where status = 'waiting')::int as waiting
+       from queue_entries where branch_id = $1 and day = $2::date`,
+      [branchId, today],
     );
-    const waiting = toNumber(counts[0]?.waiting);
-    if (waiting >= restaurant.maxQueueSize) {
+    if (toNumber(counts[0]?.waiting) >= branch.maxQueueSize) {
       throw new AppError(
-        "The waitlist is full right now. Please see the host — we may still be able to seat you.",
+        "The queue is full right now. Please see the host — we may still be able to seat you.",
         "queue_full",
         409,
       );
     }
 
     const seqRows = await db.query<Row>(
-      `insert into queue_sequence (restaurant_id, day, last_seq)
-       values (1, $1::date, 1)
-       on conflict (restaurant_id, day)
+      `insert into queue_sequence (branch_id, day, last_seq)
+       values ($1, $2::date, 1)
+       on conflict (branch_id, day)
        do update set last_seq = queue_sequence.last_seq + 1
        returning last_seq`,
-      [today],
+      [branchId, today],
     );
     const seq = toNumber(seqRows[0]?.last_seq, 1);
     const token = randomBytes(18).toString("base64url");
@@ -488,14 +1031,14 @@ export async function joinQueue(input: JoinInput, allowPaused = false): Promise<
 
     const inserted = await db.query<Row>(
       `insert into queue_entries
-        (token, code, day, seq, guest_name, phone, party_size, notes, source, status)
-       values ($1,$2,$3::date,$4,$5,$6,$7,$8,$9,'waiting')
+        (branch_id, token, code, day, seq, guest_name, phone, party_size, notes, source, status)
+       values ($1,$2,$3,$4::date,$5,$6,$7,$8,$9,$10,'waiting')
        returning id`,
-      [token, code, today, seq, name, phone, partySize, notes, source],
+      [branchId, token, code, today, seq, name, phone, partySize, notes, source],
     );
     const entryId = toNumber(inserted[0]?.id);
 
-    await logActivity(db, source === "walkin" ? "walkin" : "join", input.actor ?? "Guest", {
+    await logActivity(db, branchId, source === "walkin" ? "walkin" : "join", input.actor ?? "Guest", {
       entryId,
       code,
       name,
@@ -503,14 +1046,14 @@ export async function joinQueue(input: JoinInput, allowPaused = false): Promise<
       note: notes,
     });
 
-    const all = await entriesForDay(today, db);
+    const all = await entriesForDay(branchId, today, db);
     const waitingList = orderWaiting(all.filter((entry) => entry.status === "waiting"));
     const position = positionOf(entryId, waitingList) ?? waitingList.length;
-    const tables = await listTables(db);
+    const tables = await listTables(branchId, db);
     const fittable = tables.filter((table) => table.capacity >= partySize);
     const etaMinutes = estimateWaitMinutes({
       position,
-      avgTurnMinutes: restaurant.avgTurnMinutes,
+      avgTurnMinutes: branch.avgTurnMinutes,
       tableCount: Math.max(1, fittable.length),
       availableTables: fittable.filter((table) => table.status === "available").length,
     });
@@ -525,18 +1068,18 @@ export async function cancelTicket(token: string): Promise<ActionResult> {
       `update queue_entries
        set status = 'cancelled', closed_at = now(), cancelled_by = 'guest', hold_expires_at = null
        where token = $1 and status in ('waiting','called')
-       returning id, code, guest_name, party_size`,
+       returning id, branch_id, code, guest_name, party_size`,
       [token],
     );
     if (!rows[0]) return { ok: false, message: "This ticket can no longer be cancelled." };
-    await logActivity(db, "cancel", "Guest", {
+    await logActivity(db, toNumber(rows[0].branch_id), "cancel", "Guest", {
       entryId: toNumber(rows[0].id),
       code: String(rows[0].code),
       name: String(rows[0].guest_name),
       partySize: toNumber(rows[0].party_size),
       note: "Cancelled from ticket",
     });
-    return { ok: true, message: "Your place in line has been released." };
+    return { ok: true, message: "Your place has been released." };
   });
 }
 
@@ -546,29 +1089,28 @@ export async function acknowledgeTicket(token: string): Promise<ActionResult> {
      set acknowledged = true,
          hold_expires_at = coalesce(hold_expires_at, now()) + interval '3 minutes'
      where token = $1 and status = 'called' and acknowledged = false
-     returning id, code, guest_name, party_size, hold_expires_at`,
+     returning id, branch_id, code, guest_name, party_size`,
     [token],
   );
-
   if (!rows[0]) {
-    const existing = await q<Row>("select status, acknowledged from queue_entries where token = $1", [token]);
+    const existing = await q<Row>("select status from queue_entries where token = $1", [token]);
     if (existing[0]?.status === "called") {
       return { ok: true, message: "We already have your heads-up — the host is expecting you." };
     }
     return { ok: false, message: "This ticket is not waiting for a table right now." };
   }
-
-  await logActivity(null, "acknowledge", "Guest", {
+  await logActivity(null, toNumber(rows[0].branch_id), "acknowledge", "Guest", {
     entryId: toNumber(rows[0].id),
     code: String(rows[0].code),
     name: String(rows[0].guest_name),
     partySize: toNumber(rows[0].party_size),
-    note: "Guest confirmed — hold extended 3 min",
+    note: "Guest confirmed",
   });
   return { ok: true, message: "We'll hold your table a little longer." };
 }
 
 async function updateEntryStatus(
+  branchId: number,
   entryId: number,
   from: EntryStatus[],
   patch: Record<string, unknown>,
@@ -579,18 +1121,18 @@ async function updateEntryStatus(
 ): Promise<ActionResult> {
   return tx(async (db) => {
     const columns = Object.keys(patch);
-    const assignments = columns.map((column, index) => `${column} = $${index + 2}`).join(", ");
-    const params = [entryId, ...columns.map((column) => patch[column])];
+    const assignments = columns.map((column, index) => `${column} = $${index + 3}`).join(", ");
+    const params = [entryId, branchId, ...columns.map((column) => patch[column])];
     const rows = await db.query<Row>(
       `update queue_entries set ${assignments}
-       where id = $1 and status = any($${params.length + 1}::text[])
+       where id = $1 and branch_id = $2 and status = any($${params.length + 1}::text[])
        returning id, code, guest_name, party_size, table_id`,
       [...params, from],
     );
     if (!rows[0]) {
       return { ok: false, message: "That guest was already handled. Refreshing the board…" };
     }
-    await logActivity(db, type, actor, {
+    await logActivity(db, branchId, type, actor, {
       entryId: toNumber(rows[0].id),
       code: String(rows[0].code),
       name: String(rows[0].guest_name),
@@ -601,53 +1143,61 @@ async function updateEntryStatus(
   });
 }
 
-export async function callEntry(entryId: number, actor: string): Promise<ActionResult> {
-  const restaurant = await getRestaurant();
+export async function callEntry(
+  branchId: number,
+  entryId: number,
+  actor: string,
+): Promise<ActionResult> {
+  const branch = await getBranch(branchId);
   return tx(async (db) => {
     const rows = await db.query<Row>(
       `update queue_entries
        set status = 'called', called_at = now(),
-           hold_expires_at = now() + ($2 || ' minutes')::interval,
+           hold_expires_at = now() + ($3 || ' minutes')::interval,
            called_count = called_count + 1, acknowledged = false
-       where id = $1 and status = 'waiting'
+       where id = $1 and branch_id = $2 and status = 'waiting'
        returning id, code, guest_name, party_size`,
-      [entryId, restaurant.holdMinutes],
+      [entryId, branchId, branch.holdMinutes],
     );
     if (!rows[0]) return { ok: false, message: "That guest was already handled." };
-    await logActivity(db, "call", actor, {
+    await logActivity(db, branchId, "call", actor, {
       entryId,
       code: String(rows[0].code),
       name: String(rows[0].guest_name),
       partySize: toNumber(rows[0].party_size),
       note: "Table ready",
     });
-    return { ok: true, message: `${rows[0].code} called. The hold timer is running.` };
+    return { ok: true, message: `${rows[0].code} called.` };
   });
 }
 
-export async function callNext(actor: string, force = false): Promise<ActionResult<{ code: string }>> {
-  const restaurant = await getRestaurant();
+export async function callNext(
+  branchId: number,
+  actor: string,
+  force = false,
+): Promise<ActionResult<{ code: string }>> {
+  const branch = await getBranch(branchId);
   return tx(async (db) => {
-    const today = dayInTz(new Date(), restaurant.timezone);
-    const entries = await entriesForDay(today, db);
+    const today = dayInTz(new Date(), branch.timezone);
+    const entries = await entriesForDay(branchId, today, db);
     const waiting = orderWaiting(entries.filter((entry) => entry.status === "waiting"));
-    const tables = await listTables(db);
+    const tables = await listTables(branchId, db);
     const pick = pickNext(waiting, tables, force);
     if (!pick.ok) return { ok: false, message: pick.message };
 
-    const hold = new Date(Date.now() + restaurant.holdMinutes * 60_000).toISOString();
+    const hold = new Date(Date.now() + branch.holdMinutes * 60_000).toISOString();
     const updated = await db.query<Row>(
       `update queue_entries
-       set status = 'called', called_at = now(), hold_expires_at = $2,
+       set status = 'called', called_at = now(), hold_expires_at = $3,
            called_count = called_count + 1, acknowledged = false
-       where id = $1 and status = 'waiting'
+       where id = $1 and branch_id = $2 and status = 'waiting'
        returning id, code, guest_name, party_size`,
-      [pick.entry.id, hold],
+      [pick.entry.id, branchId, hold],
     );
     if (!updated[0]) {
       return { ok: false, message: "Another host just called that guest. Refreshing…" };
     }
-    await logActivity(db, "call", actor, {
+    await logActivity(db, branchId, "call", actor, {
       entryId: toNumber(updated[0].id),
       code: String(updated[0].code),
       name: String(updated[0].guest_name),
@@ -663,11 +1213,18 @@ export async function callNext(actor: string, force = false): Promise<ActionResu
   });
 }
 
-export async function seatEntry(entryId: number, tableId: number, actor: string): Promise<ActionResult> {
+export async function seatEntry(
+  branchId: number,
+  entryId: number,
+  tableId: number,
+  actor: string,
+  staffId: number | null,
+  seatNumber: number | null = null,
+): Promise<ActionResult> {
   return tx(async (db) => {
     const entryRows = await db.query<Row>(
-      "select id, code, guest_name, party_size, status from queue_entries where id = $1 for update",
-      [entryId],
+      "select id, code, guest_name, party_size, status from queue_entries where id = $1 and branch_id = $2 for update",
+      [entryId, branchId],
     );
     const entry = entryRows[0];
     if (!entry) return { ok: false, message: "That guest no longer exists." };
@@ -675,8 +1232,8 @@ export async function seatEntry(entryId: number, tableId: number, actor: string)
       return { ok: false, message: "That guest is not waiting for a table." };
     }
     const tableRows = await db.query<Row>(
-      "select id, label, capacity, status from dining_tables where id = $1 for update",
-      [tableId],
+      "select id, label, capacity, status from dining_tables where id = $1 and branch_id = $2 for update",
+      [tableId, branchId],
     );
     const table = tableRows[0];
     if (!table) return { ok: false, message: "That table no longer exists." };
@@ -684,32 +1241,42 @@ export async function seatEntry(entryId: number, tableId: number, actor: string)
     if (toNumber(entry.party_size) > toNumber(table.capacity)) {
       return { ok: false, message: `${table.label} seats ${table.capacity}; this party is ${entry.party_size}.` };
     }
+    const seat = seatNumber === null ? null : clampInt(seatNumber, 1, toNumber(table.capacity), 1);
+    if (seat !== null && seat > toNumber(table.capacity)) {
+      return { ok: false, message: `Seat ${seat} does not exist at ${table.label}.` };
+    }
 
     await db.query(
       `update queue_entries
-       set status = 'seated', seated_at = now(), table_id = $2, hold_expires_at = null
-       where id = $1`,
-      [entryId, tableId],
+       set status='seated', seated_at=now(), table_id=$3, seat_number=$4, opened_by=$5,
+           opened_by_staff_id=$6, hold_expires_at=null
+       where id=$1 and branch_id=$2`,
+      [entryId, branchId, tableId, seat, actor, staffId],
     );
     await db.query(
-      "update dining_tables set status = 'seated', status_changed_at = now() where id = $1",
-      [tableId],
+      "update dining_tables set status='seated', status_changed_at=now() where id=$1 and branch_id=$2",
+      [tableId, branchId],
     );
-    await logActivity(db, "seat", actor, {
+    await logActivity(db, branchId, "seat", actor, {
       entryId,
       tableId,
       code: String(entry.code),
       name: String(entry.guest_name),
       partySize: toNumber(entry.party_size),
       tableLabel: String(table.label),
-      note: `Seated at ${table.label}`,
+      seatNumber: seat,
+      note: seat ? `Seated at ${table.label} · seat ${seat}` : `Seated at ${table.label}`,
     });
-    return { ok: true, message: `${entry.code} seated at ${table.label}.` };
+    return {
+      ok: true,
+      message: `${entry.code} seated at ${table.label}${seat ? ` · seat ${seat}` : ""}.`,
+    };
   });
 }
 
-export async function markNoShow(entryId: number, actor: string): Promise<ActionResult> {
+export async function markNoShow(branchId: number, entryId: number, actor: string): Promise<ActionResult> {
   return updateEntryStatus(
+    branchId,
     entryId,
     ["called", "waiting"],
     { status: "no_show", closed_at: new Date().toISOString(), hold_expires_at: null },
@@ -720,72 +1287,79 @@ export async function markNoShow(entryId: number, actor: string): Promise<Action
   );
 }
 
-export async function undoCall(entryId: number, actor: string): Promise<ActionResult> {
+export async function undoCall(branchId: number, entryId: number, actor: string): Promise<ActionResult> {
   return updateEntryStatus(
+    branchId,
     entryId,
     ["called"],
     { status: "waiting", called_at: null, hold_expires_at: null, acknowledged: false },
     actor,
     "undo_call",
-    "Returned to waitlist",
-    "Guest returned to the waitlist.",
+    "Returned to queue",
+    "Guest returned to the queue.",
   );
 }
 
-export async function extendHold(entryId: number, minutes: number, actor: string): Promise<ActionResult> {
+export async function extendHold(
+  branchId: number,
+  entryId: number,
+  minutes: number,
+  actor: string,
+): Promise<ActionResult> {
   const extra = clampInt(minutes, 1, 15, 5);
   const rows = await q<Row>(
     `update queue_entries
-     set hold_expires_at = greatest(coalesce(hold_expires_at, now()), now()) + ($2 || ' minutes')::interval,
+     set hold_expires_at = greatest(coalesce(hold_expires_at, now()), now()) + ($3 || ' minutes')::interval,
          acknowledged = true
-     where id = $1 and status = 'called'
+     where id = $1 and branch_id = $2 and status = 'called'
      returning id, code`,
-    [entryId, extra],
+    [entryId, branchId, extra],
   );
   if (!rows[0]) return { ok: false, message: "That guest is not on hold." };
-  await logActivity(null, "extend", actor, {
+  await logActivity(null, branchId, "extend", actor, {
     entryId,
     code: String(rows[0].code),
-    note: `Hold extended ${extra} min`,
+    note: `Call extended ${extra} min`,
   });
-  return { ok: true, message: `Hold extended by ${extra} minutes.` };
+  return { ok: true, message: `Call extended by ${extra} minutes.` };
 }
 
-export async function clearTable(tableId: number, actor: string): Promise<ActionResult> {
+export async function clearTable(branchId: number, tableId: number, actor: string): Promise<ActionResult> {
   return tx(async (db) => {
     const tableRows = await db.query<Row>(
-      "select id, label, status from dining_tables where id = $1 for update",
-      [tableId],
+      "select id, label, status from dining_tables where id = $1 and branch_id = $2 for update",
+      [tableId, branchId],
     );
     const table = tableRows[0];
     if (!table) return { ok: false, message: "That table no longer exists." };
     if (table.status !== "seated") return { ok: false, message: `${table.label} is not marked as seated.` };
 
     const entryRows = await db.query<Row>(
-      `select id, code, guest_name, party_size from queue_entries
-       where table_id = $1 and status = 'seated' order by seated_at desc limit 1`,
-      [tableId],
+      `select id, code, guest_name, party_size, seat_number from queue_entries
+       where table_id = $1 and branch_id = $2 and status = 'seated' order by seated_at desc limit 1`,
+      [tableId, branchId],
     );
     await db.query(
-      "update dining_tables set status = 'dirty', status_changed_at = now() where id = $1",
-      [tableId],
+      "update dining_tables set status='dirty', status_changed_at=now() where id=$1 and branch_id=$2",
+      [tableId, branchId],
     );
     if (entryRows[0]) {
-      await db.query(
-        "update queue_entries set status = 'completed', closed_at = now() where id = $1",
-        [toNumber(entryRows[0].id)],
-      );
-      await logActivity(db, "complete", actor, {
+      await db.query("update queue_entries set status='completed', closed_at=now() where id=$1 and branch_id=$2", [
+        toNumber(entryRows[0].id),
+        branchId,
+      ]);
+      await logActivity(db, branchId, "complete", actor, {
         entryId: toNumber(entryRows[0].id),
         tableId,
         code: String(entryRows[0].code),
         name: String(entryRows[0].guest_name),
         partySize: toNumber(entryRows[0].party_size),
         tableLabel: String(table.label),
+        seatNumber: entryRows[0].seat_number ? toNumber(entryRows[0].seat_number) : null,
         note: "Visit completed",
       });
     }
-    await logActivity(db, "clear", actor, {
+    await logActivity(db, branchId, "clear", actor, {
       tableId,
       tableLabel: String(table.label),
       note: "Table needs resetting",
@@ -795,6 +1369,7 @@ export async function clearTable(tableId: number, actor: string): Promise<Action
 }
 
 export async function setTableStatus(
+  branchId: number,
   tableId: number,
   status: TableStatus,
   actor: string,
@@ -803,13 +1378,13 @@ export async function setTableStatus(
     return { ok: false, message: "That table status can't be set manually." };
   }
   const rows = await q<Row>(
-    `update dining_tables set status = $2, status_changed_at = now()
-     where id = $1 and status <> 'seated'
+    `update dining_tables set status=$3, status_changed_at=now()
+     where id=$1 and branch_id=$2 and status <> 'seated'
      returning id, label, status`,
-    [tableId, status],
+    [tableId, branchId, status],
   );
   if (!rows[0]) return { ok: false, message: "Clear the seated party first." };
-  await logActivity(null, status === "available" ? "ready" : "table_status", actor, {
+  await logActivity(null, branchId, status === "available" ? "ready" : "table_status", actor, {
     tableId,
     tableLabel: String(rows[0].label),
     note: status === "blocked" ? "Blocked" : status === "dirty" ? "Marked dirty" : "Ready for guests",
@@ -818,116 +1393,43 @@ export async function setTableStatus(
 }
 
 export async function setWaitlistStatus(
+  branchId: number,
   status: WaitlistStatus,
   reason: string | null,
   actor: string,
 ): Promise<ActionResult> {
   if (!["open", "paused", "closed"].includes(status)) {
-    return { ok: false, message: "Unknown waitlist state." };
+    return { ok: false, message: "Unknown queue state." };
   }
   const rows = await q<Row>(
-    `update restaurant set waitlist_status = $1, pause_reason = $2, updated_at = now()
-     where id = 1 returning waitlist_status`,
-    [status, reason ? cleanText(reason, 120) : null],
+    `update branches set waitlist_status=$2, pause_reason=$3, updated_at=now()
+     where id=$1 returning waitlist_status`,
+    [branchId, status, reason ? cleanText(reason, 120) : null],
   );
-  if (!rows[0]) return { ok: false, message: "Could not update the waitlist." };
-  await logActivity(null, "waitlist", actor, {
+  if (!rows[0]) return { ok: false, message: "Could not update the queue." };
+  await logActivity(null, branchId, "waitlist", actor, {
     note:
       status === "open"
-        ? "Waitlist opened"
+        ? "Queue opened"
         : status === "paused"
-          ? `Waitlist paused${reason ? `: ${reason}` : ""}`
-          : "Waitlist closed",
+          ? `Queue paused${reason ? `: ${reason}` : ""}`
+          : "Queue closed",
   });
   return {
     ok: true,
     message:
       status === "open"
-        ? "Waitlist is open — guests can join."
+        ? "Queue is open — guests can join."
         : status === "paused"
-          ? "Waitlist paused. Existing guests keep their place."
-          : "Waitlist closed for new guests.",
+          ? "Queue paused. Existing guests keep their place."
+          : "Queue closed for new guests.",
   };
 }
 
-export interface RestaurantPatch {
-  name?: string;
-  tagline?: string | null;
-  address?: string | null;
-  phone?: string | null;
-  instagram?: string | null;
-  openTime?: string;
-  closeTime?: string;
-  accent?: string;
-  announcement?: string | null;
-  avgTurnMinutes?: number;
-  holdMinutes?: number;
-  maxPartySize?: number;
-  maxQueueSize?: number;
-  autoNoShow?: boolean;
-  timezone?: string;
-}
-
-export async function updateRestaurant(patch: RestaurantPatch, actor: string): Promise<Restaurant> {
-  const current = await getRestaurant();
-  const next = {
-    name: patch.name !== undefined ? cleanText(patch.name, 80) : current.name,
-    tagline: patch.tagline !== undefined ? cleanText(patch.tagline, 120) || null : current.tagline,
-    address: patch.address !== undefined ? cleanText(patch.address, 200) || null : current.address,
-    phone: patch.phone !== undefined ? cleanText(patch.phone, 40) || null : current.phone,
-    instagram: patch.instagram !== undefined ? cleanText(patch.instagram, 60) || null : current.instagram,
-    openTime: patch.openTime !== undefined ? validateTime(patch.openTime, "Opening time") : current.openTime,
-    closeTime: patch.closeTime !== undefined ? validateTime(patch.closeTime, "Closing time") : current.closeTime,
-    accent: patch.accent !== undefined ? validateAccent(patch.accent) : current.accent,
-    announcement:
-      patch.announcement !== undefined ? cleanText(patch.announcement, 300) || null : current.announcement,
-    avgTurnMinutes: clampInt(patch.avgTurnMinutes ?? current.avgTurnMinutes, 10, 240, current.avgTurnMinutes),
-    holdMinutes: clampInt(patch.holdMinutes ?? current.holdMinutes, 2, 30, current.holdMinutes),
-    maxPartySize: clampInt(patch.maxPartySize ?? current.maxPartySize, 1, 40, current.maxPartySize),
-    maxQueueSize: clampInt(patch.maxQueueSize ?? current.maxQueueSize, 1, 500, current.maxQueueSize),
-    autoNoShow: patch.autoNoShow ?? current.autoNoShow,
-    timezone: patch.timezone ? cleanText(patch.timezone, 60) : current.timezone,
-  };
-
-  if (!next.name) throw new AppError("The restaurant needs a name.");
-  if (parseTimeToMinutes(next.openTime) === parseTimeToMinutes(next.closeTime)) {
-    throw new AppError("Opening and closing times cannot be the same.");
-  }
-  try {
-    new Intl.DateTimeFormat("en-US", { timeZone: next.timezone });
-  } catch {
-    throw new AppError("That timezone isn't recognised.");
-  }
-
-  const rows = await q<Row>(
-    `update restaurant set
-       name=$1, tagline=$2, address=$3, phone=$4, instagram=$5, open_time=$6, close_time=$7,
-       accent=$8, announcement=$9, avg_turn_minutes=$10, hold_minutes=$11, max_party_size=$12,
-       max_queue_size=$13, auto_no_show=$14, timezone=$15, updated_at=now()
-     where id = 1 returning *`,
-    [
-      next.name,
-      next.tagline,
-      next.address,
-      next.phone,
-      next.instagram,
-      next.openTime,
-      next.closeTime,
-      next.accent,
-      next.announcement,
-      next.avgTurnMinutes,
-      next.holdMinutes,
-      next.maxPartySize,
-      next.maxQueueSize,
-      next.autoNoShow,
-      next.timezone,
-    ],
-  );
-  await logActivity(null, "settings", actor, { note: "Restaurant settings updated" });
-  return mapRestaurant(rows[0]);
-}
+/* ------------------------------- tables --------------------------------- */
 
 export async function createTable(
+  branchId: number,
   input: { label: string; capacity: number; zone: string },
   actor: string,
 ): Promise<ActionResult> {
@@ -936,10 +1438,12 @@ export async function createTable(
   const zone = validateZone(input.zone);
   try {
     const rows = await q<Row>(
-      "insert into dining_tables (label, capacity, zone, sort_order) values ($1,$2,$3,(select coalesce(max(sort_order),0)+1 from dining_tables)) returning id, label",
-      [label, capacity, zone],
+      `insert into dining_tables (branch_id, label, capacity, zone, sort_order)
+       values ($1,$2,$3,$4,(select coalesce(max(sort_order),0)+1 from dining_tables where branch_id=$1))
+       returning id, label`,
+      [branchId, label, capacity, zone],
     );
-    await logActivity(null, "table_added", actor, {
+    await logActivity(null, branchId, "table_added", actor, {
       tableId: toNumber(rows[0]?.id),
       tableLabel: label,
       note: `${capacity} seats · ${zone}`,
@@ -952,6 +1456,7 @@ export async function createTable(
 }
 
 export async function updateTable(
+  branchId: number,
   id: number,
   input: { label: string; capacity: number; zone: string },
   actor: string,
@@ -959,29 +1464,26 @@ export async function updateTable(
   const label = validateTableLabel(input.label);
   const capacity = clampInt(input.capacity, 1, 40, 2);
   const zone = validateZone(input.zone);
-
-  const current = await q<Row>("select id, label, status from dining_tables where id = $1", [id]);
+  const current = await q<Row>(
+    "select id, label, status from dining_tables where id=$1 and branch_id=$2",
+    [id, branchId],
+  );
   if (!current[0]) return { ok: false, message: "Table not found." };
   if (current[0].status === "seated") {
     const party = await q<Row>(
-      "select party_size from queue_entries where table_id = $1 and status = 'seated' order by seated_at desc limit 1",
-      [id],
+      "select party_size from queue_entries where table_id=$1 and branch_id=$2 and status='seated' order by seated_at desc limit 1",
+      [id, branchId],
     );
     if (party[0] && toNumber(party[0].party_size) > capacity) {
-      return {
-        ok: false,
-        message: `A party of ${party[0].party_size} is seated here — clear the table before shrinking it.`,
-      };
+      return { ok: false, message: `A party of ${party[0].party_size} is seated here — clear it first.` };
     }
   }
-
   try {
-    const rows = await q<Row>(
-      "update dining_tables set label=$2, capacity=$3, zone=$4 where id=$1 returning id, label, status",
-      [id, label, capacity, zone],
+    await q<Row>(
+      "update dining_tables set label=$3, capacity=$4, zone=$5 where id=$1 and branch_id=$2 returning id",
+      [id, branchId, label, capacity, zone],
     );
-    if (!rows[0]) return { ok: false, message: "Table not found." };
-    await logActivity(null, "table_updated", actor, {
+    await logActivity(null, branchId, "table_updated", actor, {
       tableId: id,
       tableLabel: label,
       note: `${capacity} seats · ${zone}`,
@@ -993,92 +1495,41 @@ export async function updateTable(
   }
 }
 
-export async function deleteTable(id: number, actor: string): Promise<ActionResult> {
-  const rows = await q<Row>("select id, label, status from dining_tables where id = $1", [id]);
+export async function deleteTable(branchId: number, id: number, actor: string): Promise<ActionResult> {
+  const rows = await q<Row>(
+    "select id, label, status from dining_tables where id=$1 and branch_id=$2",
+    [id, branchId],
+  );
   const table = rows[0];
   if (!table) return { ok: false, message: "Table not found." };
   if (table.status === "seated") return { ok: false, message: `Clear ${table.label} before deleting it.` };
-  await q("delete from dining_tables where id = $1", [id]);
-  await logActivity(null, "table_deleted", actor, {
+  await q("delete from dining_tables where id=$1 and branch_id=$2", [id, branchId]);
+  await logActivity(null, branchId, "table_deleted", actor, {
     tableLabel: String(table.label),
     note: "Table removed",
   });
   return { ok: true, message: `${table.label} removed.` };
 }
 
-export async function createStaff(
-  input: { name: string; role: Role; pin: string },
-  actor: string,
-): Promise<ActionResult> {
-  const name = validateGuestName(input.name);
-  const pin = validatePin(input.pin);
-  const role: Role = input.role === "owner" ? "owner" : "greeter";
-  const { hashPin } = await import("./pin");
-  const initials = name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-  await q<Row>(
-    "insert into staff (name, role, pin_hash, initials) values ($1,$2,$3,$4) returning id",
-    [name, role, hashPin(pin), initials],
-  );
-  await logActivity(null, "staff_added", actor, {
-    note: `${name} · ${role}`,
-  });
-  return { ok: true, message: `${name} can now sign in.`, data: undefined };
-}
-
-export async function setStaffPin(id: number, pin: string, actor: string): Promise<ActionResult> {
-  const safePin = validatePin(pin);
-  const { hashPin } = await import("./pin");
-  const rows = await q<Row>(
-    "update staff set pin_hash = $2 where id = $1 returning name",
-    [id, hashPin(safePin)],
-  );
-  if (!rows[0]) return { ok: false, message: "Team member not found." };
-  await logActivity(null, "staff_pin", actor, {
-    note: `PIN reset for ${rows[0].name}`,
-  });
-  return { ok: true, message: `PIN updated for ${rows[0].name}.` };
-}
-
-export async function setStaffActive(id: number, active: boolean, actor: string): Promise<ActionResult> {
-  const target = await q<Row>("select id, name, role, active from staff where id = $1", [id]);
-  if (!target[0]) return { ok: false, message: "Team member not found." };
-  if (!active && target[0].role === "owner") {
-    const owners = await q<Row>("select count(*)::int as count from staff where role = 'owner' and active = true");
-    if (toNumber(owners[0]?.count) <= 1) {
-      return { ok: false, message: "You need at least one active owner." };
-    }
-  }
-  await q("update staff set active = $2 where id = $1", [id, active]);
-  await logActivity(null, "staff_status", actor, {
-    note: `${target[0].name} ${active ? "reactivated" : "deactivated"}`,
-  });
-  return { ok: true, message: `${target[0].name} ${active ? "is active" : "is paused"}.` };
-}
-
 /* ------------------------------ reporting -------------------------------- */
 
-export async function getOwnerOverview(days = 7): Promise<OwnerOverview> {
-  const restaurant = await getRestaurant();
-  await ensureDemoDay(restaurant);
-  await expireHolds(restaurant);
+export async function getOwnerOverview(branchId: number, days = 7): Promise<OwnerOverview> {
+  await ensureDemoDay();
+  const branch = await getBranch(branchId);
+  const brand = await getBrand(branch.brandId);
+  await expireHolds(branchId);
   const now = new Date();
-  const today = dayInTz(now, restaurant.timezone);
+  const today = dayInTz(now, branch.timezone);
   const windowDays = Math.min(90, Math.max(1, Math.round(days)));
   const startDay = addDaysToDay(today, -(windowDays - 1));
-  const tables = await listTables();
-
+  const tables = await listTables(branchId);
   const rows = await q<Row>(
     `select ${ENTRY_COLUMNS}
      from queue_entries qe
      left join dining_tables t on t.id = qe.table_id
-     where qe.day >= $1::date
+     where qe.branch_id = $1 and qe.day >= $2::date
      order by qe.joined_at asc`,
-    [startDay],
+    [branchId, startDay],
   );
   const map = tablesByIdMap(tables);
   const all = rows.map((row) => mapEntry(row, map, now));
@@ -1087,12 +1538,8 @@ export async function getOwnerOverview(days = 7): Promise<OwnerOverview> {
   const seatedToday = todayEntries.filter((entry) => entry.seatedAt && entry.status !== "cancelled");
   const completed = todayEntries.filter((entry) => entry.status === "completed");
   const avgWaitMinutes = average(seatedToday.map((entry) => minutesBetween(entry.joinedAt, entry.seatedAt as string)));
-  const avgTurnMinutes = averageTurn(todayEntries, restaurant.avgTurnMinutes);
-
-  const utilization = Math.min(
-    100,
-    Math.round((stats.seated / Math.max(1, tables.length)) * 100),
-  );
+  const avgTurnMinutes = averageTurn(todayEntries, branch.avgTurnMinutes);
+  const utilization = Math.min(100, Math.round((stats.seated / Math.max(1, tables.length)) * 100));
 
   const week: DayPoint[] = [];
   for (let index = windowDays - 1; index >= 0; index -= 1) {
@@ -1106,15 +1553,16 @@ export async function getOwnerOverview(days = 7): Promise<OwnerOverview> {
       noShow: dayEntries.filter((entry) => entry.status === "no_show").length,
       cancelled: dayEntries.filter((entry) => entry.status === "cancelled").length,
       avgWaitMinutes: average(daySeated.map((entry) => minutesBetween(entry.joinedAt, entry.seatedAt as string))),
-      avgTurnMinutes: averageTurn(dayEntries, restaurant.avgTurnMinutes),
+      avgTurnMinutes: averageTurn(dayEntries, branch.avgTurnMinutes),
     });
   }
 
   const activityRows = await q<Row>(
-    "select id, type, actor, detail, created_at from activity order by created_at desc limit 14",
+    "select id, type, actor, detail, created_at from activity where branch_id=$1 order by created_at desc limit 14",
+    [branchId],
   );
   const activity: ActivityItem[] = activityRows.map((row) => {
-    const detail = typeof row.detail === "string" ? safeJson(row.detail) : (row.detail ?? {});
+    const detail = typeof row.detail === "string" ? safeJson(row.detail) : row.detail ?? {};
     return {
       id: toNumber(row.id),
       type: String(row.type),
@@ -1124,11 +1572,13 @@ export async function getOwnerOverview(days = 7): Promise<OwnerOverview> {
       name: detail.name ?? null,
       partySize: detail.partySize ?? null,
       tableLabel: detail.tableLabel ?? null,
+      seatNumber: detail.seatNumber ?? null,
     };
   });
 
   return {
-    restaurant,
+    branch,
+    brand,
     stats,
     today: {
       avgWaitMinutes,
@@ -1140,7 +1590,7 @@ export async function getOwnerOverview(days = 7): Promise<OwnerOverview> {
       walkIns: todayEntries.filter((entry) => entry.source === "walkin").length,
       remote: todayEntries.filter((entry) => entry.source !== "walkin").length,
     },
-    hourly: buildHourly(todayEntries, restaurant.timezone, restaurant.openTime, restaurant.closeTime),
+    hourly: buildHourly(todayEntries, branch.timezone, branch.openTime, branch.closeTime),
     week,
     activity,
     tables,
@@ -1159,25 +1609,26 @@ function safeJson(value: string): Row {
   }
 }
 
-export async function getReportCsv(days = 30): Promise<string> {
+export async function getReportCsv(branchId: number, days = 30): Promise<string> {
   const windowDays = Math.min(90, Math.max(1, Math.round(days)));
-  const restaurant = await getRestaurant();
-  const today = dayInTz(new Date(), restaurant.timezone);
+  const branch = await getBranch(branchId);
+  const today = dayInTz(new Date(), branch.timezone);
   const startDay = addDaysToDay(today, -(windowDays - 1));
   const rows = await q<Row>(
     `select qe.code, to_char(qe.day, 'YYYY-MM-DD') as day_text, qe.guest_name, qe.phone,
-            qe.party_size, qe.source, qe.status, qe.joined_at, qe.called_at, qe.seated_at,
-            qe.closed_at, qe.notes, t.label as table_label
+            qe.party_size, qe.source, qe.status, qe.seat_number, qe.opened_by,
+            qe.joined_at, qe.called_at, qe.seated_at, qe.closed_at, qe.notes, t.label as table_label
      from queue_entries qe
      left join dining_tables t on t.id = qe.table_id
-     where qe.day >= $1::date
+     where qe.branch_id = $1 and qe.day >= $2::date
      order by qe.joined_at asc`,
-    [startDay],
+    [branchId, startDay],
   );
 
   const header = [
     "code", "day", "guest", "phone", "party_size", "source", "status",
-    "joined_at", "called_at", "seated_at", "closed_at", "table", "wait_min", "turn_min", "notes",
+    "joined_at", "called_at", "seated_at", "closed_at", "table", "seat", "opened_by",
+    "wait_min", "turn_min", "notes",
   ];
   const lines = [header.join(",")];
   for (const row of rows) {
@@ -1200,6 +1651,8 @@ export async function getReportCsv(days = 30): Promise<string> {
         seated ?? "",
         closed ?? "",
         row.table_label ?? "",
+        row.seat_number ?? "",
+        row.opened_by ?? "",
         wait,
         turn,
         row.notes ?? "",
@@ -1214,14 +1667,4 @@ export async function getReportCsv(days = 30): Promise<string> {
 function csvCell(value: unknown): string {
   const text = String(value ?? "");
   return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-}
-
-export async function findEntryIdByToken(token: string): Promise<number | null> {
-  const rows = await q<Row>("select id from queue_entries where token = $1", [token]);
-  return rows[0] ? toNumber(rows[0].id) : null;
-}
-
-export async function bestTableForParty(partySize: number): Promise<DiningTable | null> {
-  const tables = await listTables();
-  return selectBestTable(tables, partySize);
 }

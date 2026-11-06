@@ -8,10 +8,11 @@ import { useLang } from "@/components/LanguageProvider";
 interface StoredTicket {
   token: string;
   code: string;
+  branchId?: number;
   at: number;
 }
 
-export function MyTicketBanner() {
+export function MyTicketBanner({ branchId }: { branchId?: number }) {
   const { t } = useLang();
   const [ticket, setTicket] = useState<StoredTicket | null>(null);
 
@@ -27,6 +28,7 @@ export function MyTicketBanner() {
   }, []);
 
   if (!ticket) return null;
+  if (branchId && ticket.branchId && ticket.branchId !== branchId) return null;
 
   return (
     <div className="mb-5 flex items-center gap-3 rounded-2xl border-2 border-ink bg-leaf-soft px-3.5 py-3 shadow-[2px_2px_0_#262321] animate-rise">

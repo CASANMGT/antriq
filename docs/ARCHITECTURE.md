@@ -110,7 +110,7 @@ On the first request per process:
 
 1. Create the driver singleton.
 2. Run `SCHEMA_STATEMENTS` (`CREATE TABLE IF NOT EXISTS`, indexes).
-3. Seed restaurant/staff/tables when empty.
+3. Seed the demo brands, branches, staff and tables when empty.
 4. In demo mode, seed a lived-in floor and reset it if no entries exist for today.
 
 For Postgres, steps 2–4 run inside a transaction holding `pg_advisory_xact_lock(918273645)`. Multiple serverless instances can cold-start together without double-seeding or racing table creation.
@@ -119,17 +119,17 @@ For Postgres, steps 2–4 run inside a transaction holding `pg_advisory_xact_loc
 
 ### 3.3 Time
 
-- The restaurant’s timezone (default `Asia/Jakarta`) determines the service day and ticket code sequence.
+- Each branch has its own timezone (default `Asia/Jakarta`) which determines its service day and ticket code sequence.
 - `dayInTz()` uses `Intl.DateTimeFormat` part extraction — no UTC date slicing.
 - All timestamps are stored as `timestamptz` (UTC); display conversion happens with `Intl`.
-- `queue_sequence` is keyed by `(restaurant_id, day)` so codes reset at local midnight.
+- `queue_sequence` is keyed by `(branch_id, day)` so codes reset at each branch’s local midnight.
 
 ### 3.4 Atomic ticket allocation
 
 ```sql
-insert into queue_sequence (restaurant_id, day, last_seq)
-values (1, $1::date, 1)
-on conflict (restaurant_id, day)
+insert into queue_sequence (branch_id, day, last_seq)
+values ($1, $2::date, 1)
+on conflict (branch_id, day)
 do update set last_seq = queue_sequence.last_seq + 1
 returning last_seq;
 ```
@@ -138,24 +138,34 @@ Code format: `A-%03d` (`A-001`). More than 999 parties in a day widen naturally 
 
 ### 3.5 Table and entry invariants
 
+- Every operational row carries `branch_id`; reads are always filtered by branch.
 - Seating locks the entry row and the table row `FOR UPDATE`.
 - A table can only be seated from `available` and only for a party that fits.
+- A seat number is optional; when present it must be within `1..capacity`. `opened_by` / `opened_by_staff_id` record the acting PIC.
 - Clearing a table completes the latest seated entry and moves the table to `dirty`.
 - Deleting a table is blocked while seated; `queue_entries.table_id` is `ON DELETE SET NULL`.
-- Daily codes are unique per day through `unique (day, seq)`.
+- Daily codes are unique per branch through `unique (branch_id, day, seq)`.
 
 ### 3.6 No-show expiry
 
-There is no cron in v1. Every read path calls `expireHolds()`:
+There is no cron in v1. Every read path calls `expireHolds(branchId)`:
 
 ```sql
 update queue_entries
 set status = 'no_show', closed_at = now(), hold_expires_at = null
-where status = 'called' and hold_expires_at < now()
+where branch_id = $1 and status = 'called' and hold_expires_at < now()
 returning ...;
 ```
 
 The conditional update means concurrent readers cannot double-log the same expiry: only the request that performed the transition receives the rows.
+
+### 3.7 Brand/branch scope
+
+- Brands are the identity/asset boundary: logo and menu are `bytea`, streamed by `/api/brands/[id]/logo|menu`.
+- Branches are the operational boundary: tables, staff, queue entries, sequence and activity all reference `branch_id`.
+- `canManageBrand`, `canManageBranch`, `canOperateBranch` and `listBranchesForStaff` are the single source of scope checks.
+- Owner pages resolve the active branch with `resolveOwnerScope()`; host APIs accept `branchId` and verify it against the session.
+- Brand assets are cached for a short window; upload bumps `updated_at`, and the owner UI cache-busts the `<img>` after a successful upload.
 
 ## 4. Domain layer
 
@@ -221,20 +231,22 @@ Guest identity is different by design: the ticket token **is** the credential. I
 
 ## 9. Deployment topology
 
-- **Vercel** (Next.js), one region close to the restaurant.
-- **Managed Postgres** with a pooled connection string (Neon/Supabase/Vercel Postgres).
+- **Vercel** (Next.js) pinned to **Singapore (`sin1`)** in `vercel.json`; the Neon primary region is Singapore too.
+- **Managed Postgres** with a pooled connection string (Neon/Supabase/Vercel Postgres). The pool is small (`max: 5`) with a 15-minute max lifetime to suit serverless.
 - Environment: `DATABASE_URL`, `AUTH_SECRET`, `NEXT_PUBLIC_APP_URL`, optional `DEMO_MODE`.
+- **Staging** is a separate Vercel environment/project with its own Neon database/branch and `AUTH_SECRET`. Never share a database between staging and production.
 - First request migrates + seeds; subsequent cold starts are idempotent.
+- Upgrading from v0.2: v0.3 moves the legacy tables into an `antriq_v2_backup` schema on first boot (data preserved), then creates and seeds the new model. `npm run db:reset -- --yes` is available for a clean slate.
 - `/api/health` is the uptime probe.
 - A Vercel Cron for hold expiry is not required (lazy expiry), but can be added to reduce read amplification at scale.
 
 ## 10. Trade-offs and decisions
 
-### ADR-001 — Single restaurant, not multi-tenant
-**Context:** The reference product covers many verticals and merchants.  
-**Decision:** One restaurant per deployment/schema.  
-**Why:** Faster to reason about, simpler settings, no tenant-filter bugs, and the target customer is an independent restaurant.  
-**Cost:** A chain needs one deployment per outlet until v0.3.
+### ADR-001 — Brand → branch, not one deployment per outlet
+**Context:** The group runs multiple brands and branches, and owners need scoped access.  
+**Decision:** A brand owns identity/assets; a branch owns the operational queue. Every operational row is branch-scoped, and sessions carry `brand_id` / `branch_id`.  
+**Why:** One deployment serves the whole group, URLs encode the branch, and scope bugs are centralised in `lib/store.ts` / `lib/scope.ts`.  
+**Cost:** More joins and permission checks; a one-time schema reset from v0.2.
 
 ### ADR-002 — Table-first, not service-first
 **Context:** Reference F&B flows model party size as “services.”  
@@ -288,5 +300,5 @@ Guest identity is different by design: the ticket token **is** the credential. I
 1. **SSE channel** per restaurant for call events; keep polling as fallback.
 2. **Outbox + worker** for WhatsApp/SMS notifications and webhooks.
 3. **Reservation table** with `scheduled_at` and grace periods; merge into the same call queue.
-4. **Multi-location** via `restaurant_id` scoping and a location switcher (keeps single-restaurant simplicity for the MVP).
+4. **Group analytics** across brands/branches (the hierarchy already exists; this is a reporting aggregation, not new tenancy).
 5. **Warehouse sink** for analytics once a restaurant exceeds a few hundred parties/day.

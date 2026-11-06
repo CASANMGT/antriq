@@ -131,12 +131,13 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
     );
   }
 
-  const { restaurant, entry } = view;
+  const { branch, brand, entry } = view;
+  const homeHref = brand ? `/b/${brand.slug}/${branch.slug}` : "/";
   const meta = headerMeta(entry.status, t);
   const locale = lang === "id" ? "id-ID" : "en-GB";
-  const joined = clockInTz(entry.joinedAt, restaurant.timezone);
-  const mapsHref = restaurant.address
-    ? `https://maps.google.com/?q=${encodeURIComponent(restaurant.address)}`
+  const joined = clockInTz(entry.joinedAt, branch.timezone);
+  const mapsHref = branch.address
+    ? `https://maps.google.com/?q=${encodeURIComponent(branch.address)}`
     : null;
 
   const progress =
@@ -147,10 +148,10 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
   return (
     <main className="paper grain min-h-[100dvh] px-4 pb-10 pt-4 sm:px-5 sm:pt-6">
       <div className="mx-auto flex w-full max-w-md items-center justify-between gap-2">
-        <Logo href="/" />
+        <Logo href={homeHref} />
         <div className="flex items-center gap-1.5">
           <LanguageToggle compact />
-          <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-bold text-muted hover:text-ink">
+          <Link href={homeHref} className="inline-flex items-center gap-1.5 text-xs font-bold text-muted hover:text-ink">
             <ArrowLeft className="size-3.5" /> {t.ticket.back}
           </Link>
         </div>
@@ -169,7 +170,7 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-[0.6875rem] font-extrabold uppercase tracking-[0.16em] text-white/65">
-                  {restaurant.name}
+                  {branch.name}
                 </p>
                 <p className="mt-1 text-sm font-bold text-white/90">{meta.kicker}</p>
               </div>
@@ -324,11 +325,20 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                 <Mascot mood="happy" className="mx-auto w-36" />
                 <p className="eyebrow mt-2 text-leaf-dark">{t.ticket.seated}</p>
                 <h1 className="mt-1 font-display text-4xl">
-                  {entry.tableLabel ? format(t.ticket.seatedAt, { table: entry.tableLabel }) : t.ticket.seatedTitle}
+                  {entry.tableLabel
+                    ? entry.seatNumber !== null
+                      ? format(t.ticket.seatedAtSeat, { table: entry.tableLabel, seat: entry.seatNumber })
+                      : format(t.ticket.seatedAt, { table: entry.tableLabel })
+                    : t.ticket.seatedTitle}
                 </h1>
                 <p className="mx-auto mt-3 max-w-xs text-sm font-medium leading-relaxed text-muted">
                   {t.ticket.seatedBody}
                 </p>
+                {entry.openedBy && (
+                  <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-white px-3 py-1 text-xs font-bold">
+                    {format(t.ticket.openedBy, { name: entry.openedBy })}
+                  </p>
+                )}
                 {mapsHref && (
                   <a href={mapsHref} target="_blank" rel="noreferrer" className="btn btn-soft mt-5">
                     <MapPin className="size-4" /> {t.ticket.directions}
@@ -345,7 +355,7 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                 <p className="mx-auto mt-3 max-w-xs text-sm font-medium leading-relaxed text-muted">
                   {t.ticket.completedBody}
                 </p>
-                <Link href="/" className="btn btn-outline mt-5">
+                <Link href={homeHref} className="btn btn-outline mt-5">
                   {t.ticket.backRestaurant}
                 </Link>
               </div>
@@ -359,7 +369,7 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                 <p className="mx-auto mt-3 max-w-xs text-sm font-medium leading-relaxed text-muted">
                   {t.ticket.noShowBody}
                 </p>
-                <Link href="/" className="btn btn-primary mt-5">
+                <Link href={homeHref} className="btn btn-primary mt-5">
                   {t.ticket.rejoin} <ArrowRight className="size-4" />
                 </Link>
               </div>
@@ -373,7 +383,7 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                 <p className="mx-auto mt-3 max-w-xs text-sm font-medium leading-relaxed text-muted">
                   {t.ticket.cancelledBody}
                 </p>
-                <Link href="/" className="btn btn-primary mt-5">
+                <Link href={homeHref} className="btn btn-primary mt-5">
                   {t.ticket.rejoin} <ArrowRight className="size-4" />
                 </Link>
               </div>
@@ -383,14 +393,14 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
 
         <div className="mt-5 flex items-center justify-between gap-3 px-1 text-xs font-semibold text-muted">
           <span className="inline-flex items-center gap-1.5">
-            <Clock3 className="size-3.5" /> {restaurant.openTime}–{restaurant.closeTime}
+            <Clock3 className="size-3.5" /> {branch.openTime}–{branch.closeTime}
           </span>
-          {restaurant.phone ? (
-            <a href={`tel:${restaurant.phone.replace(/\s/g, "")}`} className="inline-flex items-center gap-1.5 hover:text-ink">
-              <Phone className="size-3.5" /> {restaurant.phone}
+          {branch.phone ? (
+            <a href={`tel:${branch.phone.replace(/\s/g, "")}`} className="inline-flex items-center gap-1.5 hover:text-ink">
+              <Phone className="size-3.5" /> {branch.phone}
             </a>
           ) : (
-            <span>{restaurant.name}</span>
+            <span>{branch.name}</span>
           )}
         </div>
 

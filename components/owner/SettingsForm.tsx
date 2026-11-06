@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Loader2, PauseCircle, PlayCircle, Save } from "lucide-react";
+import { CheckCircle2, Loader2, PauseCircle, PlayCircle, Save, Store } from "lucide-react";
 import { Notice, type NoticeState } from "@/components/Notice";
 import { useLang } from "@/components/LanguageProvider";
 import { postJson } from "@/lib/client-api";
 import { format } from "@/lib/i18n";
-import type { Restaurant } from "@/lib/types";
+import type { Branch } from "@/lib/types";
 
 const TIMEZONES = [
   { value: "Asia/Jakarta", label: "Jakarta · WIB (UTC+7)" },
@@ -22,20 +23,21 @@ const TIMEZONES = [
   { value: "America/New_York", label: "New York" },
 ];
 
-export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
+export function SettingsForm({ branch }: { branch: Branch }) {
   const router = useRouter();
   const { lang, t } = useLang();
   const [state, setState] = useState<{ ok?: boolean; message?: string }>({});
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<NoticeState | null>(null);
   const [waitlistPending, startTransition] = useTransition();
-  const status = restaurant.waitlistStatus;
+  const status = branch.waitlistStatus;
 
   function toggleWaitlist() {
     startTransition(async () => {
       const next = status === "open" ? "paused" : "open";
       const result = await postJson("/api/owner/action", {
         type: "waitlist",
+        branchId: branch.id,
         status: next,
         reason: next === "paused" ? "Paused from dashboard" : null,
       });
@@ -54,6 +56,7 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
     setState({});
     const result = await postJson("/api/owner/action", {
       type: "settings",
+      branchId: branch.id,
       name: String(form.get("name") ?? ""),
       tagline: String(form.get("tagline") ?? ""),
       address: String(form.get("address") ?? ""),
@@ -64,8 +67,8 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
       accent: String(form.get("accent") ?? ""),
       announcement: String(form.get("announcement") ?? ""),
       timezone: String(form.get("timezone") ?? ""),
-      avgTurnMinutes: restaurant.avgTurnMinutes,
-      holdMinutes: restaurant.holdMinutes,
+      avgTurnMinutes: branch.avgTurnMinutes,
+      holdMinutes: branch.holdMinutes,
       maxPartySize: Number(form.get("maxPartySize")),
       maxQueueSize: Number(form.get("maxQueueSize")),
       autoNoShow: form.get("autoNoShow") === "on",
@@ -75,9 +78,9 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
     if (result.ok) router.refresh();
   }
 
-  const zoneOptions = TIMEZONES.some((zone) => zone.value === restaurant.timezone)
+  const zoneOptions = TIMEZONES.some((zone) => zone.value === branch.timezone)
     ? TIMEZONES
-    : [{ value: restaurant.timezone, label: restaurant.timezone }, ...TIMEZONES];
+    : [{ value: branch.timezone, label: branch.timezone }, ...TIMEZONES];
 
   return (
     <div className="space-y-5">
@@ -127,23 +130,24 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="label" htmlFor="name">{t.owner.restaurantName}</label>
-              <input id="name" name="name" className="input" defaultValue={restaurant.name} required maxLength={80} />
+              <input id="name" name="name" className="input" defaultValue={branch.name} required maxLength={80} />
             </div>
             <div>
               <label className="label" htmlFor="tagline">{t.owner.tagline}</label>
-              <input id="tagline" name="tagline" className="input" defaultValue={restaurant.tagline ?? ""} maxLength={120} placeholder="Ramen & Izakaya · Senopati" />
+              <input id="tagline" name="tagline" className="input" defaultValue={branch.tagline ?? ""} maxLength={120} placeholder="Ramen & Izakaya · Senopati" />
             </div>
             <div className="sm:col-span-2">
               <label className="label" htmlFor="address">{t.owner.address}</label>
-              <input id="address" name="address" className="input" defaultValue={restaurant.address ?? ""} maxLength={200} />
+              <input id="address" name="address" className="input" defaultValue={branch.address ?? ""} maxLength={200} />
             </div>
             <div>
               <label className="label" htmlFor="phone">{t.owner.phone}</label>
-              <input id="phone" name="phone" className="input" defaultValue={restaurant.phone ?? ""} maxLength={40} />
+              <input id="phone" name="phone" className="input" defaultValue={branch.phone ?? ""} maxLength={40} />
             </div>
-            <div>
-              <label className="label" htmlFor="instagram">{t.owner.instagram}</label>
-              <input id="instagram" name="instagram" className="input" defaultValue={restaurant.instagram ?? ""} maxLength={60} placeholder="@nikumaru.tenka" />
+            <div className="flex items-end">
+              <Link href="/dashboard/brands" className="btn btn-soft btn-sm w-full justify-center">
+                <Store className="size-3.5" /> {t.owner.manageBrand}
+              </Link>
             </div>
             <div>
               <label className="label" htmlFor="accent">{t.owner.accent}</label>
@@ -152,7 +156,7 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
                   id="accent"
                   name="accent"
                   type="color"
-                  defaultValue={restaurant.accent}
+                  defaultValue={branch.accent}
                   className="h-11 w-14 cursor-pointer rounded-xl border-2 border-ink bg-white p-1"
                 />
                 <span className="text-xs font-semibold text-muted">{t.owner.accentHint}</span>
@@ -160,7 +164,7 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
             </div>
             <div>
               <label className="label" htmlFor="timezone">{t.owner.timezone}</label>
-              <select id="timezone" name="timezone" className="input bg-white" defaultValue={restaurant.timezone}>
+              <select id="timezone" name="timezone" className="input bg-white" defaultValue={branch.timezone}>
                 {zoneOptions.map((zone) => (
                   <option key={zone.value} value={zone.value}>
                     {zone.label}
@@ -179,19 +183,19 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <label className="label" htmlFor="openTime">{t.owner.opens}</label>
-              <input id="openTime" name="openTime" type="time" className="input num" defaultValue={restaurant.openTime} required />
+              <input id="openTime" name="openTime" type="time" className="input num" defaultValue={branch.openTime} required />
             </div>
             <div>
               <label className="label" htmlFor="closeTime">{t.owner.closes}</label>
-              <input id="closeTime" name="closeTime" type="time" className="input num" defaultValue={restaurant.closeTime} required />
+              <input id="closeTime" name="closeTime" type="time" className="input num" defaultValue={branch.closeTime} required />
             </div>
             <div>
               <label className="label" htmlFor="maxPartySize">{t.owner.maxParty}</label>
-              <input id="maxPartySize" name="maxPartySize" type="number" min={1} max={40} className="input num" defaultValue={restaurant.maxPartySize} />
+              <input id="maxPartySize" name="maxPartySize" type="number" min={1} max={40} className="input num" defaultValue={branch.maxPartySize} />
             </div>
             <div>
               <label className="label" htmlFor="maxQueueSize">{t.owner.queueCap}</label>
-              <input id="maxQueueSize" name="maxQueueSize" type="number" min={1} max={500} className="input num" defaultValue={restaurant.maxQueueSize} />
+              <input id="maxQueueSize" name="maxQueueSize" type="number" min={1} max={500} className="input num" defaultValue={branch.maxQueueSize} />
             </div>
           </div>
 
@@ -199,7 +203,7 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
             <input
               type="checkbox"
               name="autoNoShow"
-              defaultChecked={restaurant.autoNoShow}
+              defaultChecked={branch.autoNoShow}
               className="mt-0.5 size-4 accent-[#F24B3F]"
             />
             <span>
@@ -217,7 +221,7 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
           <textarea
             name="announcement"
             className="input min-h-24 resize-y"
-            defaultValue={restaurant.announcement ?? ""}
+            defaultValue={branch.announcement ?? ""}
             maxLength={300}
             placeholder={t.owner.announcementPlaceholder}
           />
@@ -229,8 +233,8 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
               time: new Intl.DateTimeFormat(lang === "id" ? "id-ID" : "en-GB", {
                 dateStyle: "medium",
                 timeStyle: "short",
-                timeZone: restaurant.timezone,
-              }).format(new Date(restaurant.updatedAt)),
+                timeZone: branch.timezone,
+              }).format(new Date(branch.updatedAt)),
             })}
           </div>
           <button type="submit" className="btn btn-primary" disabled={saving}>

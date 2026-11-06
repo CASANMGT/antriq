@@ -7,7 +7,7 @@ import { Mascot } from "@/components/Mascot";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { LoginForm } from "@/components/login/LoginForm";
 import { getSession } from "@/lib/auth";
-import { getPublicSnapshot, listStaffPublic } from "@/lib/store";
+import { getPublicSnapshot, getPrimaryBranch, listStaffPublic } from "@/lib/store";
 import { isDemoMode } from "@/lib/seed";
 import { getLang } from "@/lib/lang";
 import { format, getDict } from "@/lib/i18n";
@@ -28,7 +28,12 @@ export default async function LoginPage({
   if (session) redirect(session.role === "owner" ? "/dashboard" : "/host");
 
   const { next } = await searchParams;
-  const [staff, snapshot, lang] = await Promise.all([listStaffPublic(), getPublicSnapshot(), getLang()]);
+  const primary = await getPrimaryBranch();
+  const [staff, snapshot, lang] = await Promise.all([
+    listStaffPublic(),
+    getPublicSnapshot(primary.branch.id),
+    getLang(),
+  ]);
   const t = getDict(lang);
   const safeNext = next === "/host" || next === "/dashboard" ? next : "";
 

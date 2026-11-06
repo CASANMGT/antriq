@@ -33,12 +33,13 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
   const router = useRouter();
   const { lang, t } = useLang();
   const [data, setData] = useState(initial);
+  const branchId = initial.branch.id;
 
   useEffect(() => {
     const timer = window.setInterval(async () => {
       if (document.hidden) return;
       try {
-        const response = await fetch("/api/owner/overview?days=7", { cache: "no-store" });
+        const response = await fetch(`/api/owner/overview?days=7&branch=${branchId}`, { cache: "no-store" });
         if (response.status === 401) {
           router.push("/login?next=/dashboard");
           return;
@@ -49,12 +50,12 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
       }
     }, 8000);
     return () => window.clearInterval(timer);
-  }, [router]);
+  }, [branchId, router]);
 
-  const { restaurant, stats, today, week, hourly, activity, tables, waiting } = data;
-  const status = restaurant.waitlistStatus;
+  const { branch, brand, stats, today, week, hourly, activity, tables, waiting } = data;
+  const status = branch.waitlistStatus;
   const locale = lang === "id" ? "id-ID" : "en-GB";
-  const todayLabel = formatDayLong(dayInTz(new Date(), restaurant.timezone), locale);
+  const todayLabel = formatDayLong(dayInTz(new Date(), branch.timezone), locale);
   const peak = [...hourly].sort((a, b) => b.joined - a.joined)[0];
   const weekTotals = week.reduce(
     (sum, day) => ({
@@ -74,10 +75,11 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
             {t.owner.overviewTitle}
           </h1>
           <p className="mt-2 text-sm font-semibold text-muted">
-            {format(t.owner.overviewSub, {
+            {brand?.name ? `${brand.name} · ` : ""}
+            {branch.name} · {format(t.owner.overviewSub, {
               date: todayLabel,
-              open: restaurant.openTime,
-              close: restaurant.closeTime,
+              open: branch.openTime,
+              close: branch.closeTime,
             })}
           </p>
         </div>
@@ -94,7 +96,7 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
                 ? t.owner.waitlistPaused
                 : t.owner.waitlistClosed}
           </span>
-          <Link href="/host" className="btn btn-primary btn-sm">
+          <Link href={`/host?branch=${branch.id}`} className="btn btn-primary btn-sm">
             <DoorOpen className="size-3.5" /> {t.owner.openHost}
           </Link>
         </div>
@@ -178,7 +180,7 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
                 })}
               </p>
             </div>
-            <Link href="/host" className="btn btn-ghost btn-icon" aria-label={t.owner.openHost}>
+            <Link href={`/host?branch=${branch.id}`} className="btn btn-ghost btn-icon" aria-label={t.owner.openHost}>
               <ArrowUpRight className="size-4" />
             </Link>
           </div>
@@ -239,7 +241,7 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
                 {format(t.owner.inLineSub, { count: waiting.length })}
               </p>
             </div>
-            <Link href="/host" className="btn btn-soft btn-sm">
+            <Link href={`/host?branch=${branch.id}`} className="btn btn-soft btn-sm">
               {t.owner.workLine} <ArrowUpRight className="size-3.5" />
             </Link>
           </div>
@@ -318,7 +320,7 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
                 {format(t.owner.last7Summary, { joined: weekTotals.joined, seated: weekTotals.seated })}
               </p>
             </div>
-            <Link href="/dashboard/reports" className="btn btn-ghost btn-sm">
+            <Link href={`/dashboard/reports?branch=${branch.id}`} className="btn btn-ghost btn-sm">
               {t.owner.fullReports} <ArrowUpRight className="size-3.5" />
             </Link>
           </div>
@@ -434,9 +436,11 @@ function activityText(item: ActivityItem, t: ReturnType<typeof useLang>["t"]): s
   const map = t.owner.overviewActivity;
   const suffix = map[item.type as ActivityKey] ?? item.type.replace(/_/g, " ");
   if (item.name) {
-    const where = item.tableLabel ? ` · ${item.tableLabel}` : "";
+    const where = item.tableLabel
+      ? ` · ${item.tableLabel}${item.seatNumber ? ` / ${item.seatNumber}` : ""}`
+      : "";
     return `${item.code ? `${item.code} · ` : ""}${item.name} ${suffix}${where}`;
   }
-  if (item.tableLabel) return `${item.tableLabel} ${suffix}`;
+  if (item.tableLabel) return `${item.tableLabel}${item.seatNumber ? ` / ${item.seatNumber}` : ""} ${suffix}`;
   return suffix;
 }

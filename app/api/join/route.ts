@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for");
   const ip = forwarded?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "local";
-  if (!rateLimit(`join:${ip}`, 8, 60_000)) {
+  if (!rateLimit(`join:${ip}`, 10, 60_000)) {
     return NextResponse.json<ActionResult>(
       { ok: false, message: "That's a lot of joins at once. Please wait a minute and try again." },
       { status: 429 },
@@ -19,11 +19,15 @@ export async function POST(request: Request) {
     const body = (await request.json()) as Record<string, unknown>;
     if (body.website) {
       return NextResponse.json<ActionResult>(
-        { ok: false, message: "We couldn't add you to the waitlist. Please see the host." },
+        { ok: false, message: "We couldn't add you to the queue. Please see the host." },
         { status: 400 },
       );
     }
-    const result = await joinQueue({
+    const branchId = Number(body.branchId);
+    if (!Number.isInteger(branchId) || branchId <= 0) {
+      return NextResponse.json<ActionResult>({ ok: false, message: "Branch is required." }, { status: 400 });
+    }
+    const result = await joinQueue(branchId, {
       guestName: String(body.guestName ?? ""),
       phone: body.phone ? String(body.phone) : undefined,
       partySize: Number(body.partySize),
@@ -36,7 +40,6 @@ export async function POST(request: Request) {
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {
-    const result = actionError(error);
-    return NextResponse.json(result, { status: 400 });
+    return NextResponse.json(actionError(error), { status: 400 });
   }
 }

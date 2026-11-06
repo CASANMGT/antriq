@@ -7,7 +7,7 @@ import {
   noteLoginFailure,
   setSession,
 } from "@/lib/auth";
-import { verifyStaffPin } from "@/lib/store";
+import { listBranchesForStaff, verifyStaffPin } from "@/lib/store";
 
 export interface LoginState {
   error?: string;
@@ -41,9 +41,19 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
     name: staff.name,
     role: staff.role,
     initials: staff.initials,
+    brandId: staff.brandId,
+    branchId: staff.branchId,
   });
 
-  if (next === "/host") redirect("/host");
-  if (next === "/dashboard" && staff.role === "owner") redirect("/dashboard");
-  redirect(staff.role === "owner" ? "/dashboard" : "/host");
+  const branches = await listBranchesForStaff(staff);
+  const firstBranch = staff.branchId ?? branches[0]?.id ?? null;
+
+  if (next === "/host" && firstBranch) redirect(`/host?branch=${firstBranch}`);
+  if (next === "/dashboard" && staff.role === "owner") {
+    redirect(firstBranch ? `/dashboard?branch=${firstBranch}` : "/dashboard");
+  }
+  if (staff.role === "owner") {
+    redirect(firstBranch ? `/dashboard?branch=${firstBranch}` : "/dashboard");
+  }
+  redirect(firstBranch ? `/host?branch=${firstBranch}` : "/login");
 }
