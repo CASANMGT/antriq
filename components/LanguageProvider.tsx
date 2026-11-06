@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { getDict, LANG_COOKIE, type Lang, type Messages } from "@/lib/i18n";
 
 interface LanguageContextValue {
@@ -20,7 +19,6 @@ export function LanguageProvider({
   initialLang: Lang;
   children: React.ReactNode;
 }) {
-  const router = useRouter();
   const [lang, setLangState] = useState<Lang>(initialLang);
 
   const setLang = useCallback(
@@ -28,9 +26,11 @@ export function LanguageProvider({
       if (next === lang) return;
       setLangState(next);
       document.cookie = `${LANG_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
-      router.refresh();
+      // A full reload guarantees the server-rendered copy changes even when an
+      // RSC refresh is served from a warm cache at the edge.
+      window.location.reload();
     },
-    [lang, router],
+    [lang],
   );
 
   const value = useMemo(
