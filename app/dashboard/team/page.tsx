@@ -38,7 +38,7 @@ export default async function TeamPage({
       brands={brands.map((brand) => ({ id: brand.id, name: brand.name }))}
       branches={branches}
       defaultBranchId={active.id}
-      scope={{ role: session.role, brandId: session.brandId, branchId: session.branchId }}
+      scope={{ role: session.role, brandId: session.brandId ?? null, branchId: session.branchId ?? null }}
     />
   );
 }

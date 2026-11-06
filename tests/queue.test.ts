@@ -29,6 +29,8 @@ function entry(overrides: Partial<QueueEntry> & { id: number; joinedAt: string }
     seatNumber: null,
     openedBy: null,
     openedByStaffId: null,
+    releasedBy: null,
+    releasedByStaffId: null,
     calledCount: 0,
     acknowledged: false,
     calledAt: null,
@@ -39,6 +41,7 @@ function entry(overrides: Partial<QueueEntry> & { id: number; joinedAt: string }
     waitMinutes: 0,
     calledMinutesAgo: null,
     holdSecondsLeft: 0,
+    countdownPaused: false,
     ...overrides,
   };
 }

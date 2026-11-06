@@ -10,6 +10,25 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.3.1] — 2026-11-07
+
+The **call countdown, notifications and seat release** patch.
+
+### Added
+- **3-minute call countdown** (default `hold_minutes = 3`) shown on the called guest ticket and host cards.
+- Tapping **“Saya menuju host”** pauses the countdown (`acknowledged = true`, `hold_expires_at = null`); the host can still extend it.
+- Browser notification permission prompt on the host stand and called ticket, with a service worker for Chrome/Firefox notifications. A hidden tab gets notified when a guest is called.
+- **Open seat** action: seat a party at the best-fit table without assigning a seat number.
+- **Release seat** action for cashiers and hosts. Records `released_by` / `released_by_staff_id` and logs a `release` activity event.
+- Cashier role pill on the host board; cashier release reasons distinguish payment-settled from host release.
+- CSV now includes `released_by`.
+- Data migration: existing branches with the old 8-minute default move to 3 minutes once, tracked in `app_meta`.
+
+### Fixed
+- Editing a team member with an old session cookie could hide the Owner role and show Host instead. Sessions now normalize missing `brandId`/`branchId` to `null`, and the modal no longer treats `undefined` as a locked branch.
+- Owner-role editing keeps the real role selected; brand/branch selectors now show the correct scope.
+- Notification permission state is checked without crashing in browsers that do not support the API.
+
 ## [0.3.0] — 2026-11-07
 
 The **multi-brand, multi-branch** release: brand and branch URLs, scoped owners, cashier access, seat numbers with PIC tracking, and brand asset uploads.

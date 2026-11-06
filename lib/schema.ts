@@ -37,7 +37,7 @@ export const SCHEMA_STATEMENTS: string[] = [
     waitlist_status text not null default 'open' check (waitlist_status in ('open','paused','closed')),
     pause_reason text,
     avg_turn_minutes integer not null default 55 check (avg_turn_minutes between 10 and 240),
-    hold_minutes integer not null default 8 check (hold_minutes between 2 and 30),
+    hold_minutes integer not null default 3 check (hold_minutes between 2 and 30),
     max_party_size integer not null default 12 check (max_party_size between 1 and 40),
     max_queue_size integer not null default 40 check (max_queue_size between 1 and 500),
     auto_no_show boolean not null default true,
@@ -88,6 +88,8 @@ export const SCHEMA_STATEMENTS: string[] = [
     seat_number integer,
     opened_by text,
     opened_by_staff_id integer references staff(id) on delete set null,
+    released_by text,
+    released_by_staff_id integer references staff(id) on delete set null,
     called_count integer not null default 0,
     acknowledged boolean not null default false,
     joined_at timestamptz not null default now(),
@@ -116,6 +118,17 @@ export const SCHEMA_STATEMENTS: string[] = [
     detail jsonb not null default '{}'::jsonb,
     created_at timestamptz not null default now()
   )`,
+
+  `create table if not exists app_meta (
+    key text primary key,
+    value text not null,
+    updated_at timestamptz not null default now()
+  )`,
+
+  /* v0.3.1 — seat release audit + 3-minute call countdown default. */
+  `alter table branches alter column hold_minutes set default 3`,
+  `alter table queue_entries add column if not exists released_by text`,
+  `alter table queue_entries add column if not exists released_by_staff_id integer references staff(id) on delete set null`,
 
   `create index if not exists branches_brand_idx on branches (brand_id)`,
   `create index if not exists staff_brand_branch_idx on staff (brand_id, branch_id)`,

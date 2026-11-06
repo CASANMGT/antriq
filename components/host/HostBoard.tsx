@@ -22,10 +22,12 @@ import { LiveClock } from "@/components/LiveClock";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { Modal } from "@/components/Modal";
 import { Notice, type NoticeState } from "@/components/Notice";
+import { NotificationPrompt } from "@/components/Notifications";
 import { EmptyBoard, QueueCard, StatsStrip, TableCard } from "@/components/host/cards";
 import { useLang } from "@/components/LanguageProvider";
 import { logoutAction } from "@/app/actions/auth";
 import { postJson } from "@/lib/client-api";
+import { notify } from "@/lib/notify";
 import { dayInTz, formatDayLong } from "@/lib/time";
 import { format } from "@/lib/i18n";
 import { zoneLabel } from "@/lib/labels";
@@ -59,6 +61,7 @@ export function HostBoard({
   const [seatTableId, setSeatTableId] = useState<number | null>(null);
   const [seatNumber, setSeatNumber] = useState<number | null>(null);
   const [noShowTarget, setNoShowTarget] = useState<QueueEntry | null>(null);
+  const [releaseTarget, setReleaseTarget] = useState<DiningTable | null>(null);
   const [query, setQuery] = useState("");
   const [muted, setMuted] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -119,29 +122,35 @@ export function HostBoard({
 
   useEffect(() => {
     const current = new Set(state.called.map((entry) => entry.id));
-    const added = [...current].some((id) => !previousCalled.current.has(id));
+    const added = state.called.filter((entry) => !previousCalled.current.has(entry.id));
     previousCalled.current = current;
-    if (!added || muted) return;
-    try {
-      const context = audioRef.current ?? new AudioContext();
-      audioRef.current = context;
-      if (context.state === "suspended") void context.resume();
-      const now = context.currentTime;
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      oscillator.type = "sine";
-      oscillator.frequency.setValueAtTime(880, now);
-      oscillator.frequency.setValueAtTime(1174, now + 0.14);
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(0.12, now + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
-      oscillator.connect(gain).connect(context.destination);
-      oscillator.start(now);
-      oscillator.stop(now + 0.6);
-    } catch {
-      // Sound is a bonus, never a requirement.
+    if (added.length === 0) return;
+    if (!muted) {
+      try {
+        const context = audioRef.current ?? new AudioContext();
+        audioRef.current = context;
+        if (context.state === "suspended") void context.resume();
+        const now = context.currentTime;
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(880, now);
+        oscillator.frequency.setValueAtTime(1174, now + 0.14);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.12, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
+        oscillator.connect(gain).connect(context.destination);
+        oscillator.start(now);
+        oscillator.stop(now + 0.6);
+      } catch {
+        // Sound is a bonus, never a requirement.
+      }
     }
-  }, [state.called, muted]);
+    if (document.hidden) {
+      const entry = added[added.length - 1];
+      void notify(t.host.notificationTitle, `${entry.code} · ${entry.guestName}`, `/host?branch=${activeBranchId}`);
+    }
+  }, [activeBranchId, muted, state.called, t.host.notificationTitle]);
 
   const run = useCallback(
     (action: () => Promise<ActionResult>, onSuccess?: () => void) => {
@@ -238,6 +247,23 @@ export function HostBoard({
     });
   }
 
+  function openSeat(entry: QueueEntry) {
+    const table = state.tables
+      .filter((item) => item.status === "available" && item.capacity >= entry.partySize)
+      .sort((a, b) => a.capacity - b.capacity || a.sortOrder - b.sortOrder)[0];
+    if (!table) {
+      show(format(t.host.noFit, { count: entry.partySize }), "error");
+      return;
+    }
+    run(() =>
+      hostAction("seat", {
+        entryId: entry.id,
+        tableId: table.id,
+        seatNumber: null,
+      }),
+    );
+  }
+
   /* Keyboard shortcuts: N = call next, W = walk-in, P = pause. */
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -284,6 +310,13 @@ export function HostBoard({
               <div className="flex items-center gap-2">
                 <h1 className="truncate font-display text-[1.2rem] font-semibold leading-tight">{branch.name}</h1>
                 <span className={`pill ${statusTone}`}>{statusLabel}</span>
+                <span className="pill status-muted hidden sm:inline-flex">
+                  {staff.role === "cashier"
+                    ? t.login.cashierRole
+                    : staff.role === "owner"
+                      ? t.login.ownerRole
+                      : t.login.greeterRole}
+                </span>
               </div>
             </div>
           </div>
@@ -314,6 +347,7 @@ export function HostBoard({
               <LiveClock timezone={branch.timezone} />
             </div>
             <LanguageToggle compact />
+            <NotificationPrompt compact />
             <button
               type="button"
               onClick={toggleMuted}
@@ -447,6 +481,7 @@ export function HostBoard({
                       setSeatTableId(null);
                       setSeatNumber(null);
                     }}
+                    onOpenSeat={() => openSeat(entry)}
                     onNoShow={() => setNoShowTarget(entry)}
                     onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
                   />
@@ -484,6 +519,7 @@ export function HostBoard({
                       setSeatTableId(null);
                       setSeatNumber(null);
                     }}
+                    onOpenSeat={() => openSeat(entry)}
                     onNoShow={() => setNoShowTarget(entry)}
                     onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
                   />
@@ -537,7 +573,7 @@ export function HostBoard({
                         table={table}
                         entry={table.id ? seatedByTable.get(table.id) ?? null : null}
                         busy={pending}
-                        onClear={() => run(() => hostAction("clearTable", { tableId: table.id }))}
+                        onClear={() => setReleaseTarget(table)}
                         onReady={() => run(() => hostAction("tableStatus", { tableId: table.id, status: "available" }))}
                         onBlock={() => run(() => hostAction("tableStatus", { tableId: table.id, status: "blocked" }))}
                       />
@@ -711,6 +747,55 @@ export function HostBoard({
                 <p className="mt-1.5 text-[0.625rem] font-semibold leading-relaxed text-muted">{t.host.seatNumberHint}</p>
               </div>
             )}
+          </div>
+        )}
+      </Modal>
+
+      {/* Release seat confirm */}
+      <Modal
+        open={Boolean(releaseTarget)}
+        onClose={() => setReleaseTarget(null)}
+        title={t.host.releaseSeatTitle}
+        description={t.host.releaseSeatDesc}
+        footer={
+          <>
+            <button type="button" className="btn btn-ghost" onClick={() => setReleaseTarget(null)}>
+              {t.common.cancel}
+            </button>
+            <button
+              type="button"
+              className="btn btn-sage"
+              disabled={pending}
+              onClick={() => {
+                const table = releaseTarget;
+                setReleaseTarget(null);
+                if (table) {
+                  run(() =>
+                    hostAction("releaseSeat", {
+                      tableId: table.id,
+                      reason: staff.role === "cashier" ? t.host.paymentSettled : t.host.releasedByHost,
+                    }),
+                  );
+                }
+              }}
+            >
+              {pending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+              {t.host.releaseSeatConfirm}
+            </button>
+          </>
+        }
+      >
+        {releaseTarget && (
+          <div className="space-y-2 rounded-xl border-2 border-ink bg-cream px-4 py-3">
+            <p className="font-display text-lg font-semibold">{releaseTarget.label}</p>
+            {seatedByTable.get(releaseTarget.id) && (
+              <p className="text-sm font-bold">
+                {seatedByTable.get(releaseTarget.id)!.code} · {seatedByTable.get(releaseTarget.id)!.guestName}
+              </p>
+            )}
+            <p className="text-xs font-semibold leading-relaxed text-muted">
+              {staff.role === "cashier" ? t.host.cashierReleaseNote : t.host.hostReleaseNote}
+            </p>
           </div>
         )}
       </Modal>

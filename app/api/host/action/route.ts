@@ -85,7 +85,17 @@ export async function POST(request: Request) {
         });
       }
       case "clearTable":
-        return json(await clearTable(branchId, Number(body.tableId), session.name));
+        return json(await clearTable(branchId, Number(body.tableId), session.name, session.staffId));
+      case "releaseSeat":
+        return json(
+          await clearTable(
+            branchId,
+            Number(body.tableId),
+            session.name,
+            session.staffId,
+            body.reason ? String(body.reason) : null,
+          ),
+        );
       case "tableStatus": {
         const status = String(body.status ?? "");
         if (!["available", "dirty", "blocked"].includes(status)) {

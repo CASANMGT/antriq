@@ -8,7 +8,7 @@ npm test         # 21 domain + integration tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **7 Nov 2026** — lint clean, 21/21 tests passing, production build green (v0.3 multi-brand).
+Last run: **7 Nov 2026** — lint clean, 22/22 tests passing, production build green (v0.3.1 countdown + notifications).
 
 ### Deployment verification
 
@@ -26,6 +26,15 @@ Last run: **7 Nov 2026** — lint clean, 21/21 tests passing, production build g
 - [x] `X-Vercel-Id` confirms `sin1` (Singapore)
 
 ### v1.2 multi-brand, multi-branch checks
+
+- [x] Editing a brand owner no longer shows the role as Host (old-session `undefined` branch fix)
+- [x] Owner/Greeter/Cashier roles are all selectable where allowed
+- [x] Call starts a 3-minute countdown on host and guest ticket
+- [x] “Saya menuju host” pauses the countdown; host card shows paused/on-the-way
+- [x] Browser notification permission prompt appears when permission is `default`; denied state is explained
+- [x] Hidden tab receives a browser notification when a call is added
+- [x] “Open seat” seats at the best-fit table without a seat number
+- [x] “Release seat” is available to cashier/host; `released_by` is recorded and shown in activity/CSV
 
 - [x] `/` redirects to `/b/nikumaru/senopati`
 - [x] Brand page `/b/nikumaru` lists Senopati + Kemang with logo/menu/IG
@@ -84,6 +93,8 @@ Last run: **7 Nov 2026** — lint clean, 21/21 tests passing, production build g
 - [x] Join → ticket → position → cancel
 - [x] Call next and hold timer
 - [x] Seat at the best-fit table with seat number + PIC
+- [x] Acknowledge pauses the countdown
+- [x] Release a seated table records the cashier and completes the visit
 - [x] Refuse a party that doesn’t fit
 - [x] No-show + undo back to the line
 - [x] Acknowledge once (idempotent, no stacking extensions)

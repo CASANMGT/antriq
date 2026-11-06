@@ -153,11 +153,14 @@ There is no cron in v1. Every read path calls `expireHolds(branchId)`:
 ```sql
 update queue_entries
 set status = 'no_show', closed_at = now(), hold_expires_at = null
-where branch_id = $1 and status = 'called' and hold_expires_at < now()
+where branch_id = $1 and status = 'called'
+  and hold_expires_at is not null and hold_expires_at < now()
 returning ...;
 ```
 
 The conditional update means concurrent readers cannot double-log the same expiry: only the request that performed the transition receives the rows.
+
+Calling sets `hold_expires_at = now + hold_minutes` (default 3). A guest acknowledgement sets `acknowledged = true` and `hold_expires_at = null`, which pauses the countdown; the host can extend it later. Releasing a seat completes the visit and records `released_by` / `released_by_staff_id`.
 
 ### 3.7 Brand/branch scope
 

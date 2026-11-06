@@ -326,10 +326,10 @@ eta = clamp(round(firstCycle + cycles * perParty), 2, 180)
 
 ### 10.4 Hold and no-show
 
-- Calling sets `hold_expires_at = now + hold_minutes` (default 8).
-- Guest “I’m on my way”: +3 minutes, only once (`acknowledged` flag).
+- Calling sets `hold_expires_at = now + hold_minutes` (default **3**).
+- Guest “I’m on my way” **pauses** the countdown (`acknowledged = true`, `hold_expires_at = null`). The host can extend or resume it.
 - Host “+5 min”: adds 5 minutes, marks acknowledged.
-- On every read of host/owner/ticket state: `status='called' AND hold_expires_at < now()` → `no_show`, `closed_at=now`, activity logged by `System`.
+- On every read of host/owner/ticket state: `status='called' AND hold_expires_at is not null AND hold_expires_at < now()` → `no_show`, `closed_at=now`, activity logged by `System`.
 - `auto_no_show` can be turned off; then expiry is manual.
 
 ### 10.5 Table lifecycle
@@ -580,9 +580,9 @@ A free 14-day trial with the demo restaurant. No per-ticket fees. The reference 
 - tables open
 - called / seated / completed / no-show / cancelled state
 
-The guest does **not** see an ETA, a hold countdown, a “time left” meter, or a “we hold for X minutes” promise. `hold_expires_at` remains in the database for auto no-show, and `eta_minutes` remains in the ticket API for future use, but neither is rendered.
+The guest does **not** see an ETA or “time left” before a call. After a call, a **3-minute countdown** starts; tapping “Saya menuju host” pauses it. `hold_expires_at` drives auto no-show, and `eta_minutes` remains in the ticket API for future use but is not rendered.
 
-**Host rule:** waiting cards show queue positions, not wait duration. Called cards show name, party and actions (`Dudukkan`, `Tidak hadir`, `Batalkan panggilan`) without a timer. Stats are counts: waiting, called, seated, tables open, seated today, no-shows.
+**Host rule:** waiting cards show queue positions, not wait duration. Called cards show name, party, the **3-minute call countdown** and actions (`Dudukkan`, `Buka kursi`, `Tidak hadir`, `Batalkan panggilan`). Acknowledged calls show “countdown paused”. Stats are counts: waiting, called, seated, tables open, seated today, no-shows.
 
 **Owner rule:** queue-focused KPIs (waiting, called, seated today, tables open); service pulse and reports use joined/seated/no-show/cancel counts. Average wait and average turn are no longer shown as headline KPIs. Settings no longer expose hold duration or average turn; the operational values are retained internally.
 

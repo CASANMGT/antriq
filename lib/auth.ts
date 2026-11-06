@@ -47,7 +47,11 @@ export function decodeSession(token: string | undefined): Session | null {
     if (!parsed || typeof parsed.staffId !== "number" || typeof parsed.exp !== "number") return null;
     if (parsed.exp < Math.floor(Date.now() / 1000)) return null;
     if (parsed.role !== "owner" && parsed.role !== "greeter" && parsed.role !== "cashier") return null;
-    return parsed;
+    return {
+      ...parsed,
+      brandId: parsed.brandId ?? null,
+      branchId: parsed.branchId ?? null,
+    };
   } catch {
     return null;
   }

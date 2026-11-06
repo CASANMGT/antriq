@@ -58,6 +58,7 @@ const ENTRY_COLUMNS = `
   qe.id, qe.branch_id, qe.token, qe.code, to_char(qe.day, 'YYYY-MM-DD') as day_text, qe.seq,
   qe.guest_name, qe.phone, qe.party_size, qe.notes, qe.source, qe.status,
   qe.table_id, qe.seat_number, qe.opened_by, qe.opened_by_staff_id,
+  qe.released_by, qe.released_by_staff_id,
   qe.called_count, qe.acknowledged, qe.joined_at, qe.called_at,
   qe.hold_expires_at, qe.seated_at, qe.closed_at, qe.cancelled_by,
   t.label as table_label
@@ -160,6 +161,8 @@ function mapEntry(row: Row, tablesById: Map<number, string>, now = new Date()): 
     seatNumber: row.seat_number === null || row.seat_number === undefined ? null : toNumber(row.seat_number),
     openedBy: row.opened_by ?? null,
     openedByStaffId: row.opened_by_staff_id ? toNumber(row.opened_by_staff_id) : null,
+    releasedBy: row.released_by ?? null,
+    releasedByStaffId: row.released_by_staff_id ? toNumber(row.released_by_staff_id) : null,
     calledCount: toNumber(row.called_count),
     acknowledged: Boolean(row.acknowledged),
     joinedAt,
@@ -173,6 +176,7 @@ function mapEntry(row: Row, tablesById: Map<number, string>, now = new Date()): 
     holdSecondsLeft: holdExpiresAt
       ? Math.max(0, Math.round((new Date(holdExpiresAt).getTime() - now.getTime()) / 1000))
       : 0,
+    countdownPaused: row.status === "called" && Boolean(row.acknowledged) && holdExpiresAt === null,
   };
 }
 
@@ -536,7 +540,7 @@ export async function createBranch(brandId: number, input: BranchPatch, actor: s
         input.accent ? validateAccent(input.accent) : null,
         input.announcement ? cleanText(input.announcement, 300) : null,
         clampInt(input.avgTurnMinutes ?? 55, 10, 240, 55),
-        clampInt(input.holdMinutes ?? 8, 2, 30, 8),
+        clampInt(input.holdMinutes ?? 3, 2, 30, 3),
         clampInt(input.maxPartySize ?? 12, 1, 40, 12),
         clampInt(input.maxQueueSize ?? 40, 1, 500, 40),
         input.autoNoShow ?? true,
@@ -1087,15 +1091,15 @@ export async function acknowledgeTicket(token: string): Promise<ActionResult> {
   const rows = await q<Row>(
     `update queue_entries
      set acknowledged = true,
-         hold_expires_at = coalesce(hold_expires_at, now()) + interval '3 minutes'
+         hold_expires_at = null
      where token = $1 and status = 'called' and acknowledged = false
      returning id, branch_id, code, guest_name, party_size`,
     [token],
   );
   if (!rows[0]) {
-    const existing = await q<Row>("select status from queue_entries where token = $1", [token]);
-    if (existing[0]?.status === "called") {
-      return { ok: true, message: "We already have your heads-up — the host is expecting you." };
+    const existing = await q<Row>("select status, acknowledged from queue_entries where token = $1", [token]);
+    if (existing[0]?.status === "called" && existing[0]?.acknowledged) {
+      return { ok: true, message: "Countdown is paused — the host is expecting you." };
     }
     return { ok: false, message: "This ticket is not waiting for a table right now." };
   }
@@ -1104,9 +1108,9 @@ export async function acknowledgeTicket(token: string): Promise<ActionResult> {
     code: String(rows[0].code),
     name: String(rows[0].guest_name),
     partySize: toNumber(rows[0].party_size),
-    note: "Guest confirmed",
+    note: "Guest confirmed — countdown paused",
   });
-  return { ok: true, message: "We'll hold your table a little longer." };
+  return { ok: true, message: "Countdown paused. The host is expecting you." };
 }
 
 async function updateEntryStatus(
@@ -1324,7 +1328,13 @@ export async function extendHold(
   return { ok: true, message: `Call extended by ${extra} minutes.` };
 }
 
-export async function clearTable(branchId: number, tableId: number, actor: string): Promise<ActionResult> {
+export async function clearTable(
+  branchId: number,
+  tableId: number,
+  actor: string,
+  staffId: number | null = null,
+  reason: string | null = null,
+): Promise<ActionResult> {
   return tx(async (db) => {
     const tableRows = await db.query<Row>(
       "select id, label, status from dining_tables where id = $1 and branch_id = $2 for update",
@@ -1344,11 +1354,13 @@ export async function clearTable(branchId: number, tableId: number, actor: strin
       [tableId, branchId],
     );
     if (entryRows[0]) {
-      await db.query("update queue_entries set status='completed', closed_at=now() where id=$1 and branch_id=$2", [
-        toNumber(entryRows[0].id),
-        branchId,
-      ]);
-      await logActivity(db, branchId, "complete", actor, {
+      await db.query(
+        `update queue_entries
+         set status='completed', closed_at=now(), released_by=$3, released_by_staff_id=$4
+         where id=$1 and branch_id=$2`,
+        [toNumber(entryRows[0].id), branchId, actor, staffId],
+      );
+      await logActivity(db, branchId, "release", actor, {
         entryId: toNumber(entryRows[0].id),
         tableId,
         code: String(entryRows[0].code),
@@ -1356,7 +1368,7 @@ export async function clearTable(branchId: number, tableId: number, actor: strin
         partySize: toNumber(entryRows[0].party_size),
         tableLabel: String(table.label),
         seatNumber: entryRows[0].seat_number ? toNumber(entryRows[0].seat_number) : null,
-        note: "Visit completed",
+        note: reason ? `Seat released · ${reason}` : "Seat released",
       });
     }
     await logActivity(db, branchId, "clear", actor, {
@@ -1364,7 +1376,7 @@ export async function clearTable(branchId: number, tableId: number, actor: strin
       tableLabel: String(table.label),
       note: "Table needs resetting",
     });
-    return { ok: true, message: `${table.label} cleared. Mark it ready once reset.` };
+    return { ok: true, message: `${table.label} released. Mark it ready once reset.` };
   });
 }
 
@@ -1617,7 +1629,7 @@ export async function getReportCsv(branchId: number, days = 30): Promise<string>
   const rows = await q<Row>(
     `select qe.code, to_char(qe.day, 'YYYY-MM-DD') as day_text, qe.guest_name, qe.phone,
             qe.party_size, qe.source, qe.status, qe.seat_number, qe.opened_by,
-            qe.joined_at, qe.called_at, qe.seated_at, qe.closed_at, qe.notes, t.label as table_label
+            qe.released_by, qe.joined_at, qe.called_at, qe.seated_at, qe.closed_at, qe.notes, t.label as table_label
      from queue_entries qe
      left join dining_tables t on t.id = qe.table_id
      where qe.branch_id = $1 and qe.day >= $2::date
@@ -1627,7 +1639,7 @@ export async function getReportCsv(branchId: number, days = 30): Promise<string>
 
   const header = [
     "code", "day", "guest", "phone", "party_size", "source", "status",
-    "joined_at", "called_at", "seated_at", "closed_at", "table", "seat", "opened_by",
+    "joined_at", "called_at", "seated_at", "closed_at", "table", "seat", "opened_by", "released_by",
     "wait_min", "turn_min", "notes",
   ];
   const lines = [header.join(",")];
@@ -1653,6 +1665,7 @@ export async function getReportCsv(branchId: number, days = 30): Promise<string>
         row.table_label ?? "",
         row.seat_number ?? "",
         row.opened_by ?? "",
+        row.released_by ?? "",
         wait,
         turn,
         row.notes ?? "",

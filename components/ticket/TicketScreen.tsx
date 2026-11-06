@@ -15,10 +15,13 @@ import {
 import { Logo } from "@/components/Logo";
 import { Mascot } from "@/components/Mascot";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { NotificationPrompt } from "@/components/Notifications";
+import { HoldRing } from "@/components/Countdown";
 import { Notice, type NoticeState } from "@/components/Notice";
 import { Modal } from "@/components/Modal";
 import { useLang } from "@/components/LanguageProvider";
 import { postJson } from "@/lib/client-api";
+import { notify } from "@/lib/notify";
 import { clockInTz, formatDayLong } from "@/lib/time";
 import { format } from "@/lib/i18n";
 import type { TicketView } from "@/lib/types";
@@ -73,6 +76,13 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
       } catch {
         // Vibration is a bonus, never a requirement.
       }
+      if (document.hidden) {
+        void notify(
+          t.ticket.calledTitle,
+          format(t.ticket.calledBody, { code: view.entry.code }),
+          typeof window !== "undefined" ? window.location.href : "/",
+        );
+      }
     }
     previousStatus.current = status;
 
@@ -87,7 +97,7 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
         // Ignore storage failures.
       }
     }
-  }, [token, view.entry.status]);
+  }, [t.ticket.calledBody, t.ticket.calledTitle, token, view.entry.code, view.entry.status]);
 
   function onCancel() {
     setConfirmOpen(false);
@@ -285,6 +295,35 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                 <p className="mt-4 text-sm font-semibold leading-relaxed text-ink/75">
                   {format(t.ticket.calledBody, { code: entry.code })}
                 </p>
+
+                <div
+                  className={`mt-4 flex items-center gap-3 rounded-xl border-2 border-ink px-4 py-3 ${
+                    entry.countdownPaused ? "bg-leaf-soft" : "bg-cream"
+                  }`}
+                >
+                  {entry.countdownPaused ? (
+                    <span className="grid size-16 shrink-0 place-items-center rounded-full border-2 border-ink bg-white text-leaf-dark">
+                      <Check className="size-6" />
+                    </span>
+                  ) : (
+                    <HoldRing seconds={entry.holdSecondsLeft} total={Math.max(1, branch.holdMinutes * 60)} />
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/55">
+                      {entry.countdownPaused ? t.ticket.countdownPausedTitle : t.ticket.countdownTitle}
+                    </p>
+                    <p className="mt-0.5 text-sm font-semibold leading-relaxed text-ink/75">
+                      {entry.countdownPaused
+                        ? t.ticket.countdownPausedBody
+                        : format(t.ticket.countdownBody, { minutes: branch.holdMinutes })}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-muted">{t.ticket.notifyHint}</span>
+                  <NotificationPrompt />
+                </div>
 
                 <div className="mt-4 rounded-xl border-2 border-ink bg-pink px-4 py-3">
                   <p className="text-xs font-bold leading-relaxed text-tomato-dark">

@@ -25,7 +25,7 @@ AntriQ is a multi-brand, multi-branch queue system with three connected surfaces
 
 Brands own identity and assets (logo, menu PDF, Instagram); branches own hours, tables, staff, the queue and their own public URL. A platform owner manages every brand, a brand owner manages every branch in their brand, and a branch owner manages only their branch.
 
-**Queue-first by design:** guests see a queue number, position, parties ahead and the code being called. There are **no wait-time estimates and no hold countdowns** in the interface. The operational hold still exists behind the scenes for auto no-show, but it is not a guest-facing promise.
+**Queue-first by design:** guests see a queue number, position, parties ahead and the code being called. There are **no wait-time estimates**. After a call, a **3-minute call countdown** starts; it pauses when the guest taps “I’m on my way”. The operational hold still drives auto no-show behind the scenes.
 
 **Bahasa Indonesia is the default; English is one tap away.** The language toggle stores a cookie and refreshes both server and client surfaces.
 
@@ -83,7 +83,8 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Branch page (`/b/[brand]/[branch]`) with live queue snapshot: parties waiting, tables open, now serving, branch status.
 - Take a number in about 20 seconds: party size, name, optional phone/note.
 - Ticket with a human code (`A-024`), queue position, parties ahead, now-serving code.
-- Called state: **“Meja siap!”** with “Saya menuju host”, directions and release.
+- Called state: **“Meja siap!”** with a **3-minute call countdown**, “Saya menuju host” (pauses the countdown), directions and release.
+- Browser notification permission prompt on the ticket, plus a notification when the call changes while the tab is hidden.
 - Seated state shows the assigned **table and seat number**, plus the host/cashier PIC who opened it.
 - Completed, no-show and cancelled end states.
 - Capability URL + local ticket memory; no account.
@@ -94,8 +95,11 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Three-column board: **Antrean / Dipanggil / Lantai** — tabs on phones.
 - Branch switcher for owners and brand owners.
 - Queue positions on every card, not waiting-time guesses.
-- **Panggil berikutnya** selects the first party a free table can physically seat; suggests the smallest fitting table.
-- Seat from waiting or called at a specific table and optional **seat number**; records the staff member as PIC.
+- **Call next** selects the first party a free table can physically seat; suggests the smallest fitting table.
+- Seat from waiting or called at a specific table and optional **seat number**, or use **Open seat** to skip the number entirely.
+- Called cards show the live call countdown; it pauses when the guest confirms they are on the way.
+- Browser notification prompt, plus a hidden-tab notification when a guest is called from another device.
+- **Release seat** after payment or when a visit ends; records the staff member who released it.
 - No-show with confirmation, undo call, walk-in add, search.
 - Table lifecycle: seated → dirty → ready, plus blocked. Seated cards show seat and PIC.
 - Pause / close / reopen queue, optional call chime, shortcuts (`N`, `W`, `P`).
@@ -175,7 +179,7 @@ npm run dev       # development
 npm run build     # production build
 npm start         # production server
 npm run lint      # ESLint (Next 16 + React 19 rules)
-npm test          # 21 domain + integration tests
+npm test          # 22 domain + integration tests
 ```
 
 ## Deploy to Vercel

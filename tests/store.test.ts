@@ -9,6 +9,7 @@ import {
   callEntry,
   callNext,
   cancelTicket,
+  clearTable,
   getBranchBySlugs,
   getHostState,
   getOwnerOverview,
@@ -92,8 +93,9 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(after.called.length).toBe(before.called.length + 1);
     const called = after.called.find((entry) => entry.code === "A-001");
     expect(called).toBeTruthy();
-    expect(called!.holdSecondsLeft).toBeGreaterThan(400);
-    expect(called!.holdSecondsLeft).toBeLessThanOrEqual(480);
+    expect(called!.holdSecondsLeft).toBeGreaterThan(160);
+    expect(called!.holdSecondsLeft).toBeLessThanOrEqual(180);
+    expect(called!.countdownPaused).toBe(false);
   });
 
   it("seats a called party with a seat number and records the PIC", async () => {
@@ -157,7 +159,7 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(state.recent.some((item) => item.code === "A-001" && item.status === "no_show")).toBe(true);
   });
 
-  it("acknowledges a called guest once and extends the hold", async () => {
+  it("acknowledges a called guest once and pauses the countdown", async () => {
     const branchId = await primaryBranchId();
     const joined = await joinQueue(branchId, { guestName: "Ack Guest", partySize: 2 });
     const view = await getTicketView(joined.token);
@@ -168,12 +170,13 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(first.ok).toBe(true);
     const afterFirst = await getTicketView(joined.token);
     expect(afterFirst?.entry.acknowledged).toBe(true);
-    const firstHold = afterFirst!.entry.holdSecondsLeft;
+    expect(afterFirst?.entry.countdownPaused).toBe(true);
+    expect(afterFirst?.entry.holdSecondsLeft).toBe(0);
 
     const second = await acknowledgeTicket(joined.token);
     expect(second.ok).toBe(true);
     const afterSecond = await getTicketView(joined.token);
-    expect(afterSecond!.entry.holdSecondsLeft).toBeLessThanOrEqual(firstHold + 2);
+    expect(afterSecond?.entry.countdownPaused).toBe(true);
   });
 
   it("auto-releases a hold that has expired", async () => {
@@ -202,6 +205,25 @@ describe("store integration (PGlite + demo seed)", () => {
     await setWaitlistStatus(branchId, "open", null, "Rani");
     const joined = await joinQueue(branchId, { guestName: "Allowed Guest", partySize: 2 });
     expect(joined.token).toBeTruthy();
+  });
+
+  it("releases a seated table and records the cashier who freed it", async () => {
+    const branchId = await primaryBranchId();
+    const state = await getHostState(branchId);
+    const seated = state.seated.find((entry) => entry.tableId);
+    expect(seated).toBeTruthy();
+
+    const result = await clearTable(branchId, seated!.tableId!, "Sari Kasir", 4, "Payment settled");
+    expect(result.ok).toBe(true);
+
+    const after = await getHostState(branchId);
+    expect(after.tables.find((table) => table.id === seated!.tableId)?.status).toBe("dirty");
+    const released = await q<{ released_by: string; status: string }>(
+      "select released_by, status from queue_entries where id = $1",
+      [seated!.id],
+    );
+    expect(released[0]?.status).toBe("completed");
+    expect(released[0]?.released_by).toBe("Sari Kasir");
   });
 
   it("computes owner metrics and a CSV export", async () => {

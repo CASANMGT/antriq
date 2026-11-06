@@ -365,7 +365,7 @@ export async function seedDatabase(db: Queryable): Promise<void> {
           item.seat ?? null,
           item.openedBy ?? null,
           item.status === "called" ? 1 : 0,
-          false,
+          item.status === "called",
           joinedAt,
           calledAt,
           null,

@@ -80,6 +80,8 @@ export interface QueueEntry {
   seatNumber: number | null;
   openedBy: string | null;
   openedByStaffId: number | null;
+  releasedBy: string | null;
+  releasedByStaffId: number | null;
   calledCount: number;
   acknowledged: boolean;
   joinedAt: string;
@@ -91,6 +93,7 @@ export interface QueueEntry {
   waitMinutes: number;
   calledMinutesAgo: number | null;
   holdSecondsLeft: number;
+  countdownPaused: boolean;
 }
 
 export interface PublicStaff {

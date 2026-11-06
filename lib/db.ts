@@ -118,6 +118,29 @@ async function applySchema(db: Queryable) {
   }
 }
 
+async function runDataMigrations(db: Queryable) {
+  const inserted = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('hold_minutes_3', 'done')
+     on conflict (key) do nothing returning key`,
+  );
+  if (inserted.length > 0) {
+    // v0.3 shipped with an 8-minute default; the product now uses 3 minutes.
+    await db.query("update branches set hold_minutes = 3 where hold_minutes = 8");
+  }
+
+  const paused = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('acknowledged_null_hold', 'done')
+     on conflict (key) do nothing returning key`,
+  );
+  if (paused.length > 0) {
+    // Demo/legacy called entries with no expiry are already "at the door";
+    // mark them acknowledged so the new countdown shows as paused, not 0:00.
+    await db.query(
+      "update queue_entries set acknowledged = true where status = 'called' and hold_expires_at is null",
+    );
+  }
+}
+
 const LEGACY_TABLES = [
   "activity",
   "queue_sequence",
@@ -152,11 +175,13 @@ async function initialize(db: Database) {
       await q.query("select pg_advisory_xact_lock(918273645)");
       await migrateLegacySchema(q);
       await applySchema(q);
+      await runDataMigrations(q);
       await seedDatabase(q);
     });
   } else {
     await migrateLegacySchema(db);
     await applySchema(db);
+    await runDataMigrations(db);
     await seedDatabase(db);
   }
 }

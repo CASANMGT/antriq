@@ -62,8 +62,8 @@ export function TeamManager({
     return branches.filter((branch) => !brandId || branch.brandId === brandId);
   }, [branches, draft.brandId]);
 
-  const lockedBrand = scope.brandId !== null;
-  const lockedBranch = scope.branchId !== null;
+  const lockedBrand = scope.brandId != null;
+  const lockedBranch = scope.branchId != null;
   const canOwners = !lockedBranch;
 
   function show(message: string, tone: NoticeState["tone"]) {
@@ -265,6 +265,7 @@ export function TeamManager({
                 <option value="greeter">{t.login.greeterRole}</option>
                 <option value="cashier">{t.login.cashierRole}</option>
                 {canOwners && <option value="owner">{t.login.ownerRole}</option>}
+                {!canOwners && draft.role === "owner" && <option value="owner">{t.login.ownerRole}</option>}
               </select>
             </div>
             <div>

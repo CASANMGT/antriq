@@ -13,6 +13,7 @@ import {
   Utensils,
 } from "lucide-react";
 import { TablePill } from "@/components/Pills";
+import { Countdown } from "@/components/Countdown";
 import { useLang } from "@/components/LanguageProvider";
 import { format } from "@/lib/i18n";
 import type { DiningTable, HostStats, QueueEntry } from "@/lib/types";
@@ -53,6 +54,7 @@ export function QueueCard({
   busy,
   onCall,
   onSeat,
+  onOpenSeat,
   onNoShow,
   onUndo,
 }: {
@@ -62,6 +64,7 @@ export function QueueCard({
   busy: boolean;
   onCall: () => void;
   onSeat: () => void;
+  onOpenSeat: () => void;
   onNoShow: () => void;
   onUndo: () => void;
 }) {
@@ -111,6 +114,24 @@ export function QueueCard({
               </a>
             )}
           </div>
+          {called && (
+            <div
+              className={`mt-2 flex items-center justify-between gap-2 rounded-lg border-2 px-2.5 py-1.5 text-xs font-bold ${
+                entry.countdownPaused
+                  ? "border-leaf/40 bg-leaf-soft text-leaf-dark"
+                  : entry.holdSecondsLeft <= 60
+                    ? "border-tomato/40 bg-pink text-tomato-dark"
+                    : "border-ink/15 bg-cream text-ink/70"
+              }`}
+            >
+              <span>{entry.countdownPaused ? t.host.countdownPaused : t.host.callCountdown}</span>
+              {entry.countdownPaused ? (
+                <span>{t.host.onTheWay}</span>
+              ) : (
+                <Countdown seconds={entry.holdSecondsLeft} />
+              )}
+            </div>
+          )}
           {entry.notes && (
             <p className="mt-2 rounded-lg bg-cream px-2 py-1.5 text-xs font-medium leading-relaxed text-ink/70">
               {entry.notes}
@@ -131,12 +152,18 @@ export function QueueCard({
             <button type="button" className="btn btn-outline btn-sm" onClick={onSeat} disabled={busy}>
               <Utensils className="size-3.5" /> {t.host.seat}
             </button>
+            <button type="button" className="btn btn-ghost btn-sm text-muted" onClick={onOpenSeat} disabled={busy}>
+              <Sparkles className="size-3.5" /> {t.host.openSeat}
+            </button>
           </>
         )}
         {called && (
           <>
             <button type="button" className="btn btn-sage btn-sm" onClick={onSeat} disabled={busy}>
               <Utensils className="size-3.5" /> {t.host.seat}
+            </button>
+            <button type="button" className="btn btn-soft btn-sm" onClick={onOpenSeat} disabled={busy}>
+              <Sparkles className="size-3.5" /> {t.host.openSeat}
             </button>
             <button type="button" className="btn btn-ghost btn-sm text-muted" onClick={onNoShow} disabled={busy}>
               {t.host.noShow}
@@ -216,7 +243,7 @@ export function TableCard({
       <div className="mt-2 flex gap-1">
         {table.status === "seated" && (
           <button type="button" className="btn btn-soft btn-sm h-7 flex-1 px-2 text-[0.6875rem]" onClick={onClear} disabled={busy}>
-            <RotateCcw className="size-3" /> {t.host.clear}
+            <RotateCcw className="size-3" /> {t.host.releaseSeat}
           </button>
         )}
         {table.status === "dirty" && (
