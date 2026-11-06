@@ -211,6 +211,14 @@ export function isDemoMode(): boolean {
   return ["1", "true", "yes", "on"].includes((process.env.DEMO_MODE ?? "").toLowerCase());
 }
 
+/**
+ * The daily "reseeding" demo behaviour is opt-in. Production can run with
+ * DEMO_MODE=1 for the initial seed, clear its queues, and stay empty.
+ */
+export function isDemoAutoReset(): boolean {
+  return ["1", "true", "yes", "on"].includes((process.env.DEMO_AUTO_RESET ?? "").toLowerCase());
+}
+
 function isoMinutesAgo(minutes: number): string {
   return new Date(Date.now() - minutes * 60_000).toISOString();
 }

@@ -73,7 +73,7 @@ Last run: **7 Nov 2026** — lint clean, 22/22 tests passing, production build g
 - [x] Switching back to `ID` restores Indonesian without a reload loop
 - [x] 430px mobile: no horizontal overflow; host tabs + owner link fit
 - [x] 1440px: three-column host, cream dashboard sidebar, poster layout
-- [x] Demo called guest stays at the door; floor resets on a new service day
+- [x] Demo called guest stays at the door; with `DEMO_AUTO_RESET=1`, floor resets on a new service day
 
 ### Domain suite (`tests/queue.test.ts`)
 

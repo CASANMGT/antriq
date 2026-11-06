@@ -588,7 +588,7 @@ The guest does **not** see an ETA or “time left” before a call. After a call
 
 **Visual system:** Fredoka + Plus Jakarta Sans; tomato `#F24B3F`, butter `#FFF1CA`, ink `#262321`, soft pink `#FFD6DF`, leaf `#2E7D4F`; 2px outlines, sticker shadows, brush accents, toast mascot, paper backgrounds.
 
-**Demo:** seeded floor with a called guest that stays at the door for demonstration; the floor resets on the first request of each new service day. Production URL: https://antriq1.vercel.app.
+**Demo:** seeded floor with a called guest that stays at the door for demonstration; with `DEMO_AUTO_RESET=1` the floor resets on the first request of each new service day. Production URL: https://antriq1.vercel.app.
 
 ---
 

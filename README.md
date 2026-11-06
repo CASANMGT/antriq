@@ -80,7 +80,7 @@ A fictional **ramen & izakaya** group with two brands and three branches:
 
 Open `/login`. With `DEMO_MODE=1`, the login page also shows one-click demo shortcuts.
 
-> The demo resets its floor on the first request of each new day, even on a warm serverless instance. Remove `DEMO_MODE` for a real restaurant and the queue starts empty.
+> With `DEMO_AUTO_RESET=1`, the demo resets its floor on the first request of each new day, even on a warm serverless instance. Leave `DEMO_AUTO_RESET=0` in production so clearing a queue stays cleared.
 
 ## Brand system
 
@@ -220,7 +220,8 @@ The current production deployment is **https://antriq1.vercel.app** (Vercel proj
 | `DATABASE_URL` | `postgres://…` | **Required.** Pooled URL in Singapore (`sin1`). |
 | `AUTH_SECRET` | 32+ random chars | Required in production. |
 | `NEXT_PUBLIC_APP_URL` | `https://antriq1.vercel.app` | Metadata + QR poster. |
-| `DEMO_MODE` | `1` | Optional; seeds the demo floor. Omit for real use. |
+| `DEMO_MODE` | `1` | Optional; seeds the demo floor on an empty database. |
+| `DEMO_AUTO_RESET` | `0` | Optional; re-seeds the demo floor when a service day is empty. Keep off in production. |
 
 4. Deploy. The first request runs idempotent schema creation and seeding under a Postgres advisory lock.
 5. `vercel.json` pins functions to **Singapore (`sin1`)**; keep the Neon primary region in Singapore too. Use a separate Neon branch/project and a separate Vercel Preview environment for **staging**.

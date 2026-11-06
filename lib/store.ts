@@ -14,7 +14,7 @@ import {
   statsFrom,
 } from "./queue";
 import { addDaysToDay, dayInTz, elapsedMinutes, isOpenAt, parseTimeToMinutes } from "./time";
-import { isDemoMode, seedDatabase } from "./seed";
+import { isDemoAutoReset, isDemoMode, seedDatabase } from "./seed";
 import { PRIMARY_BRANCH_ID } from "./schema";
 import type {
   ActionResult,
@@ -778,7 +778,7 @@ export async function setStaffActive(id: number, active: boolean, actor: string)
 /* ------------------------------- reads --------------------------------- */
 
 async function ensureDemoDay(): Promise<void> {
-  if (!isDemoMode()) return;
+  if (!isDemoMode() || !isDemoAutoReset()) return;
   const primary = await getPrimaryBranch();
   const today = dayInTz(new Date(), primary.branch.timezone);
   const rows = await q<Row>(
