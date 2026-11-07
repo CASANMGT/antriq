@@ -4,11 +4,25 @@
 
 ```bash
 npm run lint     # ESLint, Next 16 + React 19 rules
-npm test         # 21 domain + integration tests on PGlite
+npm test         # 26 domain + integration tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **7 Nov 2026** — lint clean, 26/26 tests passing, production build green (v0.3.8 mobile/hold settings).
+Last run: **7 Nov 2026** — lint clean, 26/26 tests passing, production build green (v0.3.9 print + notifications).
+
+### Notification delivery QA
+
+- Chromium (headed, `notifications` granted) opens a live ticket.
+- The tab is hidden and the host calls the ticket.
+- Assert the service worker `showNotification` fires with title `Meja siap!`, the ticket code and tag `antriq-call`.
+- Assert no page errors.
+- Firefox permission prompt and blocked-permission instructions verified visually.
+
+### Print QA
+
+- Generate `/dashboard/qr?branch=1` as an A4 PDF from a **390 × 844** viewport.
+- Assert exactly **1 page**, no dashboard header/buttons/download link.
+- Visual check: brand mark, branch name, 70 mm QR and footer all on one page.
 
 ### Deployment verification
 

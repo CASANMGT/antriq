@@ -621,28 +621,88 @@
     display: none !important;
   }
 
+  aside,
+  nav,
+  header {
+    display: none !important;
+  }
+
+  html,
   body {
-    background: #fff;
+    background: #fff !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+  }
+
+  .print-page {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .print-page > .no-print {
+    display: none !important;
+  }
+
+  .print-page > .flex:not(.no-print) {
+    display: block !important;
   }
 
   .poster {
     width: 100% !important;
     max-width: none !important;
+    min-height: 268mm !important;
+    display: flex !important;
+    flex-direction: column !important;
+    margin: 0 !important;
     box-shadow: none !important;
     border: none !important;
+    border-radius: 0 !important;
     break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .poster > div:last-child {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .poster > div:last-child > div:last-child {
+    margin-top: auto !important;
   }
 
   .poster .qr-image {
-    width: 68mm !important;
-    height: 68mm !important;
+    width: 70mm !important;
+    height: 70mm !important;
     image-rendering: auto;
+  }
+
+  .poster h2 {
+    font-size: 30pt !important;
+  }
+
+  .poster .px-8 {
+    padding-left: 7mm !important;
+    padding-right: 7mm !important;
+  }
+
+  .poster .py-6,
+  .poster .pb-7,
+  .poster .pt-6,
+  .poster .pt-5,
+  .poster .pb-8 {
+    padding-top: 4mm !important;
+    padding-bottom: 4mm !important;
   }
 
   @page {
     size: A4 portrait;
-    margin: 12mm;
+    margin: 8mm;
   }
 }

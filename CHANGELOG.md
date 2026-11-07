@@ -10,6 +10,23 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.3.9] — 2026-11-07
+
+The **clean print + verified notifications** release.
+
+### Fixed
+- Print poster no longer prints the dashboard header, action buttons or download link.
+- Print poster prints on exactly **one A4 page**; the poster card fills the page and the footer sits at the bottom.
+- QR prints at **70 mm** and stays high resolution.
+
+### Changed
+- Mobile tap targets are larger for the language switch and the AntriQ logo.
+- The ticket waiting screen shows the full notification opt-in banner instead of a small inline button.
+
+### Verified
+- Playwright notification QA: a granted-permission guest ticket receives a service-worker notification with the correct ticket code when the tab is hidden and the host calls it.
+- All guest, brand, branch and login pages were checked at **390 × 844** with no horizontal overflow.
+
 ## [0.3.8] — 2026-11-07
 
 The **mobile join + hold settings** release.

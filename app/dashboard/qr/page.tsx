@@ -43,7 +43,7 @@ export default async function QrPage({
   });
 
   return (
-    <div className="space-y-5">
+    <div className="print-page space-y-5">
       <header className="no-print flex flex-wrap items-end justify-between gap-3">
         <div>
           <Link href={`/dashboard?branch=${active.id}`} className="inline-flex items-center gap-1.5 text-xs font-extrabold text-muted hover:text-ink">

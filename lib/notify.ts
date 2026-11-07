@@ -37,17 +37,23 @@ export async function notify(title: string, body: string, url = "/"): Promise<vo
     icon: "/icon.svg",
     badge: "/icon.svg",
     tag: "antriq-call",
+    requireInteraction: true,
     data: { url },
   };
 
-  try {
-    if ("serviceWorker" in navigator) {
+  if ("serviceWorker" in navigator) {
+    try {
       const registration = await navigator.serviceWorker.getRegistration();
       if (registration) {
         await registration.showNotification(title, options);
         return;
       }
+    } catch {
+      // Fall through: some browsers reject service-worker notifications.
     }
+  }
+
+  try {
     new Notification(title, options);
   } catch {
     // Browsers can reject notifications in the background. Never break the queue.
