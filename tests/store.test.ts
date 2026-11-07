@@ -116,6 +116,39 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(second?.branchId).toBeNull();
   });
 
+  it("prevents one guest from holding two active tickets", async () => {
+    const branchId = await primaryBranchId();
+    const phone = "081299990001";
+    const first = await joinQueue(branchId, { guestName: "Duplicate One", partySize: 2, phone });
+
+    await expect(
+      joinQueue(branchId, { guestName: "Duplicate Two", partySize: 2, phone }),
+    ).rejects.toMatchObject({ code: "duplicate_ticket" });
+
+    await expect(
+      joinQueue(branchId, { guestName: "Duplicate Token", partySize: 2, guestToken: first.token }),
+    ).rejects.toMatchObject({ code: "duplicate_ticket" });
+
+    await cancelTicket(first.token);
+    const second = await joinQueue(branchId, { guestName: "Duplicate Three", partySize: 2, phone });
+    expect(second.code).toMatch(/^A-\d{3,}$/);
+    await cancelTicket(second.token);
+  });
+
+  it("lets a host override duplicate protection for a walk-in", async () => {
+    const branchId = await primaryBranchId();
+    const phone = "081299990002";
+    const first = await joinQueue(branchId, { guestName: "Walk-in Existing", partySize: 2, phone });
+    const override = await joinQueue(
+      branchId,
+      { guestName: "Walk-in Override", partySize: 2, phone },
+      true,
+    );
+    expect(first.code).not.toBe(override.code);
+    await cancelTicket(first.token);
+    await cancelTicket(override.token);
+  });
+
   it("verifies staff PINs and rejects the wrong one", async () => {
     const people = await listStaff();
     const ayu = people.find((person) => person.name === "Wuri");

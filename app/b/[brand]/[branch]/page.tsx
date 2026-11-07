@@ -19,7 +19,6 @@ import { Logo } from "@/components/Logo";
 import { Mascot } from "@/components/Mascot";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { JoinForm } from "@/components/diner/JoinForm";
-import { MyTicketBanner } from "@/components/diner/MyTicketBanner";
 import { NotificationPrompt } from "@/components/Notifications";
 import { Scribble, Sparks } from "@/components/Doodles";
 import { getBranchBySlugs, getPublicSnapshot } from "@/lib/store";
@@ -291,8 +290,6 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
                 {branch.announcement}
               </div>
             )}
-
-            <MyTicketBanner branchId={branch.id} />
 
             {queueUnavailable ? (
               <div className="mt-5 rounded-2xl border-2 border-ink bg-cream p-4 shadow-[3px_3px_0_#262321]">

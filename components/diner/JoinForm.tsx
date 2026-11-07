@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertCircle, ArrowRight, Loader2, Minus, Plus, Ticket } from "lucide-react";
 import { useLang } from "@/components/LanguageProvider";
@@ -26,9 +27,40 @@ export function JoinForm({
   const { t } = useLang();
   const [partySize, setPartySize] = useState(2);
   const [error, setError] = useState<string | null>(null);
+  const [existing, setExisting] = useState<{ token: string; code: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const single = queueMode === "single";
   const category = partySize <= 2 ? "A" : "B";
+
+  useEffect(() => {
+    let cancelled = false;
+    let stored: { token?: string; code?: string; branchId?: number } | null = null;
+    try {
+      const raw = window.localStorage.getItem("antriq:ticket");
+      if (raw) stored = JSON.parse(raw) as { token?: string; code?: string; branchId?: number };
+    } catch {
+      return;
+    }
+    if (!stored?.token) return;
+    if (stored.branchId && stored.branchId !== branchId) return;
+    const token = stored.token;
+    fetch(`/api/ticket/${token}`, { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((view) => {
+        if (cancelled || !view?.entry) return;
+        if (["waiting", "called", "seated"].includes(view.entry.status)) {
+          setExisting({ token, code: view.entry.code });
+        } else {
+          window.localStorage.removeItem("antriq:ticket");
+        }
+      })
+      .catch(() => {
+        // Keep the form usable if the status check fails.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [branchId]);
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -36,6 +68,16 @@ export function JoinForm({
     const form = event.currentTarget;
     const data = new FormData(form);
     setError(null);
+    let existingToken: string | undefined;
+    try {
+      const raw = window.localStorage.getItem("antriq:ticket");
+      if (raw) {
+        const parsed = JSON.parse(raw) as { token?: string };
+        existingToken = parsed?.token;
+      }
+    } catch {
+      // Private mode can block storage; the server cookie still protects.
+    }
 
     startTransition(async () => {
       const result = await postJson<{ token: string; code: string }>("/api/join", {
@@ -45,9 +87,14 @@ export function JoinForm({
         notes: String(data.get("notes") ?? ""),
         partySize,
         website: String(data.get("website") ?? ""),
+        existingToken,
       });
 
       if (!result.ok || !result.data?.token) {
+        const duplicate = result.data as { token?: string; code?: string } | undefined;
+        if (duplicate?.token) {
+          setExisting({ token: duplicate.token, code: duplicate.code ?? "" });
+        }
         setError(result.message ?? t.guest.formNameError);
         return;
       }
@@ -63,6 +110,26 @@ export function JoinForm({
       }
       router.push(`/t/${ticket.token}`);
     });
+  }
+
+  if (existing) {
+    return (
+      <div className="mt-5 rounded-2xl border-2 border-ink bg-leaf-soft p-4 shadow-[3px_3px_0_#262321]">
+        <div className="flex items-start gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl border-2 border-ink bg-white text-leaf-dark">
+            <Ticket className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="eyebrow text-leaf-dark">{t.guest.existingTitle}</p>
+            <p className="num mt-1 font-display text-3xl font-semibold leading-none">{existing.code}</p>
+            <p className="mt-1 text-xs font-semibold leading-relaxed text-leaf-dark/70">{t.guest.existingBody}</p>
+          </div>
+        </div>
+        <Link href={`/t/${existing.token}`} className="btn btn-primary btn-sm mt-4 w-full">
+          {t.guest.viewTicket} <ArrowRight className="size-3.5" />
+        </Link>
+      </div>
+    );
   }
 
   return (

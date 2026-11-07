@@ -1084,6 +1084,8 @@ export interface JoinInput {
   notes?: string;
   source?: QueueSource;
   actor?: string;
+  /** Existing ticket token from the guest device, used to block duplicates. */
+  guestToken?: string;
 }
 
 export interface JoinResult {
@@ -1121,6 +1123,26 @@ export async function joinQueue(branchId: number, input: JoinInput, allowPaused 
 
   return tx(async (db) => {
     const today = dayInTz(now, branch.timezone);
+
+    if (!allowPaused) {
+      const existing = await db.query<Row>(
+        `select token, code from queue_entries
+         where status in ('waiting','called','seated')
+           and (token = $1 or ($2::text is not null and phone = $2::text))
+         order by joined_at asc
+         limit 1`,
+        [input.guestToken ?? null, phone],
+      );
+      if (existing[0]) {
+        throw new AppError(
+          `You already have an active ticket ${existing[0].code}. Please use or release it before joining another queue.`,
+          "duplicate_ticket",
+          409,
+          { token: existing[0].token, code: existing[0].code },
+        );
+      }
+    }
+
     const counts = await db.query<Row>(
       `select count(*) filter (where status = 'waiting')::int as waiting
        from queue_entries where branch_id = $1 and day = $2::date`,

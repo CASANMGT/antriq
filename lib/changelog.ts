@@ -16,6 +16,27 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.7.1",
+    date: "2026-11-07",
+    title: "One active ticket per guest",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "Duplicate protection by guest device cookie and phone number.",
+          "An existing-ticket panel replaces the join form when a guest already has an active ticket.",
+        ],
+      },
+      {
+        label: "Fixed",
+        items: [
+          "Rejoining no longer creates a second active ticket.",
+          "After releasing or completing a ticket, the guest can join again normally.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.7.0",
     date: "2026-11-07",
     title: "Operations audit + in-app changelog",

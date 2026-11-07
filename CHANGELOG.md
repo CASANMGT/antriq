@@ -10,6 +10,19 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.7.1] — 2026-11-07
+
+The **one active ticket per guest** release.
+
+### Added
+- Duplicate protection by guest device cookie and phone number.
+- Existing-ticket panel replaces the join form when the guest already has an active ticket.
+
+### Fixed
+- Rejoining no longer creates a second active ticket.
+- After releasing or completing a ticket, the guest can join again normally.
+- Host walk-ins can still override duplicate protection when explicitly added by staff.
+
 ## [0.7.0] — 2026-11-07
 
 The **operations audit + in-app changelog** release.

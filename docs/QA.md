@@ -4,11 +4,11 @@
 
 ```bash
 npm run lint     # ESLint, Next 16 + React 19 rules
-npm test         # 33 domain + integration + version tests on PGlite
+npm test         # 35 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **7 Nov 2026** — lint clean, 33/33 tests passing, production build green (v0.7.0 operations audit + changelog).
+Last run: **7 Nov 2026** — lint clean, 35/35 tests passing, production build green (v0.7.1 one active ticket).
 
 ### Notification delivery QA
 
@@ -67,6 +67,14 @@ Last run: **7 Nov 2026** — lint clean, 33/33 tests passing, production build g
 - `/changelog` renders the latest releases and the current version.
 - Guest footer, ticket footer, owner sidebar, mobile dashboard nav and host header link to it.
 - `lib/version.ts` matches `package.json` (version test).
+
+### Duplicate ticket protection
+
+- A guest with an active ticket (`waiting`, `called` or `seated`) cannot join a second queue by the same phone number or device cookie.
+- The API returns **409** with the existing ticket token/code.
+- The join form is replaced by an existing-ticket panel with a “Lihat” link.
+- Cancelling the ticket allows a normal new join.
+- Staff walk-ins can explicitly override duplicate protection.
 
 ### Deployment verification
 

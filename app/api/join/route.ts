@@ -1,9 +1,14 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { actionError, rateLimit } from "@/lib/action";
+import { actionError, actionStatus, rateLimit } from "@/lib/action";
 import { joinQueue } from "@/lib/store";
+import { cleanText } from "@/lib/validation";
 import type { ActionResult } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+const COOKIE_NAME = "antriq_active_ticket";
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 export async function POST(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for");
@@ -27,6 +32,12 @@ export async function POST(request: Request) {
     if (!Number.isInteger(branchId) || branchId <= 0) {
       return NextResponse.json<ActionResult>({ ok: false, message: "Branch is required." }, { status: 400 });
     }
+
+    const cookieStore = await cookies();
+    const cookieToken = cookieStore.get(COOKIE_NAME)?.value;
+    const bodyToken = cleanText(body.existingToken, 64) || null;
+    const guestToken = bodyToken ?? cookieToken ?? undefined;
+
     const result = await joinQueue(branchId, {
       guestName: String(body.guestName ?? ""),
       phone: body.phone ? String(body.phone) : undefined,
@@ -34,12 +45,22 @@ export async function POST(request: Request) {
       notes: body.notes ? String(body.notes) : undefined,
       source: "qr",
       actor: "Guest",
+      guestToken,
     });
-    return NextResponse.json<ActionResult>(
+
+    const response = NextResponse.json<ActionResult>(
       { ok: true, data: result },
       { headers: { "Cache-Control": "no-store" } },
     );
+    response.cookies.set(COOKIE_NAME, result.token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: COOKIE_MAX_AGE,
+    });
+    return response;
   } catch (error) {
-    return NextResponse.json(actionError(error), { status: 400 });
+    return NextResponse.json(actionError(error), { status: actionStatus(error) });
   }
 }

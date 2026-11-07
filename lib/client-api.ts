@@ -21,9 +21,13 @@ export async function postJson<T = unknown>(
 
     if (!response.ok) {
       if (response.status === 401) {
-        return { ok: false, message: "Your session expired. Sign in again." };
+        return { ok: false, message: "Your session expired. Sign in again.", data: payload?.data };
       }
-      return { ok: false, message: payload?.message ?? "That didn't work. Please try again." };
+      return {
+        ok: false,
+        message: payload?.message ?? "That didn't work. Please try again.",
+        data: payload?.data,
+      };
     }
     return payload ?? { ok: false, message: "Empty response from the server." };
   } catch {
