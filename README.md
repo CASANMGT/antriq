@@ -52,7 +52,7 @@ AntriQ is a multi-brand, multi-branch queue system with three connected surfaces
 
 Brands own identity and assets (logo, menu PDF, Instagram); branches own hours, tables, staff, the queue and their own public URL. A platform owner manages every brand, a brand owner manages every branch in their brand, and a branch owner manages only their branch.
 
-**Queue-first by design:** guests see a queue number, position, parties ahead and the code being called. There are **no wait-time estimates**. After a call, a **3-minute call countdown** starts; it pauses when the guest taps “I’m on my way”. The operational hold still drives auto no-show behind the scenes.
+**Queue-first by design:** guests see a queue number, position, parties ahead and the code being called. There are **no wait-time estimates**. After a call, a **3-minute call countdown** starts; it pauses when the guest taps "I'm on my way". The operational hold still drives auto no-show behind the scenes. Guest joins are only accepted during the branch’s opening hours; outside hours the page shows the service window and next opening time.
 
 **Bahasa Indonesia is the default; English is one tap away.** The language toggle stores a cookie and refreshes both server and client surfaces.
 
@@ -114,7 +114,9 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - **Circular brand avatars** on the picker, branch, brand and ticket surfaces.
 - QR poster uses a **1600px high-resolution, high-error-correction QR** and prints on A4 at 68mm.
 - Queue screen includes an owner QR-poster shortcut.
-- Live queue snapshot: **one group by default**, now serving and branch status. Owners can switch to **two groups — A (1–2), B (3+)** in Settings. No empty-table count.
+- Live queue snapshot: **one group by default**, now serving and branch status. Owners can switch to **two groups - A (1-2), B (3+)** in Settings. No empty-table count.
+- **Queue control:** owners and managers can pause new joins and reopen the queue from the dashboard; existing guests keep their place.
+- **Service-hours gate:** outside opening hours the join form becomes an opening-hours panel with the next opening time, and guest joins are rejected server-side.
 - **Mobile-first join card comes first**: name, party size and “Ambil nomor antrean” before the long brand/queue details.
 - **“Saya hadir”** acknowledges the call; the owner chooses whether it stops the countdown or adds minutes.
 - Notification opt-in includes Firefox guidance (lock icon → Permissions → Notifications).

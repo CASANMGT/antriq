@@ -11,6 +11,7 @@ import {
   statsFrom,
 } from "@/lib/queue";
 import type { DiningTable, QueueEntry } from "@/lib/types";
+import { isOpenAt, nextOpening } from "@/lib/time";
 
 function entry(overrides: Partial<QueueEntry> & { id: number; joinedAt: string }): QueueEntry {
   return {
@@ -174,5 +175,23 @@ describe("queue domain", () => {
 
   it("falls back to the configured turn time with sparse data", () => {
     expect(averageTurn([], 55)).toBe(55);
+  });
+
+  it("knows service hours and the next opening time", () => {
+    const branch = { openTime: "11:00", closeTime: "22:00", timezone: "Asia/Jakarta" };
+    // 03:00Z = 10:00 WIB (closed), 05:00Z = 12:00 WIB (open), 16:00Z = 23:00 WIB (closed).
+    expect(isOpenAt(branch, new Date("2026-11-07T03:00:00.000Z"))).toBe(false);
+    expect(isOpenAt(branch, new Date("2026-11-07T05:00:00.000Z"))).toBe(true);
+    expect(isOpenAt(branch, new Date("2026-11-07T16:00:00.000Z"))).toBe(false);
+    expect(nextOpening(branch, new Date("2026-11-07T03:00:00.000Z"))).toEqual({ day: "today", time: "11:00" });
+    expect(nextOpening(branch, new Date("2026-11-07T16:00:00.000Z"))).toEqual({ day: "tomorrow", time: "11:00" });
+  });
+
+  it("handles overnight service windows", () => {
+    const branch = { openTime: "18:00", closeTime: "02:00", timezone: "Asia/Jakarta" };
+    // 12:00Z = 19:00 WIB (open), 20:00Z = 03:00 WIB (closed), 10:00Z = 17:00 WIB (closed).
+    expect(isOpenAt(branch, new Date("2026-11-07T12:00:00.000Z"))).toBe(true);
+    expect(isOpenAt(branch, new Date("2026-11-07T20:00:00.000Z"))).toBe(false);
+    expect(nextOpening(branch, new Date("2026-11-07T20:00:00.000Z"))).toEqual({ day: "today", time: "18:00" });
   });
 });

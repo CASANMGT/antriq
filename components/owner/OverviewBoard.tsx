@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import {
   ArrowUpRight,
   BellRing,
@@ -10,7 +10,9 @@ import {
   CircleDot,
   DoorOpen,
   LayoutGrid,
+  Loader2,
   PauseCircle,
+  PlayCircle,
   Settings2,
   Sparkles,
   UserPlus,
@@ -21,8 +23,10 @@ import {
 } from "lucide-react";
 import { HourlyBars, WeekBars } from "@/components/owner/charts";
 import { Mascot } from "@/components/Mascot";
+import { Notice, type NoticeState } from "@/components/Notice";
 import { useLang } from "@/components/LanguageProvider";
 import { dayInTz, formatDayLong, relativeTime } from "@/lib/time";
+import { postJson } from "@/lib/client-api";
 import { format } from "@/lib/i18n";
 import { zoneLabel } from "@/lib/labels";
 import type { ActivityItem, OwnerOverview } from "@/lib/types";
@@ -33,6 +37,8 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
   const router = useRouter();
   const { lang, t } = useLang();
   const [data, setData] = useState(initial);
+  const [notice, setNotice] = useState<NoticeState | null>(null);
+  const [pending, startTransition] = useTransition();
   const branchId = initial.branch.id;
 
   useEffect(() => {
@@ -66,6 +72,29 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
     { joined: 0, seated: 0, noShow: 0 },
   );
 
+  function toggleQueue() {
+    const next = status === "open" ? "paused" : "open";
+    startTransition(async () => {
+      const result = await postJson("/api/host/action", {
+        type: "waitlist",
+        branchId,
+        status: next,
+        reason: next === "paused" ? "Paused from dashboard" : null,
+      });
+      setNotice({
+        message: result.message ?? (result.ok ? t.owner.saved : t.owner.quiet),
+        tone: result.ok ? "success" : "error",
+      });
+      if (result.ok) {
+        setData((current) => ({
+          ...current,
+          branch: { ...current.branch, waitlistStatus: next },
+        }));
+        router.refresh();
+      }
+    });
+  }
+
   return (
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
@@ -83,7 +112,7 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
             })}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span
             className={`pill ${
               status === "open" ? "status-seated" : status === "paused" ? "status-waiting" : "status-muted"
@@ -96,6 +125,21 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
                 ? t.owner.waitlistPaused
                 : t.owner.waitlistClosed}
           </span>
+          <button
+            type="button"
+            onClick={toggleQueue}
+            disabled={pending}
+            className={`btn btn-sm ${status === "open" ? "btn-soft" : "btn-sage"}`}
+          >
+            {pending ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : status === "open" ? (
+              <PauseCircle className="size-3.5" />
+            ) : (
+              <PlayCircle className="size-3.5" />
+            )}
+            {status === "open" ? t.owner.pauseJoins : t.owner.reopen}
+          </button>
           <Link href={`/host?branch=${branch.id}`} className="btn btn-primary btn-sm">
             <DoorOpen className="size-3.5" /> {t.owner.openHost}
           </Link>
@@ -340,6 +384,8 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
           </div>
         </section>
       </div>
+
+      <Notice notice={notice} onClose={() => setNotice(null)} />
     </div>
   );
 }

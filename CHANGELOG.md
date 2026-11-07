@@ -10,6 +10,30 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.6.0] — 2026-11-07
+
+The **queue control + service hours** release.
+
+### Added
+- **Queue toggle on the owner/manager dashboard**:
+  - Pause new joins while existing guests keep their place.
+  - Reopen the queue again.
+  - Managers can use it without gaining access to settings or user management.
+- **Opening-hours gate** for guest joins:
+  - Outside service hours, the join form is replaced by a panel showing the opening hours, timezone and next opening time.
+  - `POST /api/join` rejects guest joins outside service hours with a clear message.
+  - Staff walk-ins can still be added outside hours when the host explicitly overrides.
+- `nextOpening()` helper with overnight-window support.
+
+### Changed
+- The waiting ticket notification banner is hidden while the branch is closed, paused or outside hours.
+- Guest queues are only accepted during the branch’s configured opening hours.
+
+### Verified
+- Manager paused and reopened the queue from the dashboard.
+- Closed-hours page showed the opening-hours panel, hid the join form and returned **400** on a join attempt.
+- Restoring the hours immediately brought the form back and allowed a normal join.
+
 ## [0.5.0] — 2026-11-07
 
 The **manager role + mobile polish** release.

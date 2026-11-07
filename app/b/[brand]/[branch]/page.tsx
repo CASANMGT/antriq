@@ -23,9 +23,9 @@ import { MyTicketBanner } from "@/components/diner/MyTicketBanner";
 import { NotificationPrompt } from "@/components/Notifications";
 import { Scribble, Sparks } from "@/components/Doodles";
 import { getBranchBySlugs, getPublicSnapshot } from "@/lib/store";
-import { dayInTz, formatDayLong } from "@/lib/time";
+import { dayInTz, formatDayLong, nextOpening } from "@/lib/time";
 import { getLang } from "@/lib/lang";
-import { getDict } from "@/lib/i18n";
+import { format, getDict } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -62,7 +62,16 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
   const locale = lang === "id" ? "id-ID" : "en-GB";
   const paused = branch.waitlistStatus === "paused";
   const closed = branch.waitlistStatus === "closed";
+  const outsideHours = !snapshot.isOpenNow;
+  const queueUnavailable = paused || closed || outsideHours;
   const disabled = paused || closed;
+  const closedTitle = paused
+    ? t.guest.pauseTitle
+    : closed
+      ? t.guest.closedTitle
+      : t.guest.closedHoursTitle;
+  const closedNote = paused ? t.guest.pauseNote : closed ? t.guest.closedNote : t.guest.closedHoursNote;
+  const next = nextOpening(branch);
   const today = formatDayLong(dayInTz(new Date(), branch.timezone), locale);
   const instagram = (brand?.instagram ?? branch.instagram)?.replace(/^@/, "");
   const logoUrl = brand?.hasLogo ? `/api/brands/${brand.id}/logo` : null;
@@ -284,18 +293,50 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
 
             <MyTicketBanner branchId={branch.id} />
 
-            <JoinForm
-              branchId={branch.id}
-              maxPartySize={branch.maxPartySize}
-              queueMode={branch.queueMode}
-              disabled={disabled}
-              disabledTitle={paused ? t.guest.pauseTitle : t.guest.closedTitle}
-              disabledNote={paused ? t.guest.pauseNote : t.guest.closedNote}
-            />
+            {queueUnavailable ? (
+              <div className="mt-5 rounded-2xl border-2 border-ink bg-cream p-4 shadow-[3px_3px_0_#262321]">
+                <div className="flex items-start gap-3">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl border-2 border-ink bg-white text-tomato">
+                    <Clock3 className="size-5" />
+                  </span>
+                  <div>
+                    <p className="font-display text-2xl leading-tight">{closedTitle}</p>
+                    <p className="mt-1 text-sm font-medium leading-relaxed text-ink/70">{closedNote}</p>
+                  </div>
+                </div>
+                <div className="mt-4 rounded-xl border-2 border-dashed border-ink/25 bg-white px-3.5 py-3">
+                  <p className="eyebrow text-tomato">{t.guest.openingHours}</p>
+                  <p className="num mt-1 font-display text-2xl font-semibold">
+                    {branch.openTime}–{branch.closeTime}
+                  </p>
+                  <p className="text-xs font-semibold text-muted">
+                    {today} · {branch.timezone}
+                  </p>
+                  {outsideHours && (
+                    <p className="mt-2 text-xs font-extrabold text-tomato">
+                      {next.day === "today"
+                        ? format(t.guest.opensToday, { time: next.time })
+                        : format(t.guest.opensTomorrow, { time: next.time })}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <>
+                <JoinForm
+                  branchId={branch.id}
+                  maxPartySize={branch.maxPartySize}
+                  queueMode={branch.queueMode}
+                  disabled={disabled}
+                  disabledTitle={closedTitle}
+                  disabledNote={closedNote}
+                />
 
-            <div className="mt-4">
-              <NotificationPrompt variant="banner" />
-            </div>
+                <div className="mt-4">
+                  <NotificationPrompt variant="banner" />
+                </div>
+              </>
+            )}
 
             <div className="mt-5 grid grid-cols-2 gap-3 border-t-2 border-dashed border-ink/20 pt-4 text-xs leading-relaxed">
               <div>

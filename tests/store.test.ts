@@ -44,6 +44,8 @@ async function primaryBranchId(): Promise<number> {
 describe("store integration (PGlite + demo seed)", () => {
   beforeEach(async () => {
     await resetDatabaseForTests();
+    // Keep queue joins deterministic regardless of when the suite runs.
+    await q("update branches set open_time = '00:00', close_time = '23:59'");
   });
 
   it("seeds two brands, three branches and a believable service", async () => {

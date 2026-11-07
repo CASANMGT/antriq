@@ -68,6 +68,18 @@ export function isOpenAt(
   return current >= open || current < close;
 }
 
+/** When the next service window starts, in the branch timezone. */
+export function nextOpening(
+  restaurant: Pick<Restaurant, "openTime" | "closeTime" | "timezone">,
+  now: Date = new Date(),
+): { day: "today" | "tomorrow"; time: string } {
+  const open = parseTimeToMinutes(restaurant.openTime);
+  const close = parseTimeToMinutes(restaurant.closeTime);
+  const current = minutesInTz(now, restaurant.timezone);
+  const opensToday = open === close || current < open || close < open;
+  return { day: opensToday ? "today" : "tomorrow", time: restaurant.openTime };
+}
+
 export function elapsedMinutes(from: string | Date, to: string | Date = new Date()): number {
   const a = typeof from === "string" ? new Date(from) : from;
   const b = typeof to === "string" ? new Date(to) : to;

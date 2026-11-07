@@ -1100,6 +1100,7 @@ export async function joinQueue(branchId: number, input: JoinInput, allowPaused 
   const phone = normalizePhone(input.phone);
   const notes = validateNotes(input.notes);
   const source: QueueSource = input.source === "walkin" ? "walkin" : input.source === "online" ? "online" : "qr";
+  const now = new Date();
 
   if (!allowPaused && branch.waitlistStatus !== "open") {
     throw new AppError(
@@ -1110,9 +1111,16 @@ export async function joinQueue(branchId: number, input: JoinInput, allowPaused 
       409,
     );
   }
+  if (!allowPaused && !isOpenAt(branch, now)) {
+    throw new AppError(
+      `The queue is open ${branch.openTime}–${branch.closeTime} (${branch.timezone}). Please come back during opening hours.`,
+      "queue_closed",
+      409,
+    );
+  }
 
   return tx(async (db) => {
-    const today = dayInTz(new Date(), branch.timezone);
+    const today = dayInTz(now, branch.timezone);
     const counts = await db.query<Row>(
       `select count(*) filter (where status = 'waiting')::int as waiting
        from queue_entries where branch_id = $1 and day = $2::date`,

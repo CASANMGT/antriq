@@ -4,11 +4,11 @@
 
 ```bash
 npm run lint     # ESLint, Next 16 + React 19 rules
-npm test         # 29 domain + integration tests on PGlite
+npm test         # 31 domain + integration tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **7 Nov 2026** — lint clean, 29/29 tests passing, production build green (v0.5.0 manager role + mobile polish).
+Last run: **7 Nov 2026** — lint clean, 31/31 tests passing, production build green (v0.6.0 queue control + service hours).
 
 ### Notification delivery QA
 
@@ -47,6 +47,15 @@ Last run: **7 Nov 2026** — lint clean, 29/29 tests passing, production build g
 - Laporan “all branches” and CSV stay scoped to covered branches.
 - Toast floats above the mobile bottom navigation (33 px gap at 390 × 844).
 - Branch page logo links to `/b/{brand}`, not the global picker.
+
+### Queue control and service hours
+
+- Owner and manager can pause new joins from the dashboard; the status pill and button update immediately.
+- Reopening the queue restores guest joins.
+- Outside `openTime`–`closeTime`, the join form is replaced by the opening-hours panel with the next opening time.
+- `POST /api/join` outside hours returns **400** with the hours in the message.
+- Restoring the hours returns the form and allows a normal join.
+- Overnight windows (`18:00–02:00`) are handled by `isOpenAt` / `nextOpening` tests.
 
 ### Deployment verification
 
