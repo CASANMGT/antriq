@@ -135,31 +135,31 @@ export function LoginForm({
             {owner && (
               <button
                 type="button"
-                onClick={() => quickFill(owner, "2468")}
+                onClick={() => quickFill(owner, "1234")}
                 className="btn btn-soft btn-sm justify-between text-left"
               >
                 <span className="truncate">{owner.name.split(" ")[0]} · {t.login.ownerDemo}</span>
-                <span className="num font-extrabold">2468</span>
+                <span className="num font-extrabold">1234</span>
               </button>
             )}
             {greeter && (
               <button
                 type="button"
-                onClick={() => quickFill(greeter, "1357")}
+                onClick={() => quickFill(greeter, "1234")}
                 className="btn btn-soft btn-sm justify-between text-left"
               >
                 <span className="truncate">{greeter.name.split(" ")[0]} · {t.login.hostDemo}</span>
-                <span className="num font-extrabold">1357</span>
+                <span className="num font-extrabold">1234</span>
               </button>
             )}
             {cashier && (
               <button
                 type="button"
-                onClick={() => quickFill(cashier, "4321")}
+                onClick={() => quickFill(cashier, "1234")}
                 className="btn btn-soft btn-sm justify-between text-left"
               >
                 <span className="truncate">{cashier.name.split(" ")[0]} · {t.login.cashierRole}</span>
-                <span className="num font-extrabold">4321</span>
+                <span className="num font-extrabold">1234</span>
               </button>
             )}
           </div>

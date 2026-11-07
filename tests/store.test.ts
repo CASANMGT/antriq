@@ -57,9 +57,9 @@ describe("store integration (PGlite + demo seed)", () => {
     const people = await listStaff();
     const ayu = people.find((person) => person.name === "Ayu Lestari");
     expect(ayu).toBeTruthy();
-    expect((await verifyStaffPin(ayu!.id, "1357"))?.name).toBe("Ayu Lestari");
+    expect((await verifyStaffPin(ayu!.id, "1234"))?.name).toBe("Ayu Lestari");
     expect(await verifyStaffPin(ayu!.id, "9999")).toBeNull();
-    expect(await verifyStaffPin(999, "1357")).toBeNull();
+    expect(await verifyStaffPin(999, "1234")).toBeNull();
   });
 
   it("joins the queue, shows the live ticket, then cancels", async () => {

@@ -2,6 +2,7 @@ import { mkdirSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 import postgres from "postgres";
 import { SCHEMA_STATEMENTS } from "./schema";
+import { hashPin } from "./pin";
 import { seedDatabase } from "./seed";
 
 export interface Queryable {
@@ -144,8 +145,7 @@ async function runDataMigrations(db: Queryable) {
     `insert into app_meta (key, value) values ('brand_structure_v2', 'done')
      on conflict (key) do nothing returning key`,
   );
-  if (brandStructure.length > 0) {
-    await db.query(
+  if (brandStructure.length > 0) {    await db.query(
       `update brands set name = 'Nikumaru', instagram = '@nikumaru.id',
          description = 'Japanese beef hamburg & niku rice. No pork, no lard, no mirin. Blok M and Tebet, Jakarta.'
        where slug = 'nikumaru'`,
@@ -230,6 +230,15 @@ async function runDataMigrations(db: Queryable) {
         [branch.name, branch.slug, branch.tagline, branch.address, branch.phone],
       );
     }
+  }
+
+  const staffPin = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('staff_pin_1234', 'done')
+     on conflict (key) do nothing returning key`,
+  );
+  if (staffPin.length > 0) {
+    // Demo passcode: everyone signs in with 1234 until real PINs are assigned.
+    await db.query("update staff set pin_hash = $1", [hashPin("1234")]);
   }
 }
 

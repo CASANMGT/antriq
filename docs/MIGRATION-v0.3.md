@@ -61,7 +61,7 @@ Open:
 - `/b/nikumaru/blok-m` — primary demo branch
 - `/b/nikumaru/tebet` — second Nikumaru branch
 - `/b/tenka/aeon-tanjung-barat`, `/b/tenka/bintaro-xchange`, `/b/tenka/kamaja` — Tenka branches
-- `/login` — platform owner Rani / `2468`
+- `/login` — platform owner Rani / `1234` (all demo staff use `1234`)
 
 ## 5. Production and staging
 

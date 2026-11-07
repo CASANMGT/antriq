@@ -140,7 +140,7 @@ Tested on Chrome 152 (Windows) at **1440×1000**, **816×2412**, and emulated **
 
 | # | Step | Expected | Result |
 | --- | --- | --- | --- |
-| 1 | Sign in with Ayu / 1357 | Redirect to `/host`, session persists | Pass |
+| 1 | Sign in with Ayu / 1234 | Redirect to `/host`, session persists | Pass |
 | 2 | Wrong PIN ×7 | Throttle message after 6 failures | Pass |
 | 3 | Open `/dashboard` as greeter | Redirect to `/host` | Pass |
 | 4 | Call next | First fitting party moves to At the door, hold starts, toast names table | Pass |
@@ -164,7 +164,7 @@ Tested on Chrome 152 (Windows) at **1440×1000**, **816×2412**, and emulated **
 
 | # | Step | Expected | Result |
 | --- | --- | --- | --- |
-| 1 | Sign in with Rani / 2468 | `/dashboard` | Pass |
+| 1 | Sign in with Rani / 1234 | `/dashboard` | Pass |
 | 2 | Overview | KPIs, hourly pulse, floor by zone, queue, activity, 7-day strip | Pass |
 | 3 | Waitlist control | Pause/Reopen from settings; guest page reflects it | Pass |
 | 4 | Reports 7/30/90 | Totals, daily table, insights; range persists | Pass |

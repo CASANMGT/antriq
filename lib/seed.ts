@@ -158,13 +158,13 @@ const TABLES_BY_BRANCH: Record<string, { label: string; capacity: number; zone: 
 };
 
 const STAFF_SEED = [
-  { name: "Rani Wijaya", role: "owner", pin: "2468", initials: "RW", brand: null, branch: null },
-  { name: "Ayu Lestari", role: "greeter", pin: "1357", initials: "AL", brand: "nikumaru", branch: "nikumaru/blok-m" },
-  { name: "Bima Pratama", role: "greeter", pin: "1122", initials: "BP", brand: "nikumaru", branch: "nikumaru/blok-m" },
-  { name: "Sari Kasir", role: "cashier", pin: "4321", initials: "SK", brand: "nikumaru", branch: "nikumaru/blok-m" },
-  { name: "Dewi Larasati", role: "greeter", pin: "2244", initials: "DL", brand: "nikumaru", branch: "nikumaru/tebet" },
-  { name: "Kenji Sato", role: "owner", pin: "8765", initials: "KS", brand: "tenka", branch: null },
-  { name: "Akira Tanaka", role: "cashier", pin: "3344", initials: "AT", brand: "tenka", branch: "tenka/kamaja" },
+  { name: "Rani Wijaya", role: "owner", pin: "1234", initials: "RW", brand: null, branch: null },
+  { name: "Ayu Lestari", role: "greeter", pin: "1234", initials: "AL", brand: "nikumaru", branch: "nikumaru/blok-m" },
+  { name: "Bima Pratama", role: "greeter", pin: "1234", initials: "BP", brand: "nikumaru", branch: "nikumaru/blok-m" },
+  { name: "Sari Kasir", role: "cashier", pin: "1234", initials: "SK", brand: "nikumaru", branch: "nikumaru/blok-m" },
+  { name: "Dewi Larasati", role: "greeter", pin: "1234", initials: "DL", brand: "nikumaru", branch: "nikumaru/tebet" },
+  { name: "Kenji Sato", role: "owner", pin: "1234", initials: "KS", brand: "tenka", branch: null },
+  { name: "Akira Tanaka", role: "cashier", pin: "1234", initials: "AT", brand: "tenka", branch: "tenka/kamaja" },
 ];
 
 interface DemoEntry {

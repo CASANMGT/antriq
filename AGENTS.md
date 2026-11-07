@@ -28,7 +28,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - `docker compose up -d db` (Postgres on 5433)
 - copy `.env.example` to `.env.local`
 - `npm run dev`
-- Demo: platform owner Rani / 2468, greeter Ayu / 1357, cashier Sari / 4321. Branches: `/b/nikumaru/senopati`, `/b/nikumaru/kemang`, `/b/tenka/senopati`.
+- Demo: platform owner Rani / 1234, greeter Ayu / 1234, cashier Sari / 1234. All demo staff use PIN `1234` for now. Branches: `/b/nikumaru/blok-m`, `/b/nikumaru/tebet`, `/b/tenka/aeon-tanjung-barat`, `/b/tenka/bintaro-xchange`, `/b/tenka/kamaja`.
 
 ## Key files
 

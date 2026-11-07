@@ -76,13 +76,13 @@ A fictional **ramen & izakaya** group with two brands and three branches:
 
 | Role | Name | Scope | PIN |
 | --- | --- | --- | --- |
-| Platform owner | Rani Wijaya | All brands & branches | `2468` |
-| Greeter | Ayu Lestari | Nikumaru Blok M | `1357` |
-| Greeter | Bima Pratama | Nikumaru Blok M | `1122` |
-| Cashier | Sari Kasir | Nikumaru Blok M | `4321` |
-| Greeter | Dewi Larasati | Nikumaru Tebet | `2244` |
-| Brand owner | Kenji Sato | Tenka | `8765` |
-| Cashier | Akira Tanaka | Tenka KAMAJA | `3344` |
+| Platform owner | Rani Wijaya | All brands & branches | `1234` |
+| Greeter | Ayu Lestari | Nikumaru Blok M | `1234` |
+| Greeter | Bima Pratama | Nikumaru Blok M | `1234` |
+| Cashier | Sari Kasir | Nikumaru Blok M | `1234` |
+| Greeter | Dewi Larasati | Nikumaru Tebet | `1234` |
+| Brand owner | Kenji Sato | Tenka | `1234` |
+| Cashier | Akira Tanaka | Tenka KAMAJA | `1234` |
 
 Open `/login`. With `DEMO_MODE=1`, the login page also shows one-click demo shortcuts.
 

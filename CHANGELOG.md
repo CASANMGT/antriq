@@ -10,6 +10,13 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.3.4] — 2026-11-07
+
+### Changed
+- All demo staff PINs are now **`1234`** (owner, brand owner, greeters and cashiers) until real PINs are assigned.
+- One-time `staff_pin_1234` migration updates existing staff rows.
+- Demo login shortcuts and docs updated to `1234`.
+
 ## [0.3.3] — 2026-11-07
 
 The **brand correction + manual seating** release.
