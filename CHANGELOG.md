@@ -29,6 +29,8 @@ The **brand correction + manual seating** release.
   - **Table plan**: the existing table + optional seat-number flow.
 - Settings control for seating mode with staffing guidance.
 - Notification prompt on the waiting ticket, so permission can be enabled before the call.
+- Production `antriq1` now runs the five corrected branches, all cleared: 0 waiting / 0 seated.
+- Legacy branch URLs redirect to the new slugs.
 
 ## [0.3.2] — 2026-11-07
 

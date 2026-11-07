@@ -25,6 +25,9 @@ Last run: **7 Nov 2026** — lint clean, 23/23 tests passing, production build g
 - [x] `/dashboard/customers` lists guests with contact, table/seat, opener/releaser PIC
 - [x] Modals accept typing; focus is not stolen after opening
 - [x] Production `/b/nikumaru`, `/b/nikumaru/blok-m`, `/b/nikumaru/tebet`, `/b/tenka/aeon-tanjung-barat`, `/b/tenka/bintaro-xchange`, `/b/tenka/kamaja` → 200
+- [x] Legacy branch URLs redirect to the new slugs
+- [x] All five production branches cleared: 0 waiting / 0 called / 0 seated
+- [x] Production branches default to manual seating
 - [x] Production brand logo route → 200 `image/svg+xml`
 - [x] `X-Vercel-Id` confirms `sin1` (Singapore)
 

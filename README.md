@@ -20,6 +20,10 @@ A bold, warm restaurant queue for guests, hosts, cashiers and owners — built f
 | **App / restaurant picker** | https://antriq1.vercel.app | Live database |
 | **Demo shortcut** | https://antriq1.vercel.app/demo | Redirects to the primary branch; queue starts empty after a production clear |
 | **Demo branch** | https://antriq1.vercel.app/b/nikumaru/blok-m | Primary branch (empty after the production clear) |
+| **Nikumaru Tebet** | https://antriq1.vercel.app/b/nikumaru/tebet | Branch page |
+| **Tenka AEON Tanjung Barat** | https://antriq1.vercel.app/b/tenka/aeon-tanjung-barat | Branch page |
+| **Tenka Bintaro Xchange** | https://antriq1.vercel.app/b/tenka/bintaro-xchange | Branch page |
+| **Tenka KAMAJA** | https://antriq1.vercel.app/b/tenka/kamaja | Branch page |
 | **Brand page** | https://antriq1.vercel.app/b/nikumaru | Brand assets + branch list |
 
 For a true production/demo split, deploy the same repo twice with different databases:
