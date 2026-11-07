@@ -115,6 +115,9 @@ export async function POST(request: Request) {
         return json(await setTableStatus(branchId, Number(body.tableId), status as TableStatus, session.name));
       }
       case "waitlist": {
+        if (session.role !== "owner" && session.role !== "manager") {
+          return json({ ok: false, message: "Only owners and managers can change the queue status." }, 403);
+        }
         const status = String(body.status ?? "");
         if (!["open", "paused", "closed"].includes(status)) {
           return json({ ok: false, message: "Unsupported queue status." });

@@ -26,6 +26,7 @@ import { Notice, type NoticeState } from "@/components/Notice";
 import { NotificationPrompt } from "@/components/Notifications";
 import { EmptyBoard, QueueCard, SeatedCard, StatsStrip, TableCard } from "@/components/host/cards";
 import { useLang } from "@/components/LanguageProvider";
+import { APP_VERSION } from "@/lib/version";
 import { logoutAction } from "@/app/actions/auth";
 import { postJson } from "@/lib/client-api";
 import { notify } from "@/lib/notify";
@@ -223,6 +224,7 @@ export function HostBoard({
   }
 
   const status = branch.waitlistStatus;
+  const canManageQueue = staff.role === "owner" || staff.role === "manager";
   const statusLabel =
     status === "open" ? t.host.waitlistOpen : status === "paused" ? t.host.waitlistPaused : t.host.waitlistClosed;
   const statusTone = status === "open" ? "status-seated" : status === "paused" ? "status-waiting" : "status-muted";
@@ -292,14 +294,14 @@ export function HostBoard({
       } else if (key === "w") {
         event.preventDefault();
         setWalkInOpen(true);
-      } else if (key === "p") {
+      } else if (key === "p" && canManageQueue) {
         event.preventDefault();
         setPauseOpen(true);
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [hostAction, noShowTarget, pauseOpen, run, seatTarget, walkInOpen]);
+  }, [canManageQueue, hostAction, noShowTarget, pauseOpen, run, seatTarget, walkInOpen]);
 
   function toggleMuted() {
     setMuted((value) => {
@@ -337,7 +339,7 @@ export function HostBoard({
             </div>
           </div>
 
-          <div className="ml-auto flex items-center gap-1 sm:gap-1.5">
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-1 sm:gap-1.5">
             {branches.length > 1 && (
               <div className="relative">
                 <label className="sr-only" htmlFor="host-branch">
@@ -345,7 +347,7 @@ export function HostBoard({
                 </label>
                 <select
                   id="host-branch"
-                  className="input h-9 max-w-[10.5rem] appearance-none bg-white py-0 pr-7 text-xs font-extrabold"
+                  className="input h-9 w-32 max-w-[9rem] appearance-none bg-white py-0 pr-7 text-xs font-extrabold sm:w-auto sm:max-w-[10.5rem]"
                   value={activeBranchId}
                   onChange={(event) => router.push(`/host?branch=${event.target.value}`)}
                 >
@@ -363,6 +365,13 @@ export function HostBoard({
               <LiveClock timezone={branch.timezone} />
             </div>
             <LanguageToggle compact />
+            <Link
+              href="/changelog"
+              className="hidden rounded-full border-2 border-ink/15 px-2 py-1 text-[0.625rem] font-bold text-muted hover:text-ink sm:inline-flex"
+              title={t.changelog.title}
+            >
+              v{APP_VERSION}
+            </Link>
             <NotificationPrompt compact />
             <button
               type="button"
@@ -393,16 +402,18 @@ export function HostBoard({
                 </Link>
               </>
             )}
-            <button
-              type="button"
-              className="btn btn-soft btn-sm"
-              onClick={() => setPauseOpen(true)}
-              aria-label={status === "open" ? t.host.pauseWaitlist : t.host.openWaitlist}
-              title={status === "open" ? t.host.pauseWaitlist : t.host.openWaitlist}
-            >
-              {status === "open" ? <PauseCircle className="size-3.5" /> : <PlayCircle className="size-3.5" />}
-              <span className="hidden md:inline">{status === "open" ? t.host.pauseAction : t.host.open}</span>
-            </button>
+            {canManageQueue && (
+              <button
+                type="button"
+                className="btn btn-soft btn-sm"
+                onClick={() => setPauseOpen(true)}
+                aria-label={status === "open" ? t.host.pauseWaitlist : t.host.openWaitlist}
+                title={status === "open" ? t.host.pauseWaitlist : t.host.openWaitlist}
+              >
+                {status === "open" ? <PauseCircle className="size-3.5" /> : <PlayCircle className="size-3.5" />}
+                <span className="hidden md:inline">{status === "open" ? t.host.pauseAction : t.host.open}</span>
+              </button>
+            )}
             <button
               type="button"
               className="btn btn-primary btn-sm"
@@ -432,7 +443,12 @@ export function HostBoard({
             </h2>
             <p className="mt-1 hidden text-xs font-semibold text-muted md:block">
               {t.host.shortcuts} <kbd className="kbd">N</kbd> {t.host.callNextShort} · <kbd className="kbd">W</kbd>{" "}
-              {t.host.walkInShort} · <kbd className="kbd">P</kbd> {t.host.pauseShort}
+              {t.host.walkInShort}
+              {canManageQueue && (
+                <>
+                  {" "}· <kbd className="kbd">P</kbd> {t.host.pauseShort}
+                </>
+              )}
             </p>
             <p className="mt-1 text-xs font-semibold text-muted md:hidden">{t.host.liveBoard}</p>
           </div>
@@ -444,9 +460,9 @@ export function HostBoard({
           </div>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[1.12fr_0.94fr_1fr]">
+        <div className="grid min-w-0 gap-4 lg:grid-cols-[1.12fr_0.94fr_1fr]">
           {/* Waiting */}
-          <section className={tab === "queue" ? "block" : "hidden lg:block"}>
+          <section className={`min-w-0 ${tab === "queue" ? "block" : "hidden lg:block"}`}>
             <div className="mb-2.5 flex items-start justify-between gap-2">
               <div>
                 <h2 className="font-display text-[1.7rem] font-semibold leading-tight">{t.host.waitlistTitle}</h2>
@@ -516,7 +532,7 @@ export function HostBoard({
           </section>
 
           {/* Called */}
-          <section className={tab === "called" ? "block" : "hidden lg:block"}>
+          <section className={`min-w-0 ${tab === "called" ? "block" : "hidden lg:block"}`}>
             <div className="mb-2.5 flex items-start justify-between gap-2">
               <div>
                 <h2 className="font-display text-[1.7rem] font-semibold leading-tight">{t.host.atDoorTitle}</h2>
@@ -564,7 +580,7 @@ export function HostBoard({
 
           {/* Seated (manual seating) */}
           {manual && (
-            <section className={tab === "seated" ? "block" : "hidden lg:block"}>
+            <section className={`min-w-0 ${tab === "seated" ? "block" : "hidden lg:block"}`}>
               <div className="mb-2.5 flex items-start justify-between gap-2">
                 <div>
                   <h2 className="font-display text-[1.7rem] font-semibold leading-tight">{t.host.seatedTitle}</h2>
@@ -595,7 +611,7 @@ export function HostBoard({
 
           {/* Tables */}
           {!manual && (
-          <section className={tab === "tables" ? "block" : "hidden lg:block"}>
+          <section className={`min-w-0 ${tab === "tables" ? "block" : "hidden lg:block"}`}>
             <div className="mb-2.5 flex items-start justify-between gap-2">
               <div>
                 <h2 className="font-display text-[1.7rem] font-semibold leading-tight">{t.host.floorTitle}</h2>
@@ -643,8 +659,8 @@ export function HostBoard({
       </main>
 
       {/* Mobile tabs */}
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t-2 border-ink bg-cream px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 lg:hidden">
-        <div className="mx-auto flex max-w-md gap-1.5">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t-2 border-ink bg-cream px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:px-3 lg:hidden">
+        <div className="mx-auto flex max-w-md items-center gap-1 sm:gap-1.5">
           {(
             [
               { id: "queue" as const, label: t.host.waitlistTitle, count: state.waiting.length },
@@ -658,14 +674,14 @@ export function HostBoard({
               key={item.id}
               type="button"
               onClick={() => setTab(item.id)}
-              className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full border-2 px-2.5 py-2 text-xs font-extrabold transition ${
+              className={`flex min-w-0 flex-1 items-center justify-center gap-1 rounded-full border-2 px-1.5 py-2 text-[0.625rem] font-extrabold transition sm:gap-1.5 sm:px-2.5 sm:text-xs ${
                 tab === item.id ? "border-ink bg-ink text-paper" : "border-transparent text-ink/60 hover:bg-white"
               }`}
               aria-pressed={tab === item.id}
             >
               {item.label}
               <span
-                className={`num rounded-full px-1.5 py-0.5 text-[0.625rem] ${
+                className={`num rounded-full px-1 py-0.5 text-[0.5625rem] sm:px-1.5 sm:text-[0.625rem] ${
                   tab === item.id ? "bg-white/20 text-paper" : "bg-white text-ink/70"
                 }`}
               >
@@ -673,11 +689,11 @@ export function HostBoard({
               </span>
             </button>
           ))}
-          {staff.role === "owner" && (
+          {(staff.role === "owner" || staff.role === "manager") && (
             <>
               <Link
                 href={`/dashboard?branch=${activeBranchId}`}
-                className="flex shrink-0 items-center justify-center rounded-full p-2 text-ink/60 transition hover:bg-white"
+                className="flex shrink-0 items-center justify-center rounded-full p-1.5 text-ink/60 transition hover:bg-white sm:p-2"
                 aria-label={t.owner.overview}
                 title={t.owner.overview}
               >
@@ -685,7 +701,7 @@ export function HostBoard({
               </Link>
               <Link
                 href={`/dashboard/qr?branch=${activeBranchId}`}
-                className="flex shrink-0 items-center justify-center rounded-full p-2 text-ink/60 transition hover:bg-white"
+                className="flex shrink-0 items-center justify-center rounded-full p-1.5 text-ink/60 transition hover:bg-white sm:p-2"
                 aria-label={t.owner.qrTitle}
                 title={t.owner.qrTitle}
               >

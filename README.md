@@ -117,6 +117,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Live queue snapshot: **one group by default**, now serving and branch status. Owners can switch to **two groups - A (1-2), B (3+)** in Settings. No empty-table count.
 - **Queue control:** owners and managers can pause new joins and reopen the queue from the dashboard; existing guests keep their place.
 - **Service-hours gate:** outside opening hours the join form becomes an opening-hours panel with the next opening time, and guest joins are rejected server-side.
+- **In-app version + changelog:** `/changelog`, linked from the guest footer, ticket, owner sidebar, mobile nav and host header.
 - **Mobile-first join card comes first**: name, party size and “Ambil nomor antrean” before the long brand/queue details.
 - **“Saya hadir”** acknowledges the call; the owner chooses whether it stops the countdown or adds minutes.
 - Notification opt-in includes Firefox guidance (lock icon → Permissions → Notifications).

@@ -21,6 +21,7 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLang } from "@/components/LanguageProvider";
 import { logoutAction } from "@/app/actions/auth";
 import type { BranchSummary, Role } from "@/lib/types";
+import { APP_VERSION } from "@/lib/version";
 
 function withBranch(href: string, branchId: number): string {
   return `${href}${href.includes("?") ? "&" : "?"}branch=${branchId}`;
@@ -182,6 +183,9 @@ export function OwnerShell({
               </button>
             </form>
           </div>
+          <Link href="/changelog" className="mt-1 inline-flex px-1 text-[0.625rem] font-bold text-muted hover:text-tomato">
+            v{APP_VERSION} · {t.changelog.title}
+          </Link>
         </div>
       </aside>
 
@@ -239,6 +243,12 @@ export function OwnerShell({
                 </Link>
               );
             })}
+            <Link
+              href="/changelog"
+              className="inline-flex shrink-0 items-center rounded-full border-2 border-transparent px-3 py-1.5 text-[0.625rem] font-extrabold text-muted hover:bg-white"
+            >
+              v{APP_VERSION}
+            </Link>
           </div>
         </header>
 

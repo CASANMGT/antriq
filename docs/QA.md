@@ -4,11 +4,11 @@
 
 ```bash
 npm run lint     # ESLint, Next 16 + React 19 rules
-npm test         # 31 domain + integration tests on PGlite
+npm test         # 33 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **7 Nov 2026** — lint clean, 31/31 tests passing, production build green (v0.6.0 queue control + service hours).
+Last run: **7 Nov 2026** — lint clean, 33/33 tests passing, production build green (v0.7.0 operations audit + changelog).
 
 ### Notification delivery QA
 
@@ -52,10 +52,17 @@ Last run: **7 Nov 2026** — lint clean, 31/31 tests passing, production build g
 
 - Owner and manager can pause new joins from the dashboard; the status pill and button update immediately.
 - Reopening the queue restores guest joins.
+- Greeters and cashiers do **not** see the pause control, and `POST /api/host/action` with `type=waitlist` returns **403** for them.
 - Outside `openTime`–`closeTime`, the join form is replaced by the opening-hours panel with the next opening time.
 - `POST /api/join` outside hours returns **400** with the hours in the message.
 - Restoring the hours returns the form and allows a normal join.
 - Overnight windows (`18:00–02:00`) are handled by `isOpenAt` / `nextOpening` tests.
+
+### In-app version + changelog
+
+- `/changelog` renders the latest releases and the current version.
+- Guest footer, ticket footer, owner sidebar, mobile dashboard nav and host header link to it.
+- `lib/version.ts` matches `package.json` (version test).
 
 ### Deployment verification
 

@@ -9,6 +9,7 @@ import { resolveOwnerScope } from "@/lib/scope";
 import { formatDayLong } from "@/lib/time";
 import { getLang } from "@/lib/lang";
 import { format, getDict } from "@/lib/i18n";
+import type { DayPoint } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,8 @@ export default async function ReportsPage({
   ]);
   const t = getDict(lang);
   const locale = lang === "id" ? "id-ID" : "en-GB";
+  const weekly = days > 14;
+  const trend = weekly ? aggregateWeeks(week) : week;
 
   const totals = week.reduce(
     (sum, day) => ({
@@ -115,21 +118,23 @@ export default async function ReportsPage({
         <Metric label={t.owner.noShowRateShort} value={`${noShowRate}%`} hint={format(t.owner.missedHolds, { count: totals.noShow })} tone="bg-white" />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_0.6fr]">
-        <section className="card p-4 sm:p-5">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-[1.4fr_0.6fr]">
+        <section className="card min-w-0 p-4 sm:p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
               <h2 className="font-display text-[1.6rem] font-semibold leading-tight">{t.owner.dailyFlow}</h2>
-              <p className="mt-0.5 text-xs font-semibold text-muted">{t.owner.dailyFlowSub}</p>
+              <p className="mt-0.5 text-xs font-semibold text-muted">
+                {weekly ? t.owner.dailyFlowSubWeekly : t.owner.dailyFlowSub}
+              </p>
             </div>
             <span className="pill status-muted">{days}d</span>
           </div>
           <div className="mt-5">
-            <WeekBars days={week} />
+            <WeekBars days={trend} weekly={weekly} />
           </div>
         </section>
 
-        <section className="card p-4 sm:p-5">
+        <section className="card min-w-0 p-4 sm:p-5">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-[1.6rem] font-semibold leading-tight">{t.owner.insights}</h2>
             <Mascot mood="happy" className="w-14" />
@@ -192,8 +197,28 @@ export default async function ReportsPage({
   );
 }
 
-function Metric({ label, value, hint, tone }: { label: string; value: string | number; hint: string; tone: string }) {
-  return (
+function aggregateWeeks(days: DayPoint[]): DayPoint[] {
+  const buckets: DayPoint[] = [];
+  for (let index = 0; index < days.length; index += 7) {
+    const chunk = days.slice(index, index + 7);
+    const joined = chunk.reduce((sum, day) => sum + day.joined, 0);
+    const seated = chunk.reduce((sum, day) => sum + day.seated, 0);
+    const waitWeighted = chunk.reduce((sum, day) => sum + day.avgWaitMinutes * day.seated, 0);
+    const turnWeighted = chunk.reduce((sum, day) => sum + day.avgTurnMinutes * day.seated, 0);
+    buckets.push({
+      day: chunk[0].day,
+      joined,
+      seated,
+      noShow: chunk.reduce((sum, day) => sum + day.noShow, 0),
+      cancelled: chunk.reduce((sum, day) => sum + day.cancelled, 0),
+      avgWaitMinutes: seated ? Math.round(waitWeighted / seated) : 0,
+      avgTurnMinutes: seated ? Math.round(turnWeighted / seated) : 0,
+    });
+  }
+  return buckets;
+}
+
+function Metric({ label, value, hint, tone }: { label: string; value: string | number; hint: string; tone: string }) {  return (
     <div className={`rounded-2xl border-2 border-ink p-4 shadow-[3px_3px_0_#262321] ${tone}`}>
       <p className="text-[0.625rem] font-extrabold uppercase tracking-[0.12em] text-ink/55">{label}</p>
       <p className="stat-number mt-3 text-[2.6rem]">{value}</p>

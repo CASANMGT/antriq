@@ -26,6 +26,7 @@ import { getBranchBySlugs, getPublicSnapshot } from "@/lib/store";
 import { dayInTz, formatDayLong, nextOpening } from "@/lib/time";
 import { getLang } from "@/lib/lang";
 import { format, getDict } from "@/lib/i18n";
+import { APP_VERSION } from "@/lib/version";
 
 export const dynamic = "force-dynamic";
 
@@ -418,6 +419,9 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
           </span>
         </div>
         <div className="flex items-center gap-4">
+          <Link href="/changelog" className="text-muted-soft hover:text-muted">
+            v{APP_VERSION}
+          </Link>
           <Link href="/login" className="py-1 text-muted-soft hover:text-muted">{t.guest.staff}</Link>
           <span className="hidden sm:inline">© {new Date().getFullYear()}</span>
         </div>

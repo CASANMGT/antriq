@@ -79,7 +79,7 @@ export function QueueCard({
 
   return (
     <article
-      className={`rounded-2xl border-2 border-ink p-3.5 shadow-[3px_3px_0_#262321] transition ${
+      className={`min-w-0 rounded-2xl border-2 border-ink p-3.5 shadow-[3px_3px_0_#262321] transition ${
         called ? "bg-pink-soft" : next ? "bg-white" : "bg-white/85"
       }`}
     >
@@ -106,11 +106,11 @@ export function QueueCard({
               </span>
             )}
           </div>
-          <div className="mt-2 flex items-center gap-2">
+          <div className="mt-2 flex min-w-0 items-center gap-2">
             <span className="grid size-7 shrink-0 place-items-center rounded-full border-2 border-ink bg-cream font-display text-xs font-semibold">
               {position}
             </span>
-            <h3 className="truncate font-display text-[1.45rem] leading-tight tracking-tight">
+            <h3 className="min-w-0 truncate font-display text-[1.45rem] leading-tight tracking-tight">
               {entry.guestName}
             </h3>
           </div>
@@ -294,7 +294,7 @@ export function SeatedCard({
 }) {
   const { t } = useLang();
   return (
-    <article className="rounded-2xl border-2 border-ink bg-leaf-soft/60 p-3.5 shadow-[3px_3px_0_#262321]">
+    <article className="min-w-0 rounded-2xl border-2 border-ink bg-leaf-soft/60 p-3.5 shadow-[3px_3px_0_#262321]">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
@@ -308,7 +308,7 @@ export function SeatedCard({
             )}
             <span className="pill status-seated">{t.ticket.seated}</span>
           </div>
-          <h3 className="mt-2 truncate font-display text-[1.4rem] leading-tight tracking-tight">{entry.guestName}</h3>
+          <h3 className="mt-2 min-w-0 truncate font-display text-[1.4rem] leading-tight tracking-tight">{entry.guestName}</h3>
           <p className="mt-0.5 text-xs font-semibold text-muted">
             {entry.partySize} {t.guest.guestUnit}
             {entry.tableLabel

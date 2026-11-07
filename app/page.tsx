@@ -8,6 +8,7 @@ import { Scribble } from "@/components/Doodles";
 import { getPublicSnapshot, listBrands, listBranches } from "@/lib/store";
 import { getLang } from "@/lib/lang";
 import { getDict } from "@/lib/i18n";
+import { APP_VERSION } from "@/lib/version";
 import type { BranchSummary, Brand, PublicSnapshot } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -174,6 +175,9 @@ export default async function HomePage() {
           <span>{t.guest.footerTagline}</span>
         </div>
         <div className="flex items-center gap-4">
+          <Link href="/changelog" className="text-muted-soft hover:text-muted">
+            v{APP_VERSION}
+          </Link>
           <Link href="/login" className="text-muted-soft hover:text-muted">
             {t.guest.staff}
           </Link>

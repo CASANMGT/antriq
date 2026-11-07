@@ -10,6 +10,27 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.7.0] — 2026-11-07
+
+The **operations audit + in-app changelog** release.
+
+### Added
+- In-app **version badge** and `/changelog` page with curated release notes.
+- Version/changelog links in the guest footer, ticket footer, owner sidebar, mobile dashboard nav and host header.
+- Version test that fails if `lib/version.ts` drifts from `package.json`.
+
+### Fixed
+- Greeters and cashiers can no longer pause, close or reopen the queue; only owners and managers can.
+- The host `P` shortcut and pause controls are hidden from front-line staff.
+- Brand branch cards now show **outside hours** and the actual opening hours instead of always showing “Open now”.
+- Manager dashboard kicker now reads **Manager dashboard**, not “Owner dashboard”.
+
+### Verified
+- Owner and manager queue pause/reopen.
+- Greeter queue controls are hidden and the API rejects their queue-status mutation.
+- Guest join blocked outside hours; closed-hours panel renders; restore works.
+- Mobile layouts at 390 px, notification delivery, and manager scoping.
+
 ## [0.6.0] — 2026-11-07
 
 The **queue control + service hours** release.

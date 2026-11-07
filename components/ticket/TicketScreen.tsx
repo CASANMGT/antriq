@@ -24,6 +24,7 @@ import { postJson } from "@/lib/client-api";
 import { notify } from "@/lib/notify";
 import { clockInTz, formatDayLong } from "@/lib/time";
 import { format } from "@/lib/i18n";
+import { APP_VERSION } from "@/lib/version";
 import type { TicketView } from "@/lib/types";
 
 const FINAL_STATUSES = new Set(["completed", "no_show", "cancelled"]);
@@ -474,7 +475,10 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
         </div>
 
         <p className="mt-6 text-center text-[0.6875rem] font-semibold leading-relaxed text-muted-soft">
-          {t.ticket.footerNote}
+          {t.ticket.footerNote} ·{" "}
+          <Link href="/changelog" className="underline decoration-dotted underline-offset-2 hover:text-muted">
+            v{APP_VERSION}
+          </Link>
         </p>
       </div>
 

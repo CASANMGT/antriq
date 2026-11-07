@@ -29,11 +29,11 @@ import { dayInTz, formatDayLong, relativeTime } from "@/lib/time";
 import { postJson } from "@/lib/client-api";
 import { format } from "@/lib/i18n";
 import { zoneLabel } from "@/lib/labels";
-import type { ActivityItem, OwnerOverview } from "@/lib/types";
+import type { ActivityItem, OwnerOverview, Role } from "@/lib/types";
 
 type ActivityKey = keyof ReturnType<typeof useLang>["t"]["owner"]["overviewActivity"];
 
-export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
+export function OverviewBoard({ initial, role }: { initial: OwnerOverview; role: Role }) {
   const router = useRouter();
   const { lang, t } = useLang();
   const [data, setData] = useState(initial);
@@ -99,7 +99,9 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="eyebrow text-tomato">{t.owner.overviewKicker}</p>
+          <p className="eyebrow text-tomato">
+            {role === "owner" ? t.owner.overviewKicker : t.owner.managerOverviewKicker}
+          </p>
           <h1 className="mt-1 font-display text-[2.5rem] font-semibold leading-none tracking-tight sm:text-[2.8rem]">
             {t.owner.overviewTitle}
           </h1>

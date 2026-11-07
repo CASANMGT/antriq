@@ -6,8 +6,10 @@ import { Logo } from "@/components/Logo";
 import { Mascot } from "@/components/Mascot";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { getBrandBySlug, listBranches } from "@/lib/store";
+import { isOpenAt } from "@/lib/time";
 import { getLang } from "@/lib/lang";
 import { getDict } from "@/lib/i18n";
+import { APP_VERSION } from "@/lib/version";
 
 export const dynamic = "force-dynamic";
 
@@ -98,7 +100,17 @@ export default async function BrandPage({ params }: { params: Params }) {
         </div>
 
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {branches.map((branch) => (
+          {branches.map((branch) => {
+            const openNow = isOpenAt(branch);
+            const state =
+              branch.waitlistStatus === "paused"
+                ? "paused"
+                : branch.waitlistStatus === "closed"
+                  ? "closed"
+                  : openNow
+                    ? "open"
+                    : "outside";
+            return (
             <Link
               key={branch.id}
               href={`/b/${brand.slug}/${branch.slug}`}
@@ -108,18 +120,20 @@ export default async function BrandPage({ params }: { params: Params }) {
                 <span className="pill status-muted">{branch.brandName}</span>
                 <span
                   className={`pill ${
-                    branch.waitlistStatus === "open"
+                    state === "open"
                       ? "status-seated"
-                      : branch.waitlistStatus === "paused"
+                      : state === "paused"
                         ? "status-waiting"
                         : "status-muted"
                   }`}
                 >
-                  {branch.waitlistStatus === "open"
+                  {state === "open"
                     ? t.guest.openNow
-                    : branch.waitlistStatus === "paused"
+                    : state === "paused"
                       ? t.guest.paused
-                      : t.guest.closed}
+                      : state === "closed"
+                        ? t.guest.closed
+                        : t.guest.outsideHours}
                 </span>
               </div>
               <h3 className="mt-3 font-display text-2xl leading-tight">{branch.name}</h3>
@@ -129,21 +143,27 @@ export default async function BrandPage({ params }: { params: Params }) {
                 </p>
               )}
               <p className="mt-2 flex items-center gap-2 text-xs font-semibold text-muted">
-                <Clock3 className="size-3.5 text-tomato" /> {branch.timezone}
+                <Clock3 className="size-3.5 text-tomato" /> {branch.openTime}–{branch.closeTime} · {branch.timezone}
               </p>
               <span className="mt-4 inline-flex items-center gap-1 text-xs font-extrabold text-tomato">
                 {t.brand.openBranch} <ArrowUpRight className="size-3.5" />
               </span>
             </Link>
-          ))}
+            );
+          })}
         </div>
       </section>
 
       <footer className="mx-auto mt-14 flex max-w-5xl flex-col gap-2 border-t-2 border-dashed border-ink/20 pt-5 text-xs font-semibold text-muted sm:flex-row sm:items-center sm:justify-between">
         <span>{t.guest.footerTagline}</span>
-        <Link href="/login" className="w-fit text-muted-soft hover:text-muted">
-          {t.guest.staff}
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/changelog" className="text-muted-soft hover:text-muted">
+            v{APP_VERSION}
+          </Link>
+          <Link href="/login" className="w-fit text-muted-soft hover:text-muted">
+            {t.guest.staff}
+          </Link>
+        </div>
       </footer>
     </main>
   );
