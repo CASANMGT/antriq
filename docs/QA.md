@@ -8,7 +8,7 @@ npm test         # 35 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **7 Nov 2026** — lint clean, 35/35 tests passing, production build green (v0.7.1 one active ticket).
+Last run: **7 Nov 2026** — lint clean, 35/35 tests passing, production build green (v0.7.2 ticket identity).
 
 ### Notification delivery QA
 
@@ -67,6 +67,12 @@ Last run: **7 Nov 2026** — lint clean, 35/35 tests passing, production build g
 - `/changelog` renders the latest releases and the current version.
 - Guest footer, ticket footer, owner sidebar, mobile dashboard nav and host header link to it.
 - `lib/version.ts` matches `package.json` (version test).
+
+### Ticket identity
+
+- Ticket displays the guest’s entered **name** and **phone number**.
+- Long names wrap; long phone numbers remain fully visible.
+- Both are checked at 390 and 320 px with no overflow.
 
 ### Duplicate ticket protection
 

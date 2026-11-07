@@ -10,6 +10,14 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.7.2] — 2026-11-07
+
+The **ticket identity** release.
+
+### Added
+- The live ticket now shows the guest’s entered **name** and **phone number**.
+- Long names wrap and long phone numbers stay fully visible.
+
 ## [0.7.1] — 2026-11-07
 
 The **one active ticket per guest** release.

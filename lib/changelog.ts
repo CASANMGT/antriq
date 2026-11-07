@@ -16,6 +16,20 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.7.2",
+    date: "2026-11-07",
+    title: "Guest details on the ticket",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "The live ticket now shows the guest’s entered name and phone number.",
+          "Long names wrap and long phone numbers stay fully visible.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.7.1",
     date: "2026-11-07",
     title: "One active ticket per guest",

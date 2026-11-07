@@ -219,6 +219,21 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
           </div>
 
           <div className="bg-[#FFFDF7] px-6 pb-7 pt-3" aria-live="polite">
+            <div className="mb-4 grid grid-cols-2 gap-2">
+              <div className="min-w-0 rounded-xl border-2 border-ink/15 bg-white px-3 py-2.5">
+                <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.12em] text-ink/45">
+                  {t.ticket.guestNameLabel}
+                </p>
+                <p className="mt-0.5 break-words text-sm font-extrabold">{entry.guestName}</p>
+              </div>
+              <div className="min-w-0 rounded-xl border-2 border-ink/15 bg-white px-3 py-2.5">
+                <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.12em] text-ink/45">
+                  {t.ticket.phoneLabel}
+                </p>
+                <p className="num mt-0.5 break-all text-sm font-extrabold">{entry.phone ?? "—"}</p>
+              </div>
+            </div>
+
             {entry.status === "waiting" && (
               <div>
                 <p className="eyebrow text-ink/50">{t.ticket.placeLabel}</p>
