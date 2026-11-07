@@ -109,7 +109,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 ## Features
 
 ### Guest
-- **Restaurant picker at `/`** with every brand and branch, live waiting/tables/now-serving, address, hours, menu and Instagram.
+- **Restaurant picker at `/`** with every brand and branch, live waiting/tables/now-serving, address, hours, menu and Instagram. Visitors can share their location to sort restaurants nearest first and see the distance to each branch.
 - Brand page (`/b/[brand]`) with logo, menu PDF, Instagram and branch cards.
 - **Circular brand avatars** on the picker, branch, brand and ticket surfaces.
 - QR poster uses a **1600px high-resolution, high-error-correction QR** and prints on A4 at 68mm.

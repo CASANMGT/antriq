@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight, AtSign, Clock3, FileText, MapPin, Store, Users, UtensilsCrossed } from "lucide-react";
+import { Store, Users, UtensilsCrossed } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Mascot } from "@/components/Mascot";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { Scribble } from "@/components/Doodles";
+import { BranchDirectory, type DirectoryBrand } from "@/components/guest/BranchDirectory";
 import { getPublicSnapshot, listBrands, listBranches } from "@/lib/store";
 import { getLang } from "@/lib/lang";
 import { getDict } from "@/lib/i18n";
 import { APP_VERSION } from "@/lib/version";
-import type { BranchSummary, Brand, PublicSnapshot } from "@/lib/types";
+import type { BranchSummary, PublicSnapshot } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +48,10 @@ export default async function HomePage() {
   );
 
   const visibleBrands = brands.filter((brand) => (grouped.get(brand.id) ?? []).length > 0);
+  const directory: DirectoryBrand[] = visibleBrands.map((brand) => ({
+    brand,
+    branches: grouped.get(brand.id) ?? [],
+  }));
 
   return (
     <main className="paper grain relative min-h-[100dvh] overflow-x-clip">
@@ -86,68 +91,7 @@ export default async function HomePage() {
             </div>
           )}
 
-          {visibleBrands.map((brand) => {
-            const branchesForBrand = grouped.get(brand.id) ?? [];
-            return (
-              <section key={brand.id} className="scroll-mt-6">
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex min-w-0 items-center gap-3">
-                    {brand.hasLogo ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={`/api/brands/${brand.id}/logo`}
-                        alt={`${brand.name} logo`}
-                        className="size-16 shrink-0 rounded-full border-2 border-ink bg-white object-contain shadow-[2px_2px_0_#262321]"
-                      />
-                    ) : (
-                      <span className="grid size-14 shrink-0 place-items-center rounded-2xl border-2 border-ink bg-white shadow-[2px_2px_0_#262321]">
-                        <Store className="size-6 text-tomato" />
-                      </span>
-                    )}
-                    <div className="min-w-0">
-                      <h2 className="break-words font-display text-[2rem] leading-none tracking-tight">{brand.name}</h2>
-                      {brand.description && (
-                        <p className="mt-1 line-clamp-2 max-w-2xl text-sm font-semibold leading-relaxed text-muted">
-                          {brand.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {brand.instagram && (
-                      <a
-                        href={`https://instagram.com/${brand.instagram.replace(/^@/, "")}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn btn-ghost btn-sm text-muted"
-                      >
-                        <AtSign className="size-3.5" /> {brand.instagram}
-                      </a>
-                    )}
-                    {brand.hasMenu && (
-                      <a
-                        href={`/api/brands/${brand.id}/menu`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn btn-ghost btn-sm text-muted"
-                      >
-                        <FileText className="size-3.5" /> {t.brand.menu}
-                      </a>
-                    )}
-                    <Link href={`/b/${brand.slug}`} className="btn btn-soft btn-sm">
-                      {t.picker.brandPage} <ArrowUpRight className="size-3.5" />
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {branchesForBrand.map(({ branch, snapshot }) => (
-                    <BranchCardView key={branch.id} branch={branch} snapshot={snapshot} brand={brand} t={t} />
-                  ))}
-                </div>
-              </section>
-            );
-          })}
+          <BranchDirectory brands={directory} />
         </div>
       </section>
 
@@ -185,96 +129,5 @@ export default async function HomePage() {
         </div>
       </footer>
     </main>
-  );
-}
-
-function BranchCardView({
-  branch,
-  snapshot,
-  brand,
-  t,
-}: {
-  branch: BranchSummary;
-  snapshot: PublicSnapshot | null;
-  brand: Brand;
-  t: ReturnType<typeof getDict>;
-}) {
-  const open = snapshot?.isOpenNow ?? branch.waitlistStatus === "open";
-  const statusLabel =
-    branch.waitlistStatus === "paused"
-      ? t.guest.paused
-      : branch.waitlistStatus === "closed"
-        ? t.guest.closed
-        : open
-          ? t.guest.openNow
-          : t.guest.outsideHours;
-  const statusTone =
-    branch.waitlistStatus === "paused"
-      ? "status-waiting"
-      : branch.waitlistStatus === "closed"
-        ? "status-muted"
-        : open
-          ? "status-seated"
-          : "status-muted";
-
-  return (
-    <Link
-      href={`/b/${brand.slug}/${branch.slug}`}
-      className="group flex flex-col rounded-3xl border-2 border-ink bg-white p-5 shadow-[4px_4px_0_#262321] transition hover:-translate-y-0.5 hover:bg-cream/60"
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="text-[0.625rem] font-extrabold uppercase tracking-[0.14em] text-ink/45">{brand.name}</p>
-          <h3 className="mt-0.5 font-display text-2xl leading-tight">{branch.name}</h3>
-        </div>
-        <span className={`pill ${statusTone}`}>
-          {statusTone === "status-seated" && <span className="live-dot" />}
-          {statusLabel}
-        </span>
-      </div>
-
-      {branch.address && (
-        <p className="mt-3 flex items-start gap-2 text-xs font-semibold leading-relaxed text-muted">
-          <MapPin className="mt-0.5 size-3.5 shrink-0 text-tomato" /> {branch.address}
-        </p>
-      )}
-      <p className="mt-1 flex items-center gap-2 text-xs font-semibold text-muted">
-        <Clock3 className="size-3.5 text-tomato" /> {branch.openTime}–{branch.closeTime} · {branch.timezone}
-      </p>
-
-      <div className={`mt-4 grid gap-1.5 ${branch.queueMode === "single" ? "grid-cols-2" : "grid-cols-3"}`}>
-        {branch.queueMode === "single" ? (
-          <>
-            <div className="rounded-xl border-2 border-ink/15 bg-pink/60 px-2 py-2 text-center">
-              <p className="num font-display text-xl font-semibold">{snapshot?.waiting ?? "—"}</p>
-              <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.statsWaiting}</p>
-            </div>
-            <div className="rounded-xl border-2 border-ink/15 bg-leaf-soft px-2 py-2 text-center">
-              <p className="num font-display text-xl font-semibold">{snapshot?.lastCalledCode ?? "—"}</p>
-              <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.statsServing}</p>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="rounded-xl border-2 border-ink/15 bg-pink/60 px-2 py-2 text-center">
-              <p className="num font-display text-xl font-semibold">{snapshot?.waitingA ?? "—"}</p>
-              <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.queueAShort}</p>
-            </div>
-            <div className="rounded-xl border-2 border-ink/15 bg-cream px-2 py-2 text-center">
-              <p className="num font-display text-xl font-semibold">{snapshot?.waitingB ?? "—"}</p>
-              <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.queueBShort}</p>
-            </div>
-            <div className="rounded-xl border-2 border-ink/15 bg-leaf-soft px-2 py-2 text-center">
-              <p className="num font-display text-xl font-semibold">{snapshot?.lastCalledCode ?? "—"}</p>
-              <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.statsServing}</p>
-            </div>
-          </>
-        )}
-      </div>
-
-      <span className="mt-4 inline-flex items-center gap-1 text-xs font-extrabold text-tomato">
-        {t.picker.joinBranch} <ArrowUpRight className="size-3.5" />
-      </span>
-    </Link>
   );
 }

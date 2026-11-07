@@ -31,6 +31,8 @@ export const DEMO_BRANCHES = [
     address:
       "Jl. Sunan Kalijaga No. 1, RT.1/RW.1, Melawai, Kebayoran Baru, Jakarta Selatan 12160 (seberang Taman Literasi, samping M Bloc Space)",
     phone: "+62 811 9000 212",
+    latitude: -6.2423253,
+    longitude: 106.7997002,
     timezone: "Asia/Jakarta",
     openTime: "10:00",
     closeTime: "22:00",
@@ -45,6 +47,8 @@ export const DEMO_BRANCHES = [
     tagline: "Japanese Hamburg & Niku Rice · Tebet",
     address: "Jl. Tebet Raya, Tebet Barat, Tebet, Jakarta Selatan 12810",
     phone: "+62 811 9000 313",
+    latitude: -6.2301344,
+    longitude: 106.8522128,
     timezone: "Asia/Jakarta",
     openTime: "11:00",
     closeTime: "22:00",
@@ -60,6 +64,8 @@ export const DEMO_BRANCHES = [
     address:
       "AEON Mall Tanjung Barat, Jl. Lenteng Agung Raya No. 163, RT.1/RW.1, Tanjung Barat, Jagakarsa, Jakarta Selatan 12530",
     phone: "+62 811 9000 414",
+    latitude: -6.3061495,
+    longitude: 106.8403831,
     timezone: "Asia/Jakarta",
     openTime: "10:00",
     closeTime: "22:00",
@@ -75,6 +81,8 @@ export const DEMO_BRANCHES = [
     address:
       "Bintaro Jaya Xchange Mall 2, Lantai FF Unit FF-F-09, Jl. Boulevard Bintaro Jaya No. 2, Pondok Jaya, Pondok Aren, Tangerang Selatan 15227",
     phone: "+62 811 9000 515",
+    latitude: -6.2840882,
+    longitude: 106.7273494,
     timezone: "Asia/Jakarta",
     openTime: "10:00",
     closeTime: "22:00",
@@ -90,6 +98,8 @@ export const DEMO_BRANCHES = [
     address:
       "KAMAJA Social Space, Jl. Kyai Maja No. 70, Kramat Pela, Kebayoran Baru, Jakarta Selatan 12120",
     phone: "+62 811 9000 616",
+    latitude: -6.2415471,
+    longitude: 106.7918167,
     timezone: "Asia/Jakarta",
     openTime: "10:00",
     closeTime: "22:00",
@@ -319,8 +329,8 @@ export async function seedDatabase(db: Queryable): Promise<void> {
     if (!brandId) continue;
     await db.query(
       `insert into branches
-        (brand_id, name, slug, tagline, address, phone, timezone, open_time, close_time, accent, announcement)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+        (brand_id, name, slug, tagline, address, phone, latitude, longitude, timezone, open_time, close_time, accent, announcement)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
        on conflict (brand_id, slug) do nothing`,
       [
         brandId,
@@ -329,6 +339,8 @@ export async function seedDatabase(db: Queryable): Promise<void> {
         branch.tagline,
         branch.address,
         branch.phone,
+        branch.latitude ?? null,
+        branch.longitude ?? null,
         branch.timezone,
         branch.openTime,
         branch.closeTime,

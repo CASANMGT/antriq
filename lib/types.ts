@@ -38,6 +38,8 @@ export interface Branch {
   address: string | null;
   phone: string | null;
   instagram: string | null;
+  latitude: number | null;
+  longitude: number | null;
   timezone: string;
   openTime: string;
   closeTime: string;
@@ -243,6 +245,8 @@ export interface BranchSummary {
   closeTime: string;
   accent: string;
   announcement: string | null;
+  latitude: number | null;
+  longitude: number | null;
   waitlistStatus: WaitlistStatus;
   seatingMode: SeatingMode;
   queueMode: QueueMode;

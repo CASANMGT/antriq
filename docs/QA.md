@@ -4,11 +4,11 @@
 
 ```bash
 npm run lint     # ESLint, Next 16 + React 19 rules
-npm test         # 35 domain + integration + version tests on PGlite
+npm test         # 38 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **7 Nov 2026** — lint clean, 35/35 tests passing, production build green (v0.7.3 handover hardening).
+Last run: **7 Nov 2026** — lint clean, 38/38 tests passing, production build green (v0.8.0 nearest restaurants).
 
 ### Notification delivery QA
 
@@ -73,6 +73,14 @@ Last run: **7 Nov 2026** — lint clean, 35/35 tests passing, production build g
 - Ticket displays the guest’s entered **name** and **phone number**.
 - Long names wrap; long phone numbers remain fully visible.
 - Both are checked at 390 and 320 px with no overflow.
+
+### Nearest restaurants
+
+- Guest picker asks for location; granted location sorts brands and branches nearest first.
+- Distance labels show metres/kilometres and the nearest branch gets a badge.
+- Denied/unsupported location keeps the default order with a clear message.
+- Branch latitude/longitude can be edited in Settings and the branch editor.
+- Distance helper tested with known coordinates and formatting.
 
 ### Handover session hardening
 

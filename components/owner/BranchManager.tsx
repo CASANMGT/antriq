@@ -31,6 +31,8 @@ interface Draft {
   tagline: string;
   address: string;
   phone: string;
+  latitude: string;
+  longitude: string;
   timezone: string;
   openTime: string;
   closeTime: string;
@@ -45,6 +47,8 @@ const EMPTY: Draft = {
   tagline: "",
   address: "",
   phone: "",
+  latitude: "",
+  longitude: "",
   timezone: "Asia/Jakarta",
   openTime: "11:00",
   closeTime: "23:30",
@@ -90,6 +94,8 @@ export function BranchManager({
       tagline: branch.tagline ?? "",
       address: branch.address ?? "",
       phone: branch.phone ?? "",
+      latitude: branch.latitude == null ? "" : String(branch.latitude),
+      longitude: branch.longitude == null ? "" : String(branch.longitude),
       timezone: branch.timezone,
       openTime: branch.openTime,
       closeTime: branch.closeTime,
@@ -262,6 +268,34 @@ export function BranchManager({
                 value={draft.address}
                 onChange={(event) => setDraft({ ...draft, address: event.target.value })}
                 maxLength={200}
+              />
+            </div>
+            <div>
+              <label className="label" htmlFor="branch-latitude">{t.owner.latitude}</label>
+              <input
+                id="branch-latitude"
+                type="number"
+                step="any"
+                min={-90}
+                max={90}
+                className="input num"
+                value={draft.latitude}
+                onChange={(event) => setDraft({ ...draft, latitude: event.target.value })}
+                placeholder="-6.2423"
+              />
+            </div>
+            <div>
+              <label className="label" htmlFor="branch-longitude">{t.owner.longitude}</label>
+              <input
+                id="branch-longitude"
+                type="number"
+                step="any"
+                min={-180}
+                max={180}
+                className="input num"
+                value={draft.longitude}
+                onChange={(event) => setDraft({ ...draft, longitude: event.target.value })}
+                placeholder="106.7997"
               />
             </div>
             <div>

@@ -10,6 +10,20 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.8.0] — 2026-11-07
+
+The **nearest restaurants + distances** release.
+
+### Added
+- Guest restaurant picker can use the visitor’s location.
+- Brands and branches sort nearest first, with distance labels and a “Nearest” badge.
+- Branch latitude/longitude fields in Settings and the branch editor.
+- Seeded coordinates for the demo branches.
+
+### Fixed
+- Geolocation is now allowed by the site Permissions-Policy.
+- If location is denied or unsupported, the default order remains available.
+
 ## [0.7.3] — 2026-11-07
 
 The **handover session hardening** release.

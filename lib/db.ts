@@ -304,16 +304,25 @@ async function runDataMigrations(db: Queryable) {
     await db.query("update branches set seating_mode = 'queue' where seating_mode = 'manual'");
   }
 
-  const queueCategories = await db.query<{ key: string }>(
-    `insert into app_meta (key, value) values ('queue_categories_v1', 'done')
+  const branchCoordinates = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('branch_coordinates_v1', 'done')
      on conflict (key) do nothing returning key`,
   );
-  if (queueCategories.length > 0) {
-    await db.query(
-      `update queue_entries
-       set category = case when party_size <= 2 then 'A' else 'B' end,
-           code = (case when party_size <= 2 then 'A' else 'B' end) || '-' || lpad(seq::text, 3, '0')`,
-    );
+  if (branchCoordinates.length > 0) {
+    const points: Array<[string, number, number]> = [
+      ["blok-m", -6.2423253, 106.7997002],
+      ["tebet", -6.2301344, 106.8522128],
+      ["aeon-tanjung-barat", -6.3061495, 106.8403831],
+      ["bintaro-xchange", -6.2840882, 106.7273494],
+      ["kamaja", -6.2415471, 106.7918167],
+    ];
+    for (const [slug, latitude, longitude] of points) {
+      await db.query(
+        `update branches set latitude = $2, longitude = $3
+         where slug = $1 and (latitude is null or longitude is null)`,
+        [slug, latitude, longitude],
+      );
+    }
   }
 }
 

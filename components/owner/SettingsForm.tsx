@@ -78,6 +78,8 @@ export function SettingsForm({ branch }: { branch: Branch }) {
       tagline: String(form.get("tagline") ?? ""),
       address: String(form.get("address") ?? ""),
       phone: String(form.get("phone") ?? ""),
+      latitude: String(form.get("latitude") ?? ""),
+      longitude: String(form.get("longitude") ?? ""),
       instagram: String(form.get("instagram") ?? ""),
       openTime: String(form.get("openTime") ?? ""),
       closeTime: String(form.get("closeTime") ?? ""),
@@ -204,6 +206,38 @@ export function SettingsForm({ branch }: { branch: Branch }) {
               </select>
             </div>
           </div>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="label" htmlFor="latitude">{t.owner.latitude}</label>
+              <input
+                id="latitude"
+                name="latitude"
+                type="number"
+                step="any"
+                min={-90}
+                max={90}
+                className="input num"
+                defaultValue={branch.latitude ?? ""}
+                placeholder="-6.2423"
+              />
+            </div>
+            <div>
+              <label className="label" htmlFor="longitude">{t.owner.longitude}</label>
+              <input
+                id="longitude"
+                name="longitude"
+                type="number"
+                step="any"
+                min={-180}
+                max={180}
+                className="input num"
+                defaultValue={branch.longitude ?? ""}
+                placeholder="106.7997"
+              />
+            </div>
+          </div>
+          <p className="mt-1.5 text-xs font-semibold leading-relaxed text-muted">{t.owner.coordinatesHint}</p>
         </section>
 
         <section className="card p-4 sm:p-5">

@@ -110,6 +110,10 @@ function mapBranch(row: Row): Branch {
     address: row.address ?? null,
     phone: row.phone ?? null,
     instagram: row.instagram ?? row.brand_instagram ?? null,
+    latitude:
+      row.latitude === null || row.latitude === undefined ? null : Number(row.latitude),
+    longitude:
+      row.longitude === null || row.longitude === undefined ? null : Number(row.longitude),
     timezone: String(row.timezone ?? "Asia/Jakarta"),
     openTime: String(row.open_time ?? "11:00"),
     closeTime: String(row.close_time ?? "23:30"),
@@ -428,7 +432,8 @@ export async function listBranches(brandId?: number): Promise<BranchSummary[]> {
     `select br.id, br.name, br.slug, br.brand_id, b.name as brand_name, b.slug as brand_slug,
             br.tagline, br.address, br.phone, br.timezone, br.open_time, br.close_time,
             coalesce(br.accent, b.accent) as accent, br.announcement, br.waitlist_status, br.seating_mode,
-            br.queue_mode, br.hold_minutes, br.acknowledge_action, br.acknowledge_minutes
+            br.queue_mode, br.hold_minutes, br.acknowledge_action, br.acknowledge_minutes,
+            br.latitude, br.longitude
      from branches br join brands b on b.id = br.brand_id
      ${brandId ? "where br.brand_id = $1" : ""}
      order by b.name asc, br.name asc`,
@@ -455,6 +460,8 @@ export async function listBranches(brandId?: number): Promise<BranchSummary[]> {
     holdMinutes: toNumber(row.hold_minutes, 3),
     acknowledgeAction: (row.acknowledge_action === "extend" ? "extend" : "pause") as AcknowledgeAction,
     acknowledgeMinutes: toNumber(row.acknowledge_minutes, 3),
+    latitude: row.latitude === null || row.latitude === undefined ? null : Number(row.latitude),
+    longitude: row.longitude === null || row.longitude === undefined ? null : Number(row.longitude),
   }));
 }
 
@@ -523,6 +530,8 @@ export interface BranchPatch {
   seatingMode?: SeatingMode;
   queueMode?: QueueMode;
   avgTurnMinutes?: number;
+  latitude?: number | null;
+  longitude?: number | null;
   holdMinutes?: number;
   acknowledgeAction?: AcknowledgeAction;
   acknowledgeMinutes?: number;
@@ -543,13 +552,21 @@ export async function createBranch(brandId: number, input: BranchPatch, actor: s
   } catch {
     throw new AppError("That timezone isn't recognised.");
   }
+  const latitude = input.latitude === null || input.latitude === undefined ? null : Number(input.latitude);
+  const longitude = input.longitude === null || input.longitude === undefined ? null : Number(input.longitude);
+  if (latitude !== null && (!Number.isFinite(latitude) || latitude < -90 || latitude > 90)) {
+    throw new AppError("Latitude must be between -90 and 90.");
+  }
+  if (longitude !== null && (!Number.isFinite(longitude) || longitude < -180 || longitude > 180)) {
+    throw new AppError("Longitude must be between -180 and 180.");
+  }
   try {
     const rows = await q<Row>(
       `insert into branches
-        (brand_id, name, slug, tagline, address, phone, timezone, open_time, close_time, accent, announcement,
+        (brand_id, name, slug, tagline, address, phone, latitude, longitude, timezone, open_time, close_time, accent, announcement,
          seating_mode, queue_mode, avg_turn_minutes, hold_minutes, acknowledge_action, acknowledge_minutes,
          max_party_size, max_queue_size, auto_no_show)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
        returning *`,
       [
         brandId,
@@ -558,6 +575,8 @@ export async function createBranch(brandId: number, input: BranchPatch, actor: s
         input.tagline ? cleanText(input.tagline, 120) : null,
         input.address ? cleanText(input.address, 200) : null,
         input.phone ? cleanText(input.phone, 40) : null,
+        latitude,
+        longitude,
         timezone,
         input.openTime ? validateTime(input.openTime, "Opening time") : "11:00",
         input.closeTime ? validateTime(input.closeTime, "Closing time") : "23:30",
@@ -600,6 +619,24 @@ export async function updateBranch(
     accent: patch.accent !== undefined ? (patch.accent ? validateAccent(patch.accent) : null) : current.accent,
     announcement:
       patch.announcement !== undefined ? cleanText(patch.announcement, 300) || null : current.announcement,
+    latitude: (() => {
+      if (patch.latitude === undefined) return current.latitude;
+      if (patch.latitude === null) return null;
+      const value = Number(patch.latitude);
+      if (!Number.isFinite(value) || value < -90 || value > 90) {
+        throw new AppError("Latitude must be between -90 and 90.");
+      }
+      return value;
+    })(),
+    longitude: (() => {
+      if (patch.longitude === undefined) return current.longitude;
+      if (patch.longitude === null) return null;
+      const value = Number(patch.longitude);
+      if (!Number.isFinite(value) || value < -180 || value > 180) {
+        throw new AppError("Longitude must be between -180 and 180.");
+      }
+      return value;
+    })(),
     seatingMode:
       patch.seatingMode === "plan"
         ? "plan"
@@ -642,7 +679,8 @@ export async function updateBranch(
       `update branches set name=$2, slug=$3, tagline=$4, address=$5, phone=$6, timezone=$7,
         open_time=$8, close_time=$9, accent=$10, announcement=$11, seating_mode=$12, avg_turn_minutes=$13,
         hold_minutes=$14, acknowledge_action=$15, acknowledge_minutes=$16,
-        max_party_size=$17, max_queue_size=$18, auto_no_show=$19, queue_mode=$20, updated_at=now()
+        max_party_size=$17, max_queue_size=$18, auto_no_show=$19, queue_mode=$20,
+        latitude=$21, longitude=$22, updated_at=now()
        where id=$1 returning *`,
       [
         branchId,
@@ -665,6 +703,8 @@ export async function updateBranch(
         next.maxQueueSize,
         next.autoNoShow,
         next.queueMode,
+        next.latitude,
+        next.longitude,
       ],
     );
     await logActivity(null, branchId, "settings", actor, { note: "Branch settings updated" });

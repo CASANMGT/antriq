@@ -16,6 +16,28 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.8.0",
+    date: "2026-11-07",
+    title: "Nearest restaurants + distances",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "Guest restaurant picker can use the visitor’s location.",
+          "Brands and branches sort nearest first, with distance labels and a “Nearest” badge.",
+          "Branch latitude/longitude fields in Settings and the branch editor.",
+        ],
+      },
+      {
+        label: "Fixed",
+        items: [
+          "Geolocation is now allowed by the site Permissions-Policy.",
+          "If location is denied or unsupported, the default order remains available.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.7.3",
     date: "2026-11-07",
     title: "Handover session hardening",
