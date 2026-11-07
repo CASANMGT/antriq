@@ -92,6 +92,7 @@ export function BranchDirectory({ brands }: { brands: DirectoryBrand[] }) {
         : locationState === "unsupported"
           ? t.picker.locationUnsupportedTitle
           : t.picker.nearMeTitle;
+  const nearestBranchId = coords ? sorted[0]?.branches[0]?.branch.id ?? null : null;
   const locationBody =
     locationState === "ready"
       ? t.picker.sortingNearest
@@ -186,13 +187,13 @@ export function BranchDirectory({ brands }: { brands: DirectoryBrand[] }) {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {branches.map(({ branch, snapshot, distance }, index) => (
+              {branches.map(({ branch, snapshot, distance }) => (
                 <BranchCard
                   key={branch.id}
                   branch={branch}
                   snapshot={snapshot}
                   distance={distance}
-                  nearest={coords !== null && index === 0 && distance !== null}
+                  nearest={coords !== null && branch.id === nearestBranchId}
                 />
               ))}
             </div>
