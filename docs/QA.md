@@ -52,7 +52,11 @@ Last run: **7 Nov 2026** — lint clean, 33/33 tests passing, production build g
 
 - Owner and manager can pause new joins from the dashboard; the status pill and button update immediately.
 - Reopening the queue restores guest joins.
-- Greeters and cashiers do **not** see the pause control, and `POST /api/host/action` with `type=waitlist` returns **403** for them.
+- Active-ticket banner fits inside the mobile join card at 320/390.
+- Mobile wordmark matches desktop (receipt mark included).
+- Host at 320 px: `scrollWidth = 320`, nav fits.
+- Reports 30-day: no overflow, weekly buckets.
+- Greeters/cashiers do **not** see the pause control, and `POST /api/host/action` with `type=waitlist` returns **403** for them.
 - Outside `openTime`–`closeTime`, the join form is replaced by the opening-hours panel with the next opening time.
 - `POST /api/join` outside hours returns **400** with the hours in the message.
 - Restoring the hours returns the form and allows a normal join.

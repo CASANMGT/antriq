@@ -33,6 +33,8 @@ export const RELEASES: Release[] = [
           "Greeters and cashiers can no longer pause or close the queue.",
           "Brand branch cards now show outside-hours state and actual opening hours.",
           "Manager dashboard no longer says “Owner dashboard”.",
+          "Active-ticket banner no longer stretches the mobile guest join card.",
+          "Mobile wordmark now matches desktop and keeps the receipt mark.",
         ],
       },
     ],

@@ -24,6 +24,8 @@ The **operations audit + in-app changelog** release.
 - The host `P` shortcut and pause controls are hidden from front-line staff.
 - Brand branch cards now show **outside hours** and the actual opening hours instead of always showing “Open now”.
 - Manager dashboard kicker now reads **Manager dashboard**, not “Owner dashboard”.
+- Active-ticket banner no longer stretches the mobile guest join card.
+- Mobile wordmark now matches desktop and keeps the receipt mark.
 
 ### Verified
 - Owner and manager queue pause/reopen.

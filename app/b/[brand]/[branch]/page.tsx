@@ -268,7 +268,7 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
           </div>
         </div>
 
-        <div className="relative order-first lg:order-none lg:pt-3">
+        <div className="relative order-first min-w-0 lg:order-none lg:pt-3">
           <div className="absolute inset-x-6 -top-2 h-7 rotate-[-1.2deg] rounded-full border-2 border-ink bg-tomato" aria-hidden="true" />
           <div className="relative rounded-[1.75rem] border-2 border-ink bg-white p-5 shadow-[6px_6px_0_#262321] sm:p-7">
             <div className="flex items-start justify-between gap-3">
