@@ -268,6 +268,9 @@ export function isDemoMode(): boolean {
  * DEMO_MODE=1 for the initial seed, clear its queues, and stay empty.
  */
 export function isDemoAutoReset(): boolean {
+  // Never auto-reseed a Vercel production deployment. Use a separate demo
+  // deployment/database for a pre-populated daily demo.
+  if (process.env.VERCEL_ENV === "production") return false;
   return ["1", "true", "yes", "on"].includes((process.env.DEMO_AUTO_RESET ?? "").toLowerCase());
 }
 
