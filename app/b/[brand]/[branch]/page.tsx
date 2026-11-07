@@ -96,6 +96,9 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
           <Link href="/" className="btn btn-ghost btn-sm hidden sm:inline-flex text-muted">
             <Store className="size-3.5" /> {t.picker.kicker}
           </Link>
+          <Link href="/" className="btn btn-ghost btn-icon sm:hidden" aria-label={t.picker.kicker} title={t.picker.kicker}>
+            <Store className="size-4" />
+          </Link>
           <LanguageToggle />
         </div>
       </header>

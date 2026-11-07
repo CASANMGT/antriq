@@ -160,7 +160,7 @@ returning ...;
 
 The conditional update means concurrent readers cannot double-log the same expiry: only the request that performed the transition receives the rows.
 
-Calling sets `hold_expires_at = now + hold_minutes` (default 3). A guest acknowledgement sets `acknowledged = true` and `hold_expires_at = null`, which pauses the countdown; the host can extend it later. Releasing a seat completes the visit and records `released_by` / `released_by_staff_id`.
+Calling sets `hold_expires_at = now + hold_minutes` (default 3). A guest “Saya hadir” either pauses the countdown (`hold_expires_at = null`) or extends it by `acknowledge_minutes`, depending on the branch setting. Releasing a seat completes the visit and records `released_by` / `released_by_staff_id`.
 
 ### 3.7 Brand/branch scope
 

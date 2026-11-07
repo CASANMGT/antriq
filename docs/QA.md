@@ -36,7 +36,7 @@ Last run: **7 Nov 2026** — lint clean, 26/26 tests passing, production build g
 - [x] Editing a brand owner no longer shows the role as Host (old-session `undefined` branch fix)
 - [x] Owner/Greeter/Cashier roles are all selectable where allowed
 - [x] Call starts a 3-minute countdown on host and guest ticket
-- [x] “Saya menuju host” pauses the countdown; host card shows paused/on-the-way
+- [x] “Saya hadir” pauses or extends the countdown per Settings; host card shows paused/on-the-way
 - [x] Browser notification permission prompt appears when permission is `default`; denied state is explained
 - [x] Hidden tab receives a browser notification when a call is added
 - [x] “Open seat” seats at the best-fit table without a seat number
@@ -118,7 +118,7 @@ Last run: **7 Nov 2026** — lint clean, 26/26 tests passing, production build g
 - [x] Join → ticket → position → cancel
 - [x] Call next and hold timer
 - [x] Seat at the best-fit table with seat number + PIC
-- [x] Acknowledge pauses the countdown
+- [x] Acknowledge pauses or extends the countdown per branch setting
 - [x] Release a seated table records the cashier and completes the visit
 - [x] Refuse a party that doesn’t fit
 - [x] No-show + undo back to the line
@@ -142,7 +142,7 @@ Tested on Chrome 152 (Windows) at **1440×1000**, **816×2412**, and emulated **
 | 5 | Reload the ticket | Same ticket, live data | Pass |
 | 6 | Open `/` again | “Your open ticket” banner links back | Pass |
 | 7 | Host calls the party | Ticket becomes Table ready; ring counts down; vibrates on Android | Pass |
-| 8 | Tap “I’m on my way” | +3 min, note changes, button disappears, hold is not extended twice | Pass |
+| 8 | Tap “Saya hadir” | Countdown pauses or adds the configured minutes; note changes; button disappears | Pass |
 | 9 | Host seats the party | Ticket shows “Seated at T4” and wait minutes | Pass |
 | 10 | Host clears the table | Ticket becomes “Thanks for dining” | Pass |
 | 11 | Release while waiting | Confirmation, then cancelled state, local ticket removed | Pass |

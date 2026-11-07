@@ -137,7 +137,7 @@ Indonesian F&B operators increasingly use queue products (WaitHub, Antrian.onlin
 
 - Single restaurant profile and hours.
 - Walk-in waitlist with party size, name, optional phone/note.
-- Live guest ticket: position, parties ahead, now-serving, called state, acknowledge, cancel — no time estimate or hold countdown.
+- Live guest ticket: position, parties ahead, now-serving, called state with countdown, acknowledge, cancel — no pre-call time estimate.
 - Greeter board: call next, call specific, seat, extend, no-show, undo, walk-in, table lifecycle, pause/close, search.
 - Table inventory: label, capacity, zone, available/seated/dirty/blocked.
 - Owner dashboard: live KPIs, hourly pulse, floor map, queue, activity, 7/30/90-day reports, CSV.
@@ -171,7 +171,7 @@ See §3.2. Adjacent items are tracked in [ROADMAP.md](../ROADMAP.md).
 1. Ticket polls every 4 seconds while visible.
 2. Waiting → position decreases; ETA recalculates against live tables.
 3. Greeter calls the party → ticket becomes **Table ready** with hold countdown.
-4. Guest may tap **I’m on my way** once: +3 minutes and “we’re expecting you”.
+4. Guest may tap **Saya hadir** once: stops the countdown or adds the configured minutes and shows “we’re expecting you”.
 5. Guest may tap **Release my table** → cancelled, place released.
 6. If hold expires (auto-no-show on), ticket becomes **We missed you** with a rejoin link.
 7. If greeter seats them → **Seated at T4**, wait time shown.
@@ -327,7 +327,7 @@ eta = clamp(round(firstCycle + cycles * perParty), 2, 180)
 ### 10.4 Hold and no-show
 
 - Calling sets `hold_expires_at = now + hold_minutes` (default **3**).
-- Guest “I’m on my way” **pauses** the countdown (`acknowledged = true`, `hold_expires_at = null`). The host can extend or resume it.
+- Guest “Saya hadir” follows the branch setting: either **pauses** the countdown (`acknowledged = true`, `hold_expires_at = null`) or **extends** it by `acknowledge_minutes`. The host can extend or resume it.
 - Host “+5 min”: adds 5 minutes, marks acknowledged.
 - On every read of host/owner/ticket state: `status='called' AND hold_expires_at is not null AND hold_expires_at < now()` → `no_show`, `closed_at=now`, activity logged by `System`.
 - `auto_no_show` can be turned off; then expiry is manual.
