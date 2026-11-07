@@ -941,7 +941,7 @@ export async function getPublicSnapshot(branchId: number): Promise<PublicSnapsho
   const waitingB = waiting.filter((entry) => entry.category === "B").length;
   const lastCalledRows = await q<Row>(
     `select code from queue_entries
-     where branch_id = $1 and day = $2::date and called_at is not null
+     where branch_id = $1 and day = $2::date and status = 'called' and called_at is not null
      order by called_at desc limit 1`,
     [branchId, today],
   );
@@ -998,7 +998,7 @@ export async function getTicketView(token: string): Promise<TicketView | null> {
         });
   const lastCalledRows = await q<Row>(
     `select code from queue_entries
-     where branch_id = $1 and day = $2::date and called_at is not null
+     where branch_id = $1 and day = $2::date and status = 'called' and called_at is not null
      order by called_at desc limit 1`,
     [branch.id, today],
   );

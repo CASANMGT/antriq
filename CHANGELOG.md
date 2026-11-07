@@ -33,6 +33,8 @@ The **circular brand avatars + print-ready QR** release.
 ### Fixed
 - Brand logo assets migrate once to the circular versions.
 - QR download is branch-specific and high resolution.
+- “Now serving” only shows an entry that is currently called; no-shows/completed tickets no longer appear as active.
+- Mobile queue bar fits Antrean / Dipanggil / Duduk plus owner and QR shortcuts.
 
 ## [0.3.6] — 2026-11-07
 
