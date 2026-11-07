@@ -623,14 +623,26 @@
 
   body {
     background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .poster {
+    width: 100% !important;
+    max-width: none !important;
     box-shadow: none !important;
     border: none !important;
+    break-inside: avoid;
+  }
+
+  .poster .qr-image {
+    width: 68mm !important;
+    height: 68mm !important;
+    image-rendering: auto;
   }
 
   @page {
-    margin: 14mm;
+    size: A4 portrait;
+    margin: 12mm;
   }
 }

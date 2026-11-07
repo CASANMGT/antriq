@@ -151,7 +151,7 @@ export function BrandManager({
                   <img
                     src={`/api/brands/${brand.id}/logo${logoStamp}`}
                     alt={`${brand.name} logo`}
-                    className="h-16 w-28 shrink-0 rounded-2xl border-2 border-ink bg-white object-contain p-1"
+                    className="size-20 shrink-0 rounded-full border-2 border-ink bg-white object-contain"
                   />
                 ) : (
                   <span className="grid size-16 shrink-0 place-items-center rounded-2xl border-2 border-ink bg-cream">

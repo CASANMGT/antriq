@@ -99,7 +99,7 @@ export default async function HomePage() {
                       <img
                         src={`/api/brands/${brand.id}/logo`}
                         alt={`${brand.name} logo`}
-                        className="h-12 w-auto max-w-[10rem] shrink-0 rounded-2xl border-2 border-ink bg-white object-contain p-1 shadow-[2px_2px_0_#262321]"
+                        className="size-16 shrink-0 rounded-full border-2 border-ink bg-white object-contain shadow-[2px_2px_0_#262321]"
                       />
                     ) : (
                       <span className="grid size-14 shrink-0 place-items-center rounded-2xl border-2 border-ink bg-white shadow-[2px_2px_0_#262321]">
@@ -107,7 +107,7 @@ export default async function HomePage() {
                       </span>
                     )}
                     <div className="min-w-0">
-                      <h2 className="font-display text-[2rem] leading-none tracking-tight">{brand.name}</h2>
+                      <h2 className="break-words font-display text-[2rem] leading-none tracking-tight">{brand.name}</h2>
                       {brand.description && (
                         <p className="mt-1 line-clamp-2 max-w-2xl text-sm font-semibold leading-relaxed text-muted">
                           {brand.description}
@@ -244,11 +244,11 @@ function BranchCardView({
       <div className="mt-4 grid grid-cols-3 gap-1.5">
         <div className="rounded-xl border-2 border-ink/15 bg-pink/60 px-2 py-2 text-center">
           <p className="num font-display text-xl font-semibold">{snapshot?.waitingA ?? "—"}</p>
-          <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.queueA}</p>
+          <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.queueAShort}</p>
         </div>
         <div className="rounded-xl border-2 border-ink/15 bg-cream px-2 py-2 text-center">
           <p className="num font-display text-xl font-semibold">{snapshot?.waitingB ?? "—"}</p>
-          <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.queueB}</p>
+          <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.queueBShort}</p>
         </div>
         <div className="rounded-xl border-2 border-ink/15 bg-leaf-soft px-2 py-2 text-center">
           <p className="num font-display text-xl font-semibold">{snapshot?.lastCalledCode ?? "—"}</p>

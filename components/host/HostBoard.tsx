@@ -13,6 +13,7 @@ import {
   PauseCircle,
   PlayCircle,
   Plus,
+  QrCode,
   Search,
   Volume2,
   VolumeX,
@@ -348,7 +349,7 @@ export function HostBoard({
                 >
                   {branches.map((item) => (
                     <option key={item.id} value={item.id}>
-                      {item.brandName} · {item.name}
+                      {item.name}
                     </option>
                   ))}
                 </select>
@@ -371,14 +372,24 @@ export function HostBoard({
               {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
             </button>
             {staff.role === "owner" && (
-              <Link
-                href={`/dashboard?branch=${activeBranchId}`}
-                className="btn btn-ghost btn-icon hidden sm:inline-flex"
-                aria-label={t.common.ownerDashboard}
-                title={t.common.ownerDashboard}
-              >
-                <LayoutDashboard className="size-4" />
-              </Link>
+              <>
+                <Link
+                  href={`/dashboard?branch=${activeBranchId}`}
+                  className="btn btn-ghost btn-icon hidden sm:inline-flex"
+                  aria-label={t.common.ownerDashboard}
+                  title={t.common.ownerDashboard}
+                >
+                  <LayoutDashboard className="size-4" />
+                </Link>
+                <Link
+                  href={`/dashboard/qr?branch=${activeBranchId}`}
+                  className="btn btn-ghost btn-icon hidden sm:inline-flex"
+                  aria-label={t.owner.qrTitle}
+                  title={t.owner.qrTitle}
+                >
+                  <QrCode className="size-4" />
+                </Link>
+              </>
             )}
             <button
               type="button"
@@ -634,7 +645,7 @@ export function HostBoard({
               { id: "queue" as const, label: t.host.waitlistTitle, count: state.waiting.length },
               { id: "called" as const, label: t.host.atDoorTitle, count: state.called.length },
               manual
-                ? { id: "seated" as const, label: t.host.seatedTitle, count: state.seated.length }
+                ? { id: "seated" as const, label: t.host.seated, count: state.seated.length }
                 : { id: "tables" as const, label: t.host.floorTitle, count: stats.availableTables },
             ]
           ).map((item) => (
@@ -642,7 +653,7 @@ export function HostBoard({
               key={item.id}
               type="button"
               onClick={() => setTab(item.id)}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-full border-2 px-2.5 py-2 text-xs font-extrabold transition ${
+              className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full border-2 px-2.5 py-2 text-xs font-extrabold transition ${
                 tab === item.id ? "border-ink bg-ink text-paper" : "border-transparent text-ink/60 hover:bg-white"
               }`}
               aria-pressed={tab === item.id}
@@ -658,13 +669,24 @@ export function HostBoard({
             </button>
           ))}
           {staff.role === "owner" && (
-            <Link
-              href={`/dashboard?branch=${activeBranchId}`}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-full px-2 py-2 text-xs font-extrabold text-ink/60 transition hover:bg-white"
-            >
-              <LayoutDashboard className="size-3.5" />
-              {t.owner.owner}
-            </Link>
+            <>
+              <Link
+                href={`/dashboard?branch=${activeBranchId}`}
+                className="flex shrink-0 items-center justify-center rounded-full p-2 text-ink/60 transition hover:bg-white"
+                aria-label={t.owner.owner}
+                title={t.owner.owner}
+              >
+                <LayoutDashboard className="size-4" />
+              </Link>
+              <Link
+                href={`/dashboard/qr?branch=${activeBranchId}`}
+                className="flex shrink-0 items-center justify-center rounded-full p-2 text-ink/60 transition hover:bg-white"
+                aria-label={t.owner.qrTitle}
+                title={t.owner.qrTitle}
+              >
+                <QrCode className="size-4" />
+              </Link>
+            </>
           )}
         </div>
       </nav>

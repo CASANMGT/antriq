@@ -36,7 +36,7 @@ export default async function QrPage({
   const url = `${base}/b/${brand?.slug ?? "brand"}/${branch.slug}`;
 
   const qr = await QRCode.toDataURL(url, {
-    width: 900,
+    width: 1600,
     margin: 2,
     errorCorrectionLevel: "H",
     color: { dark: "#262321", light: "#FFFDF7" },
@@ -102,13 +102,16 @@ export default async function QrPage({
                 <img
                   src={`/api/brands/${brand.id}/logo`}
                   alt={`${brand.name} logo`}
-                  className="h-14 w-auto max-w-[11rem] shrink-0 object-contain"
+                  className="size-20 shrink-0 rounded-full object-contain"
                 />
               ) : (
                 <p className="shrink-0 font-display text-2xl font-semibold">{brand?.name ?? "AntriQ"}</p>
               )}
               <div className="h-10 w-px shrink-0 bg-ink/15" />
               <div className="min-w-0">
+                <p className="text-[0.625rem] font-extrabold uppercase tracking-[0.14em] text-ink/45">
+                  {brand?.name ?? "AntriQ"}
+                </p>
                 <p className="font-display text-2xl leading-tight">{branch.name}</p>
                 <p className="mt-1 flex items-start gap-1 text-[0.625rem] font-bold uppercase tracking-[0.08em] text-muted">
                   <MapPin className="mt-0.5 size-3 shrink-0 text-tomato" />
@@ -148,7 +151,7 @@ export default async function QrPage({
               <div className="order-1 shrink-0 sm:order-2">
                 <div className="rounded-2xl border-2 border-ink bg-white p-3 shadow-[3px_3px_0_#262321]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={qr} alt={`QR code to join the ${branch.name} queue`} className="size-48 sm:size-52" />
+                  <img src={qr} alt={`QR code to join the ${branch.name} queue`} className="qr-image size-48 sm:size-52" />
                 </div>
                 <p className="mt-2 text-center text-[0.5625rem] font-extrabold uppercase tracking-[0.14em] text-ink/45">
                   {t.owner.scanCamera}
@@ -165,7 +168,7 @@ export default async function QrPage({
       </div>
 
       <div className="no-print flex justify-center pb-4">
-        <a href={qr} download="antriq-qr.png" className="btn btn-ghost btn-sm text-muted">
+        <a href={qr} download={`antriq-${branch.slug}-qr.png`} className="btn btn-ghost btn-sm text-muted">
           {t.owner.downloadQr}
         </a>
       </div>

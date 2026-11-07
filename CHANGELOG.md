@@ -10,6 +10,30 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.3.7] — 2026-11-07
+
+The **circular brand avatars + print-ready QR** release.
+
+### Changed
+- Brand logos are now square/circular social-media-style avatars and display larger:
+  - guest branch page: 96px
+  - brand page: 128px
+  - restaurant picker: 64px
+  - ticket: 80px
+  - QR poster: circular brand mark
+- QR poster QR is generated at **1600px** with high error correction and prints at 68mm on A4.
+- Added a QR poster shortcut to the host queue screen (desktop and mobile).
+- Mobile pass:
+  - shorter A/B stat labels
+  - queue tab label “Duduk” instead of “Sedang duduk”
+  - icon-only owner/QR actions in the mobile queue bar
+  - compact branch selector label
+  - break-safe brand titles
+
+### Fixed
+- Brand logo assets migrate once to the circular versions.
+- QR download is branch-specific and high resolution.
+
 ## [0.3.6] — 2026-11-07
 
 The **queue-only + A/B categories** release.

@@ -283,6 +283,19 @@ async function runDataMigrations(db: Queryable) {
     ]);
   }
 
+  const circleLogos = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('brand_logos_circle_v1', 'done')
+     on conflict (key) do nothing returning key`,
+  );
+  if (circleLogos.length > 0) {
+    await db.query("update brands set logo_data = $1, logo_mime = 'image/svg+xml', updated_at = now() where slug = 'nikumaru'", [
+      Buffer.from(logoNikumaru()),
+    ]);
+    await db.query("update brands set logo_data = $1, logo_mime = 'image/svg+xml', updated_at = now() where slug = 'tenka'", [
+      Buffer.from(logoTenka()),
+    ]);
+  }
+
   const queueMode = await db.query<{ key: string }>(
     `insert into app_meta (key, value) values ('seating_queue_default_v1', 'done')
      on conflict (key) do nothing returning key`,

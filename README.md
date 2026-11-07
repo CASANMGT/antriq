@@ -109,7 +109,10 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 ### Guest
 - **Restaurant picker at `/`** with every brand and branch, live waiting/tables/now-serving, address, hours, menu and Instagram.
 - Brand page (`/b/[brand]`) with logo, menu PDF, Instagram and branch cards.
-- Branch page (`/b/[brand]/[branch]`) with live queue snapshot: **Queue A (1–2), Queue B (3+)**, now serving and branch status. No empty-table count.
+- **Circular brand avatars** on the picker, branch, brand and ticket surfaces.
+- QR poster uses a **1600px high-resolution, high-error-correction QR** and prints on A4 at 68mm.
+- Queue screen includes an owner QR-poster shortcut.
+- Live queue snapshot: **Queue A (1–2), Queue B (3+)**, now serving and branch status. No empty-table count.
 - Queue-only mode is the default: parties are seated openly without a table or seat number.
 - Take a number in about 20 seconds: party size, name, optional phone/note.
 - Ticket with a human code (`A-024`), queue position, parties ahead, now-serving code.

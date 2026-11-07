@@ -184,7 +184,7 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                   <img
                     src={`/api/brands/${brand.id}/logo`}
                     alt={`${brand.name} logo`}
-                    className="size-16 shrink-0 rounded-full border-2 border-white/70 bg-paper object-contain p-1.5"
+                    className="size-20 shrink-0 rounded-full border-2 border-white/70 bg-paper object-contain"
                   />
                 )}
                 <div className="min-w-0">

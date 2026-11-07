@@ -55,7 +55,7 @@ export default async function BrandPage({ params }: { params: Params }) {
             <img
               src={logoUrl}
               alt={`${brand.name} logo`}
-              className="h-20 w-auto max-w-[16rem] rounded-3xl border-2 border-ink bg-white object-contain p-2 shadow-[4px_4px_0_#262321]"
+              className="size-32 rounded-full border-2 border-ink bg-white object-contain shadow-[4px_4px_0_#262321]"
             />
           ) : (
             <span className="grid size-24 place-items-center rounded-3xl border-2 border-ink bg-white shadow-[4px_4px_0_#262321]">
@@ -64,7 +64,7 @@ export default async function BrandPage({ params }: { params: Params }) {
           )}
           <div className="min-w-0">
             <p className="eyebrow text-tomato">{t.brand.kicker}</p>
-            <h1 className="mt-1 font-display text-[clamp(2.8rem,8vw,4.6rem)] leading-[0.9] tracking-tight">{brand.name}</h1>
+            <h1 className="mt-1 break-words font-display text-[clamp(2.8rem,8vw,4.6rem)] leading-[0.9] tracking-tight">{brand.name}</h1>
             {brand.description && (
               <p className="mt-2 max-w-2xl text-sm font-semibold leading-relaxed text-muted">{brand.description}</p>
             )}

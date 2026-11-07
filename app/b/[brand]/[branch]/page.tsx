@@ -119,12 +119,12 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
               <img
                 src={logoUrl}
                 alt={`${brand?.name ?? branch.name} logo`}
-                className="h-14 w-auto max-w-[11rem] shrink-0 rounded-2xl border-2 border-ink bg-white object-contain p-1 shadow-[2px_2px_0_#262321]"
+                className="size-24 shrink-0 rounded-full border-2 border-ink bg-white object-contain shadow-[2px_2px_0_#262321]"
               />
             ) : null}
-            <div>
+            <div className="min-w-0">
               <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-ink/45">{brand?.name ?? branch.name}</p>
-              <h1 className="font-display text-[clamp(2.6rem,7vw,4.6rem)] leading-[0.9] tracking-tight text-ink">
+              <h1 className="break-words font-display text-[clamp(2.6rem,7vw,4.6rem)] leading-[0.9] tracking-tight text-ink">
                 {branch.name}
               </h1>
             </div>
@@ -198,14 +198,14 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
               <Users className="size-4 text-tomato-dark" />
               <p className="stat-number mt-2 text-4xl">{String(snapshot.waitingA).padStart(2, "0")}</p>
               <p className="mt-1.5 text-[0.5625rem] font-extrabold uppercase leading-tight tracking-[0.1em] text-tomato-dark/70">
-                {t.guest.queueA}
+                {t.guest.queueAShort}
               </p>
             </div>
             <div className="rounded-2xl border-2 border-ink bg-cream p-3 shadow-[3px_3px_0_#262321]">
               <Users className="size-4 text-ink/70" />
               <p className="stat-number mt-2 text-4xl">{String(snapshot.waitingB).padStart(2, "0")}</p>
               <p className="mt-1.5 text-[0.5625rem] font-extrabold uppercase leading-tight tracking-[0.1em] text-ink/55">
-                {t.guest.queueB}
+                {t.guest.queueBShort}
               </p>
             </div>
             <div className="rounded-2xl border-2 border-ink bg-leaf-soft p-3 shadow-[3px_3px_0_#262321]">

@@ -239,33 +239,32 @@ const DEMO_ENTRIES: Record<string, DemoEntry[]> = {
 };
 
 export function logoNikumaru(): Uint8Array {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 140" width="360" height="140">
-    <g fill="none" stroke="#262321" stroke-width="7">
-      <circle cx="70" cy="70" r="52"/>
-      <circle cx="70" cy="70" r="34"/>
-    </g>
-    <circle cx="70" cy="70" r="20" fill="#262321"/>
-    <path d="M61 57v26M70 54v32M79 58v24" stroke="#FFF1CA" stroke-width="3" stroke-linecap="round"/>
-    <text x="145" y="72" font-family="Arial Black, Arial, sans-serif" font-size="40" font-weight="900" letter-spacing="5" fill="#262321">NIKUMARU</text>
-    <text x="148" y="99" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="5" fill="#262321">BEEFY EGGY HAPPY</text>
-    <path d="M145 110h200" stroke="#F24B3F" stroke-width="4" stroke-linecap="round"/>
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+    <circle cx="128" cy="128" r="124" fill="#FFF1CA"/>
+    <circle cx="128" cy="105" r="56" fill="none" stroke="#262321" stroke-width="8"/>
+    <circle cx="128" cy="105" r="34" fill="none" stroke="#262321" stroke-width="6"/>
+    <circle cx="128" cy="105" r="18" fill="#262321"/>
+    <path d="M119 91v28M128 87v36M137 92v26" stroke="#FFF1CA" stroke-width="3" stroke-linecap="round"/>
+    <text x="128" y="194" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-size="25" font-weight="900" letter-spacing="2.5" fill="#262321">NIKUMARU</text>
+    <text x="128" y="216" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="3" fill="#262321">BEEFY EGGY HAPPY</text>
+    <path d="M64 230h128" stroke="#F24B3F" stroke-width="4" stroke-linecap="round"/>
   </svg>`;
   return new Uint8Array(Buffer.from(svg));
 }
 
 export function logoTenka(): Uint8Array {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 140" width="360" height="140">
-    <g transform="translate(4 12)">
-      <path d="M16 54h92c-2 31-20 52-46 52S18 85 16 54Z" fill="#1E5AA8" stroke="#262321" stroke-width="6"/>
-      <path d="M10 54h104" stroke="#262321" stroke-width="8" stroke-linecap="round"/>
-      <path d="M34 46c6-12 20-18 32-14 11 4 19 14 22 24-18 8-39 6-54-10Z" fill="#F4C430" stroke="#262321" stroke-width="4"/>
-      <path d="M46 40c4-6 10-9 16-7" stroke="#FFF1CA" stroke-width="4" stroke-linecap="round"/>
-      <path d="M44 82c8 6 24 6 32 0" stroke="#FFF1CA" stroke-width="4" stroke-linecap="round"/>
-      <text x="32" y="96" font-family="Arial Black, Arial, sans-serif" font-size="18" font-weight="900" fill="#FFF1CA">天下</text>
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+    <circle cx="128" cy="128" r="124" fill="#FFF8E7"/>
+    <circle cx="128" cy="128" r="118" fill="#1E5AA8"/>
+    <g transform="translate(64 42)">
+      <path d="M4 48h120c-3 42-27 70-60 70S7 90 4 48Z" fill="#1E5AA8" stroke="#FFF1CA" stroke-width="6"/>
+      <path d="M-3 48h134" stroke="#FFF1CA" stroke-width="8" stroke-linecap="round"/>
+      <path d="M24 40c8-16 26-24 42-19 14 5 25 18 29 31-24 11-51 8-71-12Z" fill="#F4C430" stroke="#FFF1CA" stroke-width="4"/>
+      <path d="M39 33c5-8 13-12 21-9" stroke="#FFF8E7" stroke-width="4" stroke-linecap="round"/>
+      <text x="64" y="92" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-size="22" font-weight="900" fill="#FFF1CA">天下</text>
     </g>
-    <text x="145" y="76" font-family="Arial Black, Arial, sans-serif" font-size="48" font-weight="900" letter-spacing="3" fill="#F4C430" stroke="#1E5AA8" stroke-width="3" paint-order="stroke">TENKA</text>
-    <text x="148" y="103" font-family="Arial, sans-serif" font-size="12" font-weight="800" letter-spacing="4" fill="#1E5AA8">TEMPURA &amp; KATSU</text>
-    <path d="M145 114h200" stroke="#F4C430" stroke-width="4" stroke-linecap="round"/>
+    <text x="128" y="192" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-size="39" font-weight="900" letter-spacing="2" fill="#F4C430" stroke="#FFF1CA" stroke-width="2" paint-order="stroke">TENKA</text>
+    <text x="128" y="214" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="800" letter-spacing="3" fill="#FFF1CA">TEMPURA &amp; KATSU</text>
   </svg>`;
   return new Uint8Array(Buffer.from(svg));
 }
