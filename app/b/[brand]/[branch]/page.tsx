@@ -193,28 +193,49 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
             </div>
           </div>
 
-          <div className="mt-9 grid max-w-lg grid-cols-3 gap-2.5">
-            <div className="rounded-2xl border-2 border-ink bg-pink p-3 shadow-[3px_3px_0_#262321]">
-              <Users className="size-4 text-tomato-dark" />
-              <p className="stat-number mt-2 text-4xl">{String(snapshot.waitingA).padStart(2, "0")}</p>
-              <p className="mt-1.5 text-[0.5625rem] font-extrabold uppercase leading-tight tracking-[0.1em] text-tomato-dark/70">
-                {t.guest.queueAShort}
-              </p>
-            </div>
-            <div className="rounded-2xl border-2 border-ink bg-cream p-3 shadow-[3px_3px_0_#262321]">
-              <Users className="size-4 text-ink/70" />
-              <p className="stat-number mt-2 text-4xl">{String(snapshot.waitingB).padStart(2, "0")}</p>
-              <p className="mt-1.5 text-[0.5625rem] font-extrabold uppercase leading-tight tracking-[0.1em] text-ink/55">
-                {t.guest.queueBShort}
-              </p>
-            </div>
-            <div className="rounded-2xl border-2 border-ink bg-leaf-soft p-3 shadow-[3px_3px_0_#262321]">
-              <BellRing className="size-4 text-leaf-dark" />
-              <p className="stat-number mt-2 text-3xl">{snapshot.lastCalledCode ?? "—"}</p>
-              <p className="mt-1.5 text-[0.5625rem] font-extrabold uppercase leading-tight tracking-[0.1em] text-leaf-dark/70">
-                {t.guest.statsServing}
-              </p>
-            </div>
+          <div className={`mt-9 grid max-w-lg gap-2.5 ${branch.queueMode === "single" ? "grid-cols-2" : "grid-cols-3"}`}>
+            {branch.queueMode === "single" ? (
+              <>
+                <div className="rounded-2xl border-2 border-ink bg-pink p-3 shadow-[3px_3px_0_#262321]">
+                  <Users className="size-4 text-tomato-dark" />
+                  <p className="stat-number mt-2 text-4xl">{String(snapshot.waiting).padStart(2, "0")}</p>
+                  <p className="mt-1.5 text-[0.5625rem] font-extrabold uppercase leading-tight tracking-[0.1em] text-tomato-dark/70">
+                    {t.guest.statsWaiting}
+                  </p>
+                </div>
+                <div className="rounded-2xl border-2 border-ink bg-leaf-soft p-3 shadow-[3px_3px_0_#262321]">
+                  <BellRing className="size-4 text-leaf-dark" />
+                  <p className="stat-number mt-2 text-3xl">{snapshot.lastCalledCode ?? "—"}</p>
+                  <p className="mt-1.5 text-[0.5625rem] font-extrabold uppercase leading-tight tracking-[0.1em] text-leaf-dark/70">
+                    {t.guest.statsServing}
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="rounded-2xl border-2 border-ink bg-pink p-3 shadow-[3px_3px_0_#262321]">
+                  <Users className="size-4 text-tomato-dark" />
+                  <p className="stat-number mt-2 text-4xl">{String(snapshot.waitingA).padStart(2, "0")}</p>
+                  <p className="mt-1.5 text-[0.5625rem] font-extrabold uppercase leading-tight tracking-[0.1em] text-tomato-dark/70">
+                    {t.guest.queueAShort}
+                  </p>
+                </div>
+                <div className="rounded-2xl border-2 border-ink bg-cream p-3 shadow-[3px_3px_0_#262321]">
+                  <Users className="size-4 text-ink/70" />
+                  <p className="stat-number mt-2 text-4xl">{String(snapshot.waitingB).padStart(2, "0")}</p>
+                  <p className="mt-1.5 text-[0.5625rem] font-extrabold uppercase leading-tight tracking-[0.1em] text-ink/55">
+                    {t.guest.queueBShort}
+                  </p>
+                </div>
+                <div className="rounded-2xl border-2 border-ink bg-leaf-soft p-3 shadow-[3px_3px_0_#262321]">
+                  <BellRing className="size-4 text-leaf-dark" />
+                  <p className="stat-number mt-2 text-3xl">{snapshot.lastCalledCode ?? "—"}</p>
+                  <p className="mt-1.5 text-[0.5625rem] font-extrabold uppercase leading-tight tracking-[0.1em] text-leaf-dark/70">
+                    {t.guest.statsServing}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="relative mt-10 hidden max-w-md lg:block">
@@ -266,6 +287,7 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
             <JoinForm
               branchId={branch.id}
               maxPartySize={branch.maxPartySize}
+              queueMode={branch.queueMode}
               disabled={disabled}
               disabledTitle={paused ? t.guest.pauseTitle : t.guest.closedTitle}
               disabledNote={paused ? t.guest.pauseNote : t.guest.closedNote}
@@ -355,7 +377,7 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/login" className="text-muted-soft hover:text-muted">{t.guest.staff}</Link>
+          <Link href="/login" className="py-1 text-muted-soft hover:text-muted">{t.guest.staff}</Link>
           <span className="hidden sm:inline">© {new Date().getFullYear()}</span>
         </div>
       </footer>

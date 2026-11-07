@@ -4,11 +4,11 @@
 
 ```bash
 npm run lint     # ESLint, Next 16 + React 19 rules
-npm test         # 26 domain + integration tests on PGlite
+npm test         # 28 domain + integration tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **7 Nov 2026** — lint clean, 26/26 tests passing, production build green (v0.3.9 print + notifications).
+Last run: **7 Nov 2026** — lint clean, 28/28 tests passing, production build green (v0.4.0 queue groups + production access).
 
 ### Notification delivery QA
 
@@ -23,6 +23,19 @@ Last run: **7 Nov 2026** — lint clean, 26/26 tests passing, production build g
 - Generate `/dashboard/qr?branch=1` as an A4 PDF from a **390 × 844** viewport.
 - Assert exactly **1 page**, no dashboard header/buttons/download link.
 - Visual check: brand mark, branch name, 80 mm QR and footer all on one page.
+
+### Queue groups
+
+- Default branch setting is **1 group**; a party of 3+ joins with an `A-` code and sees one queue.
+- Switch the branch to **2 groups**; a party of 2 joins as `A`, a party of 3+ joins as `B`.
+- Guest cards, ticket and host cards show A/B only in 2-group mode.
+
+### Production access
+
+- `/login` in production does not render the demo shortcut block or show `1234`.
+- Local development still renders the demo shortcuts.
+- Platform owner sees **all branches** in Laporan; a brand owner sees only their brand’s branches; host/cashier cannot open Laporan.
+- “All branches” CSV includes a `branch` column and only in-scope branches.
 
 ### Deployment verification
 

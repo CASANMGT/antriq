@@ -238,19 +238,34 @@ function BranchCardView({
         <Clock3 className="size-3.5 text-tomato" /> {branch.openTime}–{branch.closeTime} · {branch.timezone}
       </p>
 
-      <div className="mt-4 grid grid-cols-3 gap-1.5">
-        <div className="rounded-xl border-2 border-ink/15 bg-pink/60 px-2 py-2 text-center">
-          <p className="num font-display text-xl font-semibold">{snapshot?.waitingA ?? "—"}</p>
-          <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.queueAShort}</p>
-        </div>
-        <div className="rounded-xl border-2 border-ink/15 bg-cream px-2 py-2 text-center">
-          <p className="num font-display text-xl font-semibold">{snapshot?.waitingB ?? "—"}</p>
-          <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.queueBShort}</p>
-        </div>
-        <div className="rounded-xl border-2 border-ink/15 bg-leaf-soft px-2 py-2 text-center">
-          <p className="num font-display text-xl font-semibold">{snapshot?.lastCalledCode ?? "—"}</p>
-          <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.statsServing}</p>
-        </div>
+      <div className={`mt-4 grid gap-1.5 ${branch.queueMode === "single" ? "grid-cols-2" : "grid-cols-3"}`}>
+        {branch.queueMode === "single" ? (
+          <>
+            <div className="rounded-xl border-2 border-ink/15 bg-pink/60 px-2 py-2 text-center">
+              <p className="num font-display text-xl font-semibold">{snapshot?.waiting ?? "—"}</p>
+              <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.statsWaiting}</p>
+            </div>
+            <div className="rounded-xl border-2 border-ink/15 bg-leaf-soft px-2 py-2 text-center">
+              <p className="num font-display text-xl font-semibold">{snapshot?.lastCalledCode ?? "—"}</p>
+              <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.statsServing}</p>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="rounded-xl border-2 border-ink/15 bg-pink/60 px-2 py-2 text-center">
+              <p className="num font-display text-xl font-semibold">{snapshot?.waitingA ?? "—"}</p>
+              <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.queueAShort}</p>
+            </div>
+            <div className="rounded-xl border-2 border-ink/15 bg-cream px-2 py-2 text-center">
+              <p className="num font-display text-xl font-semibold">{snapshot?.waitingB ?? "—"}</p>
+              <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.queueBShort}</p>
+            </div>
+            <div className="rounded-xl border-2 border-ink/15 bg-leaf-soft px-2 py-2 text-center">
+              <p className="num font-display text-xl font-semibold">{snapshot?.lastCalledCode ?? "—"}</p>
+              <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.statsServing}</p>
+            </div>
+          </>
+        )}
       </div>
 
       <span className="mt-4 inline-flex items-center gap-1 text-xs font-extrabold text-tomato">

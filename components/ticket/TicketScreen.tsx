@@ -257,9 +257,15 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                     <p className="text-[0.625rem] font-extrabold uppercase tracking-[0.12em] text-ink/55">
                       {t.ticket.yourQueue}
                     </p>
-                    <p className="num mt-1 font-display text-2xl font-semibold">{entry.category}</p>
+                    <p className="num mt-1 font-display text-2xl font-semibold">
+                      {branch.queueMode === "single" ? "1" : entry.category}
+                    </p>
                     <p className="text-[0.625rem] font-bold text-muted">
-                      {entry.category === "A" ? t.ticket.queueA : t.ticket.queueB}
+                      {branch.queueMode === "single"
+                        ? t.guest.queueSingleShort
+                        : entry.category === "A"
+                          ? t.ticket.queueA
+                          : t.ticket.queueB}
                     </p>
                   </div>
                 </div>

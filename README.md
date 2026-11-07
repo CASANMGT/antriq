@@ -84,7 +84,7 @@ A fictional **ramen & izakaya** group with two brands and three branches:
 | Brand owner | Kenji Sato | Tenka | `1234` |
 | Cashier | Akira Tanaka | Tenka KAMAJA | `1234` |
 
-Open `/login`. With `DEMO_MODE=1`, the login page also shows one-click demo shortcuts.
+Open `/login`. Demo shortcuts (one-click staff + PIN `1234`) appear in local development only; production never shows demo PINs.
 
 > With `DEMO_AUTO_RESET=1`, the demo resets its floor on the first request of each new day, even on a warm serverless instance. Leave `DEMO_AUTO_RESET=0` in production so clearing a queue stays cleared.
 
@@ -112,7 +112,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - **Circular brand avatars** on the picker, branch, brand and ticket surfaces.
 - QR poster uses a **1600px high-resolution, high-error-correction QR** and prints on A4 at 68mm.
 - Queue screen includes an owner QR-poster shortcut.
-- Live queue snapshot: **Queue A (1–2), Queue B (3+)**, now serving and branch status. No empty-table count.
+- Live queue snapshot: **one group by default**, now serving and branch status. Owners can switch to **two groups — A (1–2), B (3+)** in Settings. No empty-table count.
 - **Mobile-first join card comes first**: name, party size and “Ambil nomor antrean” before the long brand/queue details.
 - **“Saya hadir”** acknowledges the call; the owner chooses whether it stops the countdown or adds minutes.
 - Notification opt-in includes Firefox guidance (lock icon → Permissions → Notifications).
@@ -149,13 +149,13 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Brand → branch switcher; every view, report and QR link is branch-scoped.
 - Queue-focused KPIs: waiting, called, seated today, tables open.
 - Hourly service pulse (joined vs seated), floor map by zone, live queue, activity feed.
-- 7/30/90-day reports: joined, seated, attendance, no-shows, cancellations, CSV (incl. table, seat, PIC).
+- 7/30/90-day reports: joined, seated, attendance, no-shows, cancellations, CSV (incl. table, seat, PIC). Owners can switch to **all branches**; the view and CSV stay scoped to the branches they manage.
 - **Customers** page: contact, party, status, table/seat, opener/releaser PIC, join time, 1/7/30-day ranges.
 - Tables CRUD with capacity/zone and seated-table protection.
 - Team management: owner/greeter/cashier, brand + branch assignment, reset PIN, pause access, last-owner protection.
 - **Brands:** name, slug, Instagram, accent, logo upload, menu PDF upload.
 - **Branches:** create/edit name, slug, address, phone, timezone, hours, announcement.
-- Settings: identity, accent, timezone, hours, max party, queue cap, auto no-show, announcement, **seating mode** (queue-only, manual, or table plan), **call countdown**, and **what “Saya hadir” does** (stop or add minutes).
+- Settings: identity, accent, timezone, hours, max party, queue cap, auto no-show, announcement, **queue groups** (1 group by default, or split A/B), **seating mode** (queue-only, manual, or table plan), **call countdown**, and **what "Saya hadir" does** (stop or add minutes).
 - Printable A4 QR poster whose QR points at the branch URL.
 
 ## Stack

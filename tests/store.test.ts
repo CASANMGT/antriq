@@ -14,10 +14,12 @@ import {
   getBrandAsset,
   getHostState,
   getOwnerOverview,
+  getOwnerWeekForBranches,
   getPublicSnapshot,
   getReportCsv,
   getTicketView,
   joinQueue,
+  listBranches,
   listStaff,
   markNoShow,
   seatEntry,
@@ -45,9 +47,9 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(snapshot.branch.name).toBe("Nikumaru Blok M");
     expect(snapshot.brand?.name).toBe("Nikumaru");
     expect(snapshot.waiting).toBe(6);
-    expect(snapshot.waitingA + snapshot.waitingB).toBe(6);
-    expect(snapshot.waitingA).toBeGreaterThan(0);
-    expect(snapshot.waitingB).toBeGreaterThan(0);
+    expect(snapshot.branch.queueMode).toBe("single");
+    expect(snapshot.waitingA).toBe(6);
+    expect(snapshot.waitingB).toBe(0);
     expect(snapshot.availableTables).toBe(2);
     expect(snapshot.typicalWaitMinutes).toBeGreaterThan(5);
     expect(snapshot.lastCalledCode).toBe("B-005");
@@ -56,6 +58,32 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(await getBranchBySlugs("tenka", "kamaja")).not.toBeNull();
     expect(await getBranchBySlugs("tenka", "aeon-tanjung-barat")).not.toBeNull();
     expect(await getBranchBySlugs("tenka", "bintaro-xchange")).not.toBeNull();
+  });
+
+  it("uses one queue group by default and splits A/B only when enabled", async () => {
+    const branchId = await primaryBranchId();
+    const single = await joinQueue(branchId, { guestName: "Single Big", partySize: 4 });
+    expect(single.code).toMatch(/^A-\d{3,}$/);
+
+    await q("update branches set queue_mode = 'split' where id = $1", [branchId]);
+    const small = await joinQueue(branchId, { guestName: "Split Small", partySize: 2 });
+    const large = await joinQueue(branchId, { guestName: "Split Large", partySize: 4 });
+    expect(small.code).toMatch(/^A-\d{3,}$/);
+    expect(large.code).toMatch(/^B-\d{3,}$/);
+
+    const snapshot = await getPublicSnapshot(branchId);
+    expect(snapshot.branch.queueMode).toBe("split");
+    expect(snapshot.waitingA).toBeGreaterThan(0);
+    expect(snapshot.waitingB).toBeGreaterThan(0);
+  });
+
+  it("combines the daily report across all branches", async () => {
+    const branches = await listBranches();
+    expect(branches.length).toBeGreaterThanOrEqual(5);
+    const week = await getOwnerWeekForBranches(branches.map((branch) => branch.id), 7);
+    expect(week).toHaveLength(7);
+    expect(week.reduce((sum, day) => sum + day.joined, 0)).toBeGreaterThan(0);
+    expect(week.reduce((sum, day) => sum + day.seated, 0)).toBeGreaterThan(0);
   });
 
   it("verifies staff PINs and rejects the wrong one", async () => {
@@ -75,7 +103,7 @@ describe("store integration (PGlite + demo seed)", () => {
       phone: "081234567890",
       notes: "Window seat",
     });
-    expect(joined.code).toMatch(/^B-\d{3,}$/);
+    expect(joined.code).toMatch(/^A-\d{3,}$/);
     expect(joined.position).toBe(7);
 
     const view = await getTicketView(joined.token);

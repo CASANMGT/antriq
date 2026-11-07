@@ -4,7 +4,7 @@ import { ArrowLeft, Download, TrendingUp } from "lucide-react";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { WeekBars } from "@/components/owner/charts";
 import { Mascot } from "@/components/Mascot";
-import { getOwnerOverview } from "@/lib/store";
+import { getOwnerOverview, getOwnerWeekForBranches } from "@/lib/store";
 import { resolveOwnerScope } from "@/lib/scope";
 import { formatDayLong } from "@/lib/time";
 import { getLang } from "@/lib/lang";
@@ -27,11 +27,17 @@ export default async function ReportsPage({
   const params = await searchParams;
   const requested = Number(params.days ?? "7");
   const days = RANGES.includes(requested as (typeof RANGES)[number]) ? requested : 7;
-  const { active } = await resolveOwnerScope(params.branch);
-  const [overview, lang] = await Promise.all([getOwnerOverview(active.id, days), getLang()]);
+  const { branches, active } = await resolveOwnerScope(params.branch === "all" ? undefined : params.branch);
+  const canSeeAll = branches.length > 1;
+  const showAll = canSeeAll && params.branch === "all";
+  const [week, lang] = await Promise.all([
+    showAll
+      ? getOwnerWeekForBranches(branches.map((branch) => branch.id), days)
+      : getOwnerOverview(active.id, days).then((overview) => overview.week),
+    getLang(),
+  ]);
   const t = getDict(lang);
   const locale = lang === "id" ? "id-ID" : "en-GB";
-  const { week } = overview;
 
   const totals = week.reduce(
     (sum, day) => ({
@@ -60,19 +66,34 @@ export default async function ReportsPage({
           <p className="eyebrow mt-3 text-tomato">{t.owner.reportsKicker}</p>
           <h1 className="mt-1 font-display text-[2.5rem] font-semibold leading-none tracking-tight">{t.owner.reportsTitle}</h1>
           <p className="mt-2 text-sm font-semibold text-muted">
-            {active.brandName} · {active.name} · {format(t.owner.reportsSub, {
-              from: formatDayLong(week[0]?.day ?? "", locale),
-              to: formatDayLong(week[week.length - 1]?.day ?? "", locale),
-              days,
-            })}
+            {showAll
+              ? format(t.owner.reportsAllSub, {
+                  count: branches.length,
+                  from: formatDayLong(week[0]?.day ?? "", locale),
+                  to: formatDayLong(week[week.length - 1]?.day ?? "", locale),
+                  days,
+                })
+              : `${active.brandName} · ${active.name} · ${format(t.owner.reportsSub, {
+                  from: formatDayLong(week[0]?.day ?? "", locale),
+                  to: formatDayLong(week[week.length - 1]?.day ?? "", locale),
+                  days,
+                })}`}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {canSeeAll && (
+            <Link
+              href={`/dashboard/reports?days=${days}&branch=all`}
+              className={`btn btn-sm ${showAll ? "btn-primary" : "btn-soft"}`}
+            >
+              {t.owner.allBranches}
+            </Link>
+          )}
           <div className="flex rounded-full border-2 border-ink bg-white p-1">
             {RANGES.map((range) => (
               <Link
                 key={range}
-                href={`/dashboard/reports?days=${range}&branch=${active.id}`}
+                href={`/dashboard/reports?days=${range}&branch=${showAll ? "all" : active.id}`}
                 className={`rounded-full px-3 py-1.5 text-xs font-extrabold transition ${
                   range === days ? "bg-ink text-paper" : "text-muted hover:text-ink"
                 }`}
@@ -81,7 +102,7 @@ export default async function ReportsPage({
               </Link>
             ))}
           </div>
-          <a href={`/api/owner/export?days=${days}&branch=${active.id}`} className="btn btn-soft btn-sm" download>
+          <a href={`/api/owner/export?days=${days}&branch=${showAll ? "all" : active.id}`} className="btn btn-soft btn-sm" download>
             <Download className="size-3.5" /> {t.owner.exportCsv}
           </a>
         </div>

@@ -60,6 +60,7 @@ export function QueueCard({
   onNoShow,
   onUndo,
   manualMode = false,
+  showCategory = true,
 }: {
   entry: QueueEntry;
   position: number;
@@ -71,6 +72,7 @@ export function QueueCard({
   onNoShow: () => void;
   onUndo: () => void;
   manualMode?: boolean;
+  showCategory?: boolean;
 }) {
   const { t } = useLang();
   const called = entry.status === "called";
@@ -87,9 +89,11 @@ export function QueueCard({
             <span className="num rounded-md border-2 border-ink bg-ink px-1.5 py-0.5 text-[0.6875rem] font-extrabold tracking-wide text-paper">
               {entry.code}
             </span>
-            <span className="pill status-muted" title={entry.category === "A" ? t.guest.queueA : t.guest.queueB}>
-              {entry.category}
-            </span>
+            {showCategory && (
+              <span className="pill status-muted" title={entry.category === "A" ? t.guest.queueA : t.guest.queueB}>
+                {entry.category}
+              </span>
+            )}
             <span className="pill status-muted">{sourceLabel[entry.source] ?? entry.source}</span>
             {next && !called && (
               <span className="pill bg-tomato text-white">
@@ -281,10 +285,12 @@ export function SeatedCard({
   entry,
   busy,
   onRelease,
+  showCategory = true,
 }: {
   entry: QueueEntry;
   busy: boolean;
   onRelease: () => void;
+  showCategory?: boolean;
 }) {
   const { t } = useLang();
   return (
@@ -295,9 +301,11 @@ export function SeatedCard({
             <span className="num rounded-md border-2 border-ink bg-ink px-1.5 py-0.5 text-[0.6875rem] font-extrabold tracking-wide text-paper">
               {entry.code}
             </span>
-            <span className="pill status-muted" title={entry.category === "A" ? t.guest.queueA : t.guest.queueB}>
-              {entry.category}
-            </span>
+            {showCategory && (
+              <span className="pill status-muted" title={entry.category === "A" ? t.guest.queueA : t.guest.queueB}>
+                {entry.category}
+              </span>
+            )}
             <span className="pill status-seated">{t.ticket.seated}</span>
           </div>
           <h3 className="mt-2 truncate font-display text-[1.4rem] leading-tight tracking-tight">{entry.guestName}</h3>

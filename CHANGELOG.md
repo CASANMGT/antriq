@@ -10,6 +10,27 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.4.0] — 2026-11-07
+
+The **single-group queue + production access** release.
+
+### Added
+- **Queue groups** branch setting:
+  - **1 group (default)** — every guest joins one queue.
+  - **2 groups** — A for 1–2 guests, B for 3+ guests.
+- Guest join card, branch stats, ticket and host cards adapt to the selected queue group.
+- **All branches** report for owners, scoped to the branches they manage.
+- All-branch CSV export with a `branch` column.
+
+### Changed
+- Production login no longer shows the demo PIN shortcuts (`1234`). Demo shortcuts remain on local development only.
+- The AntriQ receipt mark is hidden on small screens so the wordmark reads clearly.
+- Single-group guest joins show a ticket icon instead of an “A/B” category badge.
+
+### Fixed
+- Report totals and daily chart can aggregate multiple branches without losing scope.
+- Larger tap targets for the subtle footer Staff link.
+
 ## [0.3.9] — 2026-11-07
 
 The **clean print + verified notifications** release.

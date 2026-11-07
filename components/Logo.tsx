@@ -56,7 +56,7 @@ export function Logo({
           height="17"
           viewBox="0 0 24 20"
           fill="none"
-          className="absolute -right-2.5 -bottom-1 rotate-[-12deg] transition-transform group-hover:rotate-0"
+          className="absolute -right-2.5 -bottom-1 hidden rotate-[-12deg] transition-transform group-hover:rotate-0 sm:block"
           aria-hidden="true"
         >
           <path

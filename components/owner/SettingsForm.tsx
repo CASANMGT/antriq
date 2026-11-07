@@ -91,7 +91,8 @@ export function SettingsForm({ branch }: { branch: Branch }) {
       maxPartySize: Number(form.get("maxPartySize")),
       maxQueueSize: Number(form.get("maxQueueSize")),
       autoNoShow: form.get("autoNoShow") === "on",
-      seatingMode: String(form.get("seatingMode") ?? "manual"),
+      seatingMode: String(form.get("seatingMode") ?? "queue"),
+      queueMode: String(form.get("queueMode") ?? "single"),
     });
     setSaving(false);
     setState({ ok: result.ok, message: result.ok ? t.owner.saved : result.message });
@@ -235,6 +236,14 @@ export function SettingsForm({ branch }: { branch: Branch }) {
                 <option value="plan">{t.owner.seatingPlan}</option>
               </select>
               <p className="mt-1.5 text-xs font-semibold leading-relaxed text-muted">{t.owner.seatingModeHint}</p>
+            </div>
+            <div className="sm:col-span-2">
+              <label className="label" htmlFor="queueMode">{t.owner.queueMode}</label>
+              <select id="queueMode" name="queueMode" className="input bg-white" defaultValue={branch.queueMode}>
+                <option value="single">{t.owner.queueModeSingle}</option>
+                <option value="split">{t.owner.queueModeSplit}</option>
+              </select>
+              <p className="mt-1.5 text-xs font-semibold leading-relaxed text-muted">{t.owner.queueModeHint}</p>
             </div>
           </div>
 

@@ -32,6 +32,7 @@ import type {
   PublicStaff,
   QueueCategory,
   QueueEntry,
+  QueueMode,
   QueueSource,
   Role,
   SeatingMode,
@@ -117,6 +118,7 @@ function mapBranch(row: Row): Branch {
     waitlistStatus: (row.waitlist_status ?? "open") as WaitlistStatus,
     pauseReason: row.pause_reason ?? null,
     seatingMode: (row.seating_mode ?? "queue") as SeatingMode,
+    queueMode: (row.queue_mode === "split" ? "split" : "single") as QueueMode,
     avgTurnMinutes: toNumber(row.avg_turn_minutes, 55),
     holdMinutes: toNumber(row.hold_minutes, 3),
     acknowledgeAction: (row.acknowledge_action === "extend" ? "extend" : "pause") as AcknowledgeAction,
@@ -426,7 +428,7 @@ export async function listBranches(brandId?: number): Promise<BranchSummary[]> {
     `select br.id, br.name, br.slug, br.brand_id, b.name as brand_name, b.slug as brand_slug,
             br.tagline, br.address, br.phone, br.timezone, br.open_time, br.close_time,
             coalesce(br.accent, b.accent) as accent, br.announcement, br.waitlist_status, br.seating_mode,
-            br.hold_minutes, br.acknowledge_action, br.acknowledge_minutes
+            br.queue_mode, br.hold_minutes, br.acknowledge_action, br.acknowledge_minutes
      from branches br join brands b on b.id = br.brand_id
      ${brandId ? "where br.brand_id = $1" : ""}
      order by b.name asc, br.name asc`,
@@ -449,6 +451,7 @@ export async function listBranches(brandId?: number): Promise<BranchSummary[]> {
     announcement: row.announcement ?? null,
     waitlistStatus: (row.waitlist_status ?? "open") as WaitlistStatus,
     seatingMode: (row.seating_mode ?? "queue") as SeatingMode,
+    queueMode: (row.queue_mode === "split" ? "split" : "single") as QueueMode,
     holdMinutes: toNumber(row.hold_minutes, 3),
     acknowledgeAction: (row.acknowledge_action === "extend" ? "extend" : "pause") as AcknowledgeAction,
     acknowledgeMinutes: toNumber(row.acknowledge_minutes, 3),
@@ -514,6 +517,7 @@ export interface BranchPatch {
   accent?: string | null;
   announcement?: string | null;
   seatingMode?: SeatingMode;
+  queueMode?: QueueMode;
   avgTurnMinutes?: number;
   holdMinutes?: number;
   acknowledgeAction?: AcknowledgeAction;
@@ -539,9 +543,9 @@ export async function createBranch(brandId: number, input: BranchPatch, actor: s
     const rows = await q<Row>(
       `insert into branches
         (brand_id, name, slug, tagline, address, phone, timezone, open_time, close_time, accent, announcement,
-         seating_mode, avg_turn_minutes, hold_minutes, acknowledge_action, acknowledge_minutes,
+         seating_mode, queue_mode, avg_turn_minutes, hold_minutes, acknowledge_action, acknowledge_minutes,
          max_party_size, max_queue_size, auto_no_show)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
        returning *`,
       [
         brandId,
@@ -556,6 +560,7 @@ export async function createBranch(brandId: number, input: BranchPatch, actor: s
         input.accent ? validateAccent(input.accent) : null,
         input.announcement ? cleanText(input.announcement, 300) : null,
         input.seatingMode === "plan" ? "plan" : input.seatingMode === "manual" ? "manual" : "queue",
+        input.queueMode === "split" ? "split" : "single",
         clampInt(input.avgTurnMinutes ?? 55, 10, 240, 55),
         clampInt(input.holdMinutes ?? 3, 2, 30, 3),
         input.acknowledgeAction === "extend" ? "extend" : "pause",
@@ -599,6 +604,8 @@ export async function updateBranch(
           : patch.seatingMode === "queue"
             ? "queue"
             : current.seatingMode,
+    queueMode:
+      patch.queueMode === "split" ? "split" : patch.queueMode === "single" ? "single" : current.queueMode,
     avgTurnMinutes: clampInt(patch.avgTurnMinutes ?? current.avgTurnMinutes, 10, 240, current.avgTurnMinutes),
     holdMinutes: clampInt(patch.holdMinutes ?? current.holdMinutes, 2, 30, current.holdMinutes),
     acknowledgeAction:
@@ -631,7 +638,7 @@ export async function updateBranch(
       `update branches set name=$2, slug=$3, tagline=$4, address=$5, phone=$6, timezone=$7,
         open_time=$8, close_time=$9, accent=$10, announcement=$11, seating_mode=$12, avg_turn_minutes=$13,
         hold_minutes=$14, acknowledge_action=$15, acknowledge_minutes=$16,
-        max_party_size=$17, max_queue_size=$18, auto_no_show=$19, updated_at=now()
+        max_party_size=$17, max_queue_size=$18, auto_no_show=$19, queue_mode=$20, updated_at=now()
        where id=$1 returning *`,
       [
         branchId,
@@ -653,6 +660,7 @@ export async function updateBranch(
         next.maxPartySize,
         next.maxQueueSize,
         next.autoNoShow,
+        next.queueMode,
       ],
     );
     await logActivity(null, branchId, "settings", actor, { note: "Branch settings updated" });
@@ -964,8 +972,10 @@ export async function getPublicSnapshot(branchId: number): Promise<PublicSnapsho
   const tables = await listTables(branchId);
   const entries = await entriesForDay(branchId, today);
   const waiting = orderWaiting(entries.filter((entry) => entry.status === "waiting"));
-  const waitingA = waiting.filter((entry) => entry.category === "A").length;
-  const waitingB = waiting.filter((entry) => entry.category === "B").length;
+  const waitingA =
+    branch.queueMode === "single" ? waiting.length : waiting.filter((entry) => entry.category === "A").length;
+  const waitingB =
+    branch.queueMode === "single" ? 0 : waiting.filter((entry) => entry.category === "B").length;
   const lastCalledRows = await q<Row>(
     `select code from queue_entries
      where branch_id = $1 and day = $2::date and status = 'called' and called_at is not null
@@ -1106,7 +1116,7 @@ export async function joinQueue(branchId: number, input: JoinInput, allowPaused 
     );
     const seq = toNumber(seqRows[0]?.last_seq, 1);
     const token = randomBytes(18).toString("base64url");
-    const category: QueueCategory = partySize <= 2 ? "A" : "B";
+    const category: QueueCategory = branch.queueMode === "single" ? "A" : partySize <= 2 ? "A" : "B";
     const code = codeFor(seq, category);
 
     const inserted = await db.query<Row>(
@@ -1706,8 +1716,56 @@ export async function deleteTable(branchId: number, id: number, actor: string): 
 
 /* ------------------------------ reporting -------------------------------- */
 
-export async function getOwnerOverview(branchId: number, days = 7): Promise<OwnerOverview> {
-  await ensureDemoDay();
+/**
+ * Combine the daily report for several branches. Used by the platform owner's
+ * all-branch report; branch owners stay scoped to their own branches.
+ */
+export async function getOwnerWeekForBranches(branchIds: number[], days = 7): Promise<DayPoint[]> {
+  const wanted = Array.from(new Set(branchIds.filter((id) => Number.isInteger(id) && id > 0)));
+  if (wanted.length === 0) return [];
+
+  const overviews = await Promise.all(wanted.map((id) => getOwnerOverview(id, days)));
+  const byDay = new Map<string, DayPoint>();
+  const waitWeight = new Map<string, { total: number; count: number }>();
+  const turnWeight = new Map<string, { total: number; count: number }>();
+
+  for (const overview of overviews) {
+    for (const point of overview.week) {
+      const current =
+        byDay.get(point.day) ??
+        ({ day: point.day, joined: 0, seated: 0, noShow: 0, cancelled: 0, avgWaitMinutes: 0, avgTurnMinutes: 0 } as DayPoint);
+      current.joined += point.joined;
+      current.seated += point.seated;
+      current.noShow += point.noShow;
+      current.cancelled += point.cancelled;
+      byDay.set(point.day, current);
+
+      const wait = waitWeight.get(point.day) ?? { total: 0, count: 0 };
+      wait.total += point.avgWaitMinutes * point.seated;
+      wait.count += point.seated;
+      waitWeight.set(point.day, wait);
+
+      const turn = turnWeight.get(point.day) ?? { total: 0, count: 0 };
+      turn.total += point.avgTurnMinutes * point.seated;
+      turn.count += point.seated;
+      turnWeight.set(point.day, turn);
+    }
+  }
+
+  return [...byDay.values()]
+    .sort((a, b) => a.day.localeCompare(b.day))
+    .map((point) => {
+      const wait = waitWeight.get(point.day);
+      const turn = turnWeight.get(point.day);
+      return {
+        ...point,
+        avgWaitMinutes: wait && wait.count ? Math.round(wait.total / wait.count) : 0,
+        avgTurnMinutes: turn && turn.count ? Math.round(turn.total / turn.count) : 0,
+      };
+    });
+}
+
+export async function getOwnerOverview(branchId: number, days = 7): Promise<OwnerOverview> {  await ensureDemoDay();
   const branch = await getBranch(branchId);
   const brand = await getBrand(branch.brandId);
   await expireHolds(branchId);
@@ -1851,6 +1909,66 @@ export async function getReportCsv(branchId: number, days = 30): Promise<string>
     const turn = seated && closed ? minutesBetween(seated, closed) : "";
     lines.push(
       [
+        row.code,
+        row.day_text,
+        row.guest_name,
+        row.phone ?? "",
+        row.party_size,
+        row.source,
+        row.status,
+        joined ?? "",
+        toIso(row.called_at) ?? "",
+        seated ?? "",
+        closed ?? "",
+        row.table_label ?? "",
+        row.seat_number ?? "",
+        row.opened_by ?? "",
+        row.released_by ?? "",
+        wait,
+        turn,
+        row.notes ?? "",
+      ]
+        .map((value) => csvCell(value))
+        .join(","),
+    );
+  }
+  return `\uFEFF${lines.join("\r\n")}`;
+}
+
+export async function getReportCsvForBranches(branchIds: number[], days = 30): Promise<string> {
+  const wanted = Array.from(new Set(branchIds.filter((id) => Number.isInteger(id) && id > 0)));
+  if (wanted.length === 0) return "\uFEFF";
+  const first = await getBranch(wanted[0]);
+  const windowDays = Math.min(90, Math.max(1, Math.round(days)));
+  const today = dayInTz(new Date(), first.timezone);
+  const startDay = addDaysToDay(today, -(windowDays - 1));
+  const rows = await q<Row>(
+    `select qe.code, to_char(qe.day, 'YYYY-MM-DD') as day_text, br.name as branch_name, qe.guest_name, qe.phone,
+            qe.party_size, qe.source, qe.status, qe.seat_number, qe.opened_by,
+            qe.released_by, qe.joined_at, qe.called_at, qe.seated_at, qe.closed_at, qe.notes, t.label as table_label
+     from queue_entries qe
+     join branches br on br.id = qe.branch_id
+     left join dining_tables t on t.id = qe.table_id
+     where qe.branch_id = any($1::int[]) and qe.day >= $2::date
+     order by qe.joined_at asc`,
+    [wanted, startDay],
+  );
+
+  const header = [
+    "branch", "code", "day", "guest", "phone", "party_size", "source", "status",
+    "joined_at", "called_at", "seated_at", "closed_at", "table", "seat", "opened_by", "released_by",
+    "wait_min", "turn_min", "notes",
+  ];
+  const lines = [header.join(",")];
+  for (const row of rows) {
+    const joined = toIso(row.joined_at);
+    const seated = toIso(row.seated_at);
+    const closed = toIso(row.closed_at);
+    const wait = joined && seated ? minutesBetween(joined, seated) : "";
+    const turn = seated && closed ? minutesBetween(seated, closed) : "";
+    lines.push(
+      [
+        row.branch_name,
         row.code,
         row.day_text,
         row.guest_name,

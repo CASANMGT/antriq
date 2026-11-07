@@ -506,6 +506,7 @@ export function HostBoard({
                     onNoShow={() => setNoShowTarget(entry)}
                     onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
                     manualMode={manual}
+                    showCategory={state.branch.queueMode === "split"}
                   />
                 ))
               )}
@@ -541,6 +542,7 @@ export function HostBoard({
                     onNoShow={() => setNoShowTarget(entry)}
                     onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
                     manualMode={manual}
+                    showCategory={state.branch.queueMode === "split"}
                   />
                 ))
               )}
@@ -581,6 +583,7 @@ export function HostBoard({
                       entry={entry}
                       busy={pending}
                       onRelease={() => setReleaseEntryTarget(entry)}
+                      showCategory={state.branch.queueMode === "split"}
                     />
                   ))
                 )}

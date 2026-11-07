@@ -36,6 +36,7 @@ export default async function LoginPage({
   ]);
   const t = getDict(lang);
   const safeNext = next === "/host" || next === "/dashboard" ? next : "";
+  const demoLogins = isDemoMode() && process.env.NODE_ENV !== "production";
 
   return (
     <main className="grid min-h-[100dvh] lg:grid-cols-[1.02fr_0.98fr]">
@@ -94,7 +95,7 @@ export default async function LoginPage({
           <p className="mt-3 text-sm font-semibold leading-relaxed text-muted">{t.login.subtitle}</p>
 
           <div className="mt-8">
-            <LoginForm staff={staff} next={safeNext} demo={isDemoMode()} />
+            <LoginForm staff={staff} next={safeNext} demo={demoLogins} />
           </div>
 
           <div className="mt-8 flex items-center justify-between text-xs font-semibold text-muted">
