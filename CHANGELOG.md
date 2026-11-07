@@ -10,6 +10,15 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.7.3] — 2026-11-07
+
+The **handover session hardening** release.
+
+### Fixed
+- Staff sessions now re-check the live staff record.
+- Pausing a staff member or changing their role takes effect on the next request.
+- Inactive or deleted staff can no longer keep an old session.
+
 ## [0.7.2] — 2026-11-07
 
 The **ticket identity** release.

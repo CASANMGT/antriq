@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
+import { q } from "./db";
 import type { Role } from "./types";
 
 export const SESSION_COOKIE = "antriq_session";
@@ -59,7 +60,28 @@ export function decodeSession(token: string | undefined): Session | null {
 
 export async function getSession(): Promise<Session | null> {
   const store = await cookies();
-  return decodeSession(store.get(SESSION_COOKIE)?.value);
+  const decoded = decodeSession(store.get(SESSION_COOKIE)?.value);
+  if (!decoded) return null;
+
+  const rows = await q<{
+    name: string;
+    role: Role;
+    initials: string | null;
+    brand_id: number | null;
+    branch_id: number | null;
+    active: boolean;
+  }>("select name, role, initials, brand_id, branch_id, active from staff where id = $1", [decoded.staffId]);
+  const row = rows[0];
+  if (!row || !row.active) return null;
+
+  return {
+    ...decoded,
+    name: String(row.name),
+    role: row.role,
+    initials: row.initials ?? null,
+    brandId: row.brand_id ?? null,
+    branchId: row.branch_id ?? null,
+  };
 }
 
 export async function setSession(session: Omit<Session, "exp">): Promise<void> {

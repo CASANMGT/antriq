@@ -8,7 +8,7 @@ npm test         # 35 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **7 Nov 2026** — lint clean, 35/35 tests passing, production build green (v0.7.2 ticket identity).
+Last run: **7 Nov 2026** — lint clean, 35/35 tests passing, production build green (v0.7.3 handover hardening).
 
 ### Notification delivery QA
 
@@ -73,6 +73,13 @@ Last run: **7 Nov 2026** — lint clean, 35/35 tests passing, production build g
 - Ticket displays the guest’s entered **name** and **phone number**.
 - Long names wrap; long phone numbers remain fully visible.
 - Both are checked at 390 and 320 px with no overflow.
+
+### Handover session hardening
+
+- Pausing a staff member invalidates their existing session on the next request.
+- Changing a staff role/scope takes effect on the next request.
+- Deleted/inactive staff cannot keep an old session.
+- To revoke a compromised session immediately, pause the staff account (PIN reset alone does not end an existing session).
 
 ### Duplicate ticket protection
 

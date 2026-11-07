@@ -16,6 +16,21 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.7.3",
+    date: "2026-11-07",
+    title: "Handover session hardening",
+    sections: [
+      {
+        label: "Fixed",
+        items: [
+          "Staff sessions now re-check the live staff record.",
+          "Pausing a staff member or changing their role takes effect on the next request.",
+          "Inactive or deleted staff can no longer keep an old session.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.7.2",
     date: "2026-11-07",
     title: "Guest details on the ticket",
