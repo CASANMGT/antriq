@@ -409,6 +409,7 @@ export function HostBoard({
       </header>
 
       <main className="mx-auto max-w-[1500px] px-3 pb-28 pt-4 sm:px-5 lg:pb-8">
+        <NotificationPrompt variant="banner" />
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="eyebrow text-ink/45">{formatDayLong(dayInTz(new Date(), branch.timezone), locale)}</p>
