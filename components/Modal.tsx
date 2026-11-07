@@ -36,14 +36,19 @@ export function Modal({
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    // Focus the panel only when focus is not already inside the dialog.
-    // Never steal focus from an input, select or textarea after the user
-    // has started interacting with the form.
+    // Focus the first field once when the dialog opens. Never refocus the
+    // panel or fields after that: re-focusing on render is what made inputs
+    // appear to accept only one character at a time.
     const timer = window.setTimeout(() => {
       const panel = panelRef.current;
       if (!panel) return;
       if (panel.contains(document.activeElement)) return;
-      panel.focus();
+      const field = panel.querySelector<HTMLElement>("input:not([type='hidden']), select, textarea");
+      if (field) {
+        field.focus({ preventScroll: true });
+        return;
+      }
+      panel.focus({ preventScroll: true });
     }, 30);
 
     return () => {
