@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { TeamManager } from "@/components/owner/TeamManager";
-import { listBrands, listStaff } from "@/lib/store";
+import { countStaffWithPin, listBrands, listStaff } from "@/lib/store";
 import { resolveOwnerScope } from "@/lib/scope";
 
 export const dynamic = "force-dynamic";
@@ -34,12 +34,15 @@ export default async function TeamPage({
       ? all.filter((person) => person.brandId === session.brandId)
       : all;
 
+  const demoPinCount = await countStaffWithPin("1234", staff.map((person) => person.id));
+
   return (
     <TeamManager
       staff={staff}
       brands={brands.map((brand) => ({ id: brand.id, name: brand.name }))}
       branches={branches}
       defaultBranchId={active.id}
+      demoPinCount={demoPinCount}
       scope={{ role: session.role, brandId: session.brandId ?? null, branchId: session.branchId ?? null }}
     />
   );

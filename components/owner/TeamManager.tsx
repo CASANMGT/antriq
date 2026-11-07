@@ -28,12 +28,14 @@ export function TeamManager({
   brands,
   branches,
   defaultBranchId,
+  demoPinCount,
   scope,
 }: {
   staff: StaffRow[];
   brands: { id: number; name: string }[];
   branches: BranchSummary[];
   defaultBranchId: number;
+  demoPinCount: number;
   scope: { role: Role; brandId: number | null; branchId: number | null };
 }) {
   const router = useRouter();
@@ -164,6 +166,15 @@ export function TeamManager({
         <Stat icon={UserRound} label={t.owner.greeters} value={greeters.length} hint={t.owner.greeterAccess} tone="bg-leaf-soft" />
         <Stat icon={Store} label={t.owner.cashiers} value={cashiers.length} hint={t.owner.cashierAccess} tone="bg-white" />
       </div>
+
+      {demoPinCount > 0 && (
+        <div className="rounded-2xl border-2 border-ink bg-butter px-4 py-3.5 shadow-[3px_3px_0_#262321]">
+          <p className="font-display text-xl leading-tight">{t.owner.demoPinWarningTitle}</p>
+          <p className="mt-1 text-xs font-semibold leading-relaxed text-ink/70">
+            {format(t.owner.demoPinWarningBody, { count: demoPinCount })}
+          </p>
+        </div>
+      )}
 
       <section className="card overflow-hidden">
         <div className="border-b-2 border-ink bg-cream/70 px-4 py-3 sm:px-5">

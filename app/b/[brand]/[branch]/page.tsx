@@ -412,7 +412,7 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
         <div className="flex items-center gap-3">
           <Logo compact href={brand ? `/b/${brand.slug}` : "/"} />
           <span>
-            {t.guest.footerTagline} · {t.guest.footerDemo}: {branch.name}.
+            {t.guest.footerTagline} · {branch.name}.
           </span>
         </div>
         <div className="flex items-center gap-4">

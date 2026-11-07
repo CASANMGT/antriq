@@ -690,6 +690,13 @@ export async function listStaffPublic(): Promise<PublicStaff[]> {
   return rows.map(mapStaff);
 }
 
+export async function countStaffWithPin(pin: string, ids?: number[]): Promise<number> {
+  const rows = await q<Row>("select id, pin_hash from staff where active = true");
+  const wanted = ids ? new Set(ids) : null;
+  const { verifyPin } = await import("./pin");
+  return rows.filter((row) => (!wanted || wanted.has(toNumber(row.id))) && verifyPin(pin, String(row.pin_hash))).length;
+}
+
 export async function listStaff(): Promise<(PublicStaff & { active: boolean; createdAt: string })[]> {
   const rows = await q<Row>(
     `select s.id, s.name, s.role, s.initials, s.brand_id, s.branch_id, s.active, s.created_at,
