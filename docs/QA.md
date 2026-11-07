@@ -4,11 +4,11 @@
 
 ```bash
 npm run lint     # ESLint, Next 16 + React 19 rules
-npm test         # 28 domain + integration tests on PGlite
+npm test         # 29 domain + integration tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **7 Nov 2026** — lint clean, 28/28 tests passing, production build green (v0.4.0 queue groups + production access).
+Last run: **7 Nov 2026** — lint clean, 29/29 tests passing, production build green (v0.5.0 manager role + mobile polish).
 
 ### Notification delivery QA
 
@@ -36,6 +36,17 @@ Last run: **7 Nov 2026** — lint clean, 28/28 tests passing, production build g
 - Local development still renders the demo shortcuts.
 - Platform owner sees **all branches** in Laporan; a brand owner sees only their brand’s branches; host/cashier cannot open Laporan.
 - “All branches” CSV includes a `branch` column and only in-scope branches.
+
+### Manager role
+
+- Manager logs in and lands on the dashboard.
+- Owns no admin navigation: Team, Settings, Tables, Brands and Branches are hidden.
+- Direct visits to those pages redirect to `/dashboard`.
+- Manager can open the host stand for any covered branch and call/seat guests.
+- `POST /api/owner/action` returns **401** for a manager.
+- Laporan “all branches” and CSV stay scoped to covered branches.
+- Toast floats above the mobile bottom navigation (33 px gap at 390 × 844).
+- Branch page logo links to `/b/{brand}`, not the global picker.
 
 ### Deployment verification
 

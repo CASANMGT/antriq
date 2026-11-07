@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { SettingsForm } from "@/components/owner/SettingsForm";
 import { getBranch } from "@/lib/store";
 import { resolveOwnerScope } from "@/lib/scope";
@@ -16,7 +17,8 @@ export default async function SettingsPage({
   searchParams: Promise<{ branch?: string }>;
 }) {
   const params = await searchParams;
-  const { active } = await resolveOwnerScope(params.branch);
+  const { session, active } = await resolveOwnerScope(params.branch);
+  if (session.role !== "owner") redirect("/dashboard");
   const branch = await getBranch(active.id);
   return <SettingsForm branch={branch} />;
 }

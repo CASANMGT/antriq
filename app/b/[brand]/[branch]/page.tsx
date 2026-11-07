@@ -87,7 +87,7 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
       <div className="pointer-events-none absolute -left-24 top-[42rem] size-64 rounded-full bg-cream" />
 
       <header className="relative mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-4 sm:px-8">
-        <Logo />
+        <Logo href={brand ? `/b/${brand.slug}` : "/"} />
         <div className="flex items-center gap-2">
           <span className={`pill ${statusTone} hidden md:inline-flex`}>
             {statusTone === "status-seated" && <span className="live-dot" />}
@@ -371,7 +371,7 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
 
       <footer className="relative mx-auto flex max-w-6xl flex-col gap-4 px-5 py-8 text-xs font-semibold text-muted sm:flex-row sm:items-center sm:justify-between sm:px-8">
         <div className="flex items-center gap-3">
-          <Logo compact />
+          <Logo compact href={brand ? `/b/${brand.slug}` : "/"} />
           <span>
             {t.guest.footerTagline} · {t.guest.footerDemo}: {branch.name}.
           </span>

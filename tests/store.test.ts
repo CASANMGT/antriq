@@ -8,8 +8,12 @@ import {
   acknowledgeTicket,
   callEntry,
   callNext,
+  canManageBranch,
+  canManageBrand,
+  canOperateBranch,
   cancelTicket,
   clearTable,
+  createStaff,
   getBranchBySlugs,
   getBrandAsset,
   getHostState,
@@ -20,6 +24,7 @@ import {
   getTicketView,
   joinQueue,
   listBranches,
+  listBranchesForStaff,
   listStaff,
   markNoShow,
   seatEntry,
@@ -84,6 +89,29 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(week).toHaveLength(7);
     expect(week.reduce((sum, day) => sum + day.joined, 0)).toBeGreaterThan(0);
     expect(week.reduce((sum, day) => sum + day.seated, 0)).toBeGreaterThan(0);
+  });
+
+  it("seeds a manager who monitors every branch without admin rights", async () => {
+    const people = await listStaff();
+    const manager = people.find((person) => person.name === "Rina Manager");
+    expect(manager?.role).toBe("manager");
+    expect(await verifyStaffPin(manager!.id, "1234")).toBeTruthy();
+
+    const branches = await listBranchesForStaff(manager!);
+    expect(branches.length).toBeGreaterThanOrEqual(5);
+    const branchId = await primaryBranchId();
+    expect(await canOperateBranch(manager!, branchId)).toBe(true);
+    expect(await canManageBranch(manager!, branchId)).toBe(false);
+    expect(await canManageBrand(manager!, branches[0].brandId)).toBe(false);
+
+    const created = await createStaff(
+      { name: "Second Manager", role: "manager", pin: "4321", brandId: null, branchId: null },
+      "Iwanna",
+    );
+    expect(created.ok).toBe(true);
+    const second = (await listStaff()).find((person) => person.name === "Second Manager");
+    expect(second?.role).toBe("manager");
+    expect(second?.branchId).toBeNull();
   });
 
   it("verifies staff PINs and rejects the wrong one", async () => {

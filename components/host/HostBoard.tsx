@@ -329,7 +329,9 @@ export function HostBoard({
                     ? t.login.cashierRole
                     : staff.role === "owner"
                       ? t.login.ownerRole
-                      : t.login.greeterRole}
+                      : staff.role === "manager"
+                        ? t.login.managerRole
+                        : t.login.greeterRole}
                 </span>
               </div>
             </div>
@@ -371,7 +373,7 @@ export function HostBoard({
             >
               {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
             </button>
-            {staff.role === "owner" && (
+            {(staff.role === "owner" || staff.role === "manager") && (
               <>
                 <Link
                   href={`/dashboard?branch=${activeBranchId}`}
@@ -676,8 +678,8 @@ export function HostBoard({
               <Link
                 href={`/dashboard?branch=${activeBranchId}`}
                 className="flex shrink-0 items-center justify-center rounded-full p-2 text-ink/60 transition hover:bg-white"
-                aria-label={t.owner.owner}
-                title={t.owner.owner}
+                aria-label={t.owner.overview}
+                title={t.owner.overview}
               >
                 <LayoutDashboard className="size-4" />
               </Link>

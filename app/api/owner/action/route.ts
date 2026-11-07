@@ -242,7 +242,13 @@ export async function POST(request: Request) {
       }
       case "staffCreate": {
         const role: Role =
-          body.role === "owner" ? "owner" : body.role === "cashier" ? "cashier" : "greeter";
+          body.role === "owner"
+            ? "owner"
+            : body.role === "manager"
+              ? "manager"
+              : body.role === "cashier"
+                ? "cashier"
+                : "greeter";
         let brandId = body.brandId ? Number(body.brandId) : null;
         let branchId = body.branchId ? Number(body.branchId) : null;
 
@@ -266,7 +272,7 @@ export async function POST(request: Request) {
           // Platform owner may create brand owners (brand set) or another platform owner.
         }
 
-        if (role !== "owner" && !branchId) {
+        if ((role === "greeter" || role === "cashier") && !branchId) {
           return json({ ok: false, message: "Greeters and cashiers need a branch." });
         }
         if (brandId) await guardBrand(brandId);
@@ -290,7 +296,13 @@ export async function POST(request: Request) {
         if (!Number.isInteger(staffId) || staffId <= 0) return json({ ok: false, message: "Choose a team member." });
         const person = await targetStaffInScope(staffId);
         const role: Role =
-          body.role === "owner" ? "owner" : body.role === "cashier" ? "cashier" : "greeter";
+          body.role === "owner"
+            ? "owner"
+            : body.role === "manager"
+              ? "manager"
+              : body.role === "cashier"
+                ? "cashier"
+                : "greeter";
         let brandId = body.brandId ? Number(body.brandId) : null;
         let branchId = body.branchId ? Number(body.branchId) : null;
 
@@ -310,7 +322,7 @@ export async function POST(request: Request) {
             return json({ ok: false, message: "Brand owners manage their own brand." });
           }
         }
-        if (role !== "owner" && !branchId) {
+        if ((role === "greeter" || role === "cashier") && !branchId) {
           return json({ ok: false, message: "Greeters and cashiers need a branch." });
         }
         if (brandId) await guardBrand(brandId);

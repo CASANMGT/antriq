@@ -20,7 +20,7 @@ import { Logo } from "@/components/Logo";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLang } from "@/components/LanguageProvider";
 import { logoutAction } from "@/app/actions/auth";
-import type { BranchSummary } from "@/lib/types";
+import type { BranchSummary, Role } from "@/lib/types";
 
 function withBranch(href: string, branchId: number): string {
   return `${href}${href.includes("?") ? "&" : "?"}branch=${branchId}`;
@@ -33,12 +33,13 @@ export function OwnerShell({
 }: {
   children: React.ReactNode;
   branches: BranchSummary[];
-  session: { name: string; initials: string | null };
+  session: { name: string; initials: string | null; role: Role };
 }) {
   const pathname = usePathname();
   const router = useRouter();
   const params = useSearchParams();
   const { t } = useLang();
+  const isOwner = session.role === "owner";
 
   const requested = Number(params.get("branch") ?? "");
   const active = branches.find((branch) => branch.id === requested) ?? branches[0];
@@ -60,16 +61,20 @@ export function OwnerShell({
         { href: withBranch("/dashboard/team", active.id), base: "/dashboard/team", label: t.owner.team, icon: Users },
         { href: withBranch("/dashboard/settings", active.id), base: "/dashboard/settings", label: t.owner.settings, icon: Settings },
         { href: withBranch("/dashboard/qr", active.id), base: "/dashboard/qr", label: t.owner.qr, icon: QrCode },
-      ],
+      ].filter((item) =>
+        isOwner || !["/dashboard/tables", "/dashboard/team", "/dashboard/settings"].includes(item.base),
+      ),
     },
     {
       label: t.owner.navBusiness,
-      items: [
-        { href: withBranch("/dashboard/brands", active.id), base: "/dashboard/brands", label: t.owner.brands, icon: Store },
-        { href: withBranch("/dashboard/branches", active.id), base: "/dashboard/branches", label: t.owner.branches, icon: Building2 },
-      ],
+      items: isOwner
+        ? [
+            { href: withBranch("/dashboard/brands", active.id), base: "/dashboard/brands", label: t.owner.brands, icon: Store },
+            { href: withBranch("/dashboard/branches", active.id), base: "/dashboard/branches", label: t.owner.branches, icon: Building2 },
+          ]
+        : [],
     },
-  ];
+  ].filter((section) => section.items.length > 0);
 
   function switchBranch(branchId: number) {
     router.push(withBranch(pathname, branchId));
@@ -164,7 +169,7 @@ export function OwnerShell({
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-extrabold text-ink">{session.name}</p>
-              <p className="text-[0.625rem] font-semibold text-muted">{t.owner.owner}</p>
+              <p className="text-[0.625rem] font-semibold text-muted">{isOwner ? t.owner.owner : t.login.managerRole}</p>
             </div>
             <form action={logoutAction}>
               <button

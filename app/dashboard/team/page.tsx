@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { TeamManager } from "@/components/owner/TeamManager";
 import { listBrands, listStaff } from "@/lib/store";
 import { resolveOwnerScope } from "@/lib/scope";
@@ -17,6 +18,7 @@ export default async function TeamPage({
 }) {
   const params = await searchParams;
   const { session, branches, active } = await resolveOwnerScope(params.branch);
+  if (session.role !== "owner") redirect("/dashboard");
 
   const allBrands = await listBrands();
   const brands = session.brandId

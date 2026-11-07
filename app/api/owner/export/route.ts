@@ -1,12 +1,12 @@
 import { getSession } from "@/lib/auth";
-import { canManageBranch, getReportCsv, getReportCsvForBranches, listBranchesForStaff } from "@/lib/store";
+import { getReportCsv, getReportCsvForBranches, listBranchesForStaff } from "@/lib/store";
 import { PRIMARY_BRANCH_ID } from "@/lib/schema";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const session = await getSession();
-  if (!session || session.role !== "owner") {
+  if (!session || (session.role !== "owner" && session.role !== "manager")) {
     return new Response("Unauthorised", { status: 401 });
   }
 
@@ -32,7 +32,7 @@ export async function GET(request: Request) {
   const requested = Number(rawBranch ?? "");
   const branchId =
     Number.isInteger(requested) && requested > 0 ? requested : session.branchId ?? branches[0]?.id ?? PRIMARY_BRANCH_ID;
-  if (!(await canManageBranch(session, branchId))) {
+  if (!branches.some((branch) => branch.id === branchId)) {
     return new Response("Forbidden", { status: 403 });
   }
 

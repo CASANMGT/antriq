@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { getOwnerOverview, listBranchesForStaff, canManageBranch } from "@/lib/store";
+import { getOwnerOverview, listBranchesForStaff } from "@/lib/store";
 import { PRIMARY_BRANCH_ID } from "@/lib/schema";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const session = await getSession();
-  if (!session || session.role !== "owner") {
+  if (!session || (session.role !== "owner" && session.role !== "manager")) {
     return NextResponse.json({ error: "unauthorised" }, { status: 401 });
   }
 
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   const branches = await listBranchesForStaff(session);
   const branchId = Number.isInteger(requested) && requested > 0 ? requested : session.branchId ?? branches[0]?.id ?? PRIMARY_BRANCH_ID;
 
-  if (!(await canManageBranch(session, branchId))) {
+  if (!branches.some((branch) => branch.id === branchId)) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 

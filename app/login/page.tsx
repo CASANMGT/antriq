@@ -25,7 +25,7 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string }>;
 }) {
   const session = await getSession();
-  if (session) redirect(session.role === "owner" ? "/dashboard" : "/host");
+  if (session) redirect(session.role === "owner" || session.role === "manager" ? "/dashboard" : "/host");
 
   const { next } = await searchParams;
   const primary = await getPrimaryBranch();

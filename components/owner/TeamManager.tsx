@@ -54,6 +54,7 @@ export function TeamManager({
 
   const active = staff.filter((person) => person.active);
   const owners = staff.filter((person) => person.role === "owner");
+  const managers = staff.filter((person) => person.role === "manager");
   const greeters = staff.filter((person) => person.role === "greeter");
   const cashiers = staff.filter((person) => person.role === "cashier");
 
@@ -127,7 +128,13 @@ export function TeamManager({
   }
 
   function roleLabel(role: Role): string {
-    return role === "owner" ? t.login.ownerRole : role === "cashier" ? t.login.cashierRole : t.login.greeterRole;
+    return role === "owner"
+      ? t.login.ownerRole
+      : role === "manager"
+        ? t.login.managerRole
+        : role === "cashier"
+          ? t.login.cashierRole
+          : t.login.greeterRole;
   }
 
   return (
@@ -137,7 +144,12 @@ export function TeamManager({
           <p className="eyebrow text-tomato">{t.owner.teamKicker}</p>
           <h1 className="mt-1 font-display text-[2.5rem] font-semibold leading-none tracking-tight">{t.owner.teamTitle}</h1>
           <p className="mt-2 text-sm font-semibold text-muted">
-            {format(t.owner.teamSub, { active: active.length, owners: owners.length, greeters: greeters.length + cashiers.length })}
+            {format(t.owner.teamSub, {
+              active: active.length,
+              owners: owners.length,
+              managers: managers.length,
+              greeters: greeters.length + cashiers.length,
+            })}
           </p>
         </div>
         <button type="button" className="btn btn-primary btn-sm" onClick={openCreate}>
@@ -145,9 +157,10 @@ export function TeamManager({
         </button>
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-5">
         <Stat icon={Users} label={t.owner.activeAccess} value={active.length} tone="bg-pink" />
         <Stat icon={Shield} label={t.owner.owners} value={owners.length} hint={t.owner.ownerAccess} tone="bg-cream" />
+        <Stat icon={UserRound} label={t.owner.managers} value={managers.length} hint={t.owner.managerAccess} tone="bg-butter" />
         <Stat icon={UserRound} label={t.owner.greeters} value={greeters.length} hint={t.owner.greeterAccess} tone="bg-leaf-soft" />
         <Stat icon={Store} label={t.owner.cashiers} value={cashiers.length} hint={t.owner.cashierAccess} tone="bg-white" />
       </div>
@@ -170,7 +183,7 @@ export function TeamManager({
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-sm font-extrabold">{person.name}</p>
-                  <span className={`pill ${person.role === "owner" ? "status-called" : "status-muted"}`}>
+                  <span className={`pill ${person.role === "owner" ? "status-called" : person.role === "manager" ? "status-waiting" : "status-muted"}`}>
                     {roleLabel(person.role)}
                   </span>
                   {!person.active && <span className="pill status-muted">{t.owner.paused}</span>}
@@ -264,7 +277,9 @@ export function TeamManager({
               >
                 <option value="greeter">{t.login.greeterRole}</option>
                 <option value="cashier">{t.login.cashierRole}</option>
+                {canOwners && <option value="manager">{t.login.managerRole}</option>}
                 {canOwners && <option value="owner">{t.login.ownerRole}</option>}
+                {!canOwners && draft.role === "manager" && <option value="manager">{t.login.managerRole}</option>}
                 {!canOwners && draft.role === "owner" && <option value="owner">{t.login.ownerRole}</option>}
               </select>
             </div>
@@ -281,11 +296,13 @@ export function TeamManager({
                   setDraft({
                     ...draft,
                     brandId,
-                    branchId: draft.role === "owner" ? draft.branchId : firstBranch ? String(firstBranch.id) : "",
+                    branchId: draft.role === "owner" || draft.role === "manager" ? draft.branchId : firstBranch ? String(firstBranch.id) : "",
                   });
                 }}
               >
-                {draft.role === "owner" && scope.brandId === null && <option value="">{t.owner.allBrands}</option>}
+                {(draft.role === "owner" || draft.role === "manager") && scope.brandId === null && (
+                  <option value="">{t.owner.allBrands}</option>
+                )}
                 {brands.map((brand) => (
                   <option key={brand.id} value={brand.id}>
                     {brand.name}
@@ -299,18 +316,22 @@ export function TeamManager({
             <div>
               <label className="label" htmlFor="staff-branch">
                 {t.owner.branch}
-                {draft.role !== "owner" && <span className="ml-1 text-tomato">*</span>}
+                {(draft.role === "greeter" || draft.role === "cashier") && <span className="ml-1 text-tomato">*</span>}
               </label>
               <select
                 id="staff-branch"
                 className="input bg-white"
                 value={draft.branchId}
                 disabled={lockedBranch}
-                required={draft.role !== "owner"}
+                required={draft.role === "greeter" || draft.role === "cashier"}
                 onChange={(event) => setDraft({ ...draft, branchId: event.target.value })}
               >
-                {draft.role === "owner" && <option value="">{t.owner.allBranches}</option>}
-                {!draft.branchId && draft.role !== "owner" && <option value="">{t.owner.chooseBranch}</option>}
+                {(draft.role === "owner" || draft.role === "manager") && (
+                  <option value="">{t.owner.allBranches}</option>
+                )}
+                {!draft.branchId && draft.role !== "owner" && draft.role !== "manager" && (
+                  <option value="">{t.owner.chooseBranch}</option>
+                )}
                 {branchOptions.map((branch) => (
                   <option key={branch.id} value={branch.id}>
                     {branch.brandName} · {branch.name}

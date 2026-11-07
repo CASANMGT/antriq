@@ -40,7 +40,7 @@ export function Notice({
         : "border-line bg-white text-ink";
 
   return (
-    <div className="pointer-events-none fixed inset-x-3 bottom-3 z-[70] flex justify-center sm:bottom-5">
+    <div className="pointer-events-none fixed inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-[70] flex justify-center sm:bottom-5">
       <div
         role="status"
         aria-live="polite"

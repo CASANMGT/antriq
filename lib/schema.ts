@@ -53,7 +53,7 @@ export const SCHEMA_STATEMENTS: string[] = [
   `create table if not exists staff (
     id serial primary key,
     name text not null,
-    role text not null check (role in ('owner','greeter','cashier')),
+    role text not null check (role in ('owner','manager','greeter','cashier')),
     pin_hash text not null,
     initials text,
     brand_id integer references brands(id) on delete set null,
@@ -142,6 +142,8 @@ export const SCHEMA_STATEMENTS: string[] = [
   `alter table branches alter column queue_mode set default 'single'`,
   `alter table branches drop constraint if exists branches_queue_mode_check`,
   `alter table branches add constraint branches_queue_mode_check check (queue_mode in ('single','split'))`,
+  `alter table staff drop constraint if exists staff_role_check`,
+  `alter table staff add constraint staff_role_check check (role in ('owner','manager','greeter','cashier'))`,
   `alter table queue_entries add column if not exists category text not null default 'A'`,
   `alter table queue_entries add column if not exists released_by text`,
   `alter table queue_entries add column if not exists released_by_staff_id integer references staff(id) on delete set null`,

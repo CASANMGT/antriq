@@ -160,6 +160,7 @@ const TABLES_BY_BRANCH: Record<string, { label: string; capacity: number; zone: 
 
 const STAFF_SEED = [
   { name: "Iwanna", role: "owner", pin: "1234", initials: "IW", brand: null, branch: null },
+  { name: "Rina Manager", role: "manager", pin: "1234", initials: "RM", brand: null, branch: null },
   { name: "Wuri", role: "greeter", pin: "1234", initials: "WU", brand: "nikumaru", branch: "nikumaru/blok-m" },
   { name: "Bima Pratama", role: "greeter", pin: "1234", initials: "BP", brand: "nikumaru", branch: "nikumaru/blok-m" },
   { name: "Sari Kasir", role: "cashier", pin: "1234", initials: "SK", brand: "nikumaru", branch: "nikumaru/blok-m" },

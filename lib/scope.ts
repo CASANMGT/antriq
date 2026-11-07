@@ -16,7 +16,7 @@ export interface OwnerScope {
 export async function resolveOwnerScope(rawBranch: string | undefined): Promise<OwnerScope> {
   const session = await getSession();
   if (!session) redirect("/login?next=/dashboard");
-  if (session.role !== "owner") redirect("/host");
+  if (session.role !== "owner" && session.role !== "manager") redirect("/host");
 
   const branches = await listBranchesForStaff(session);
   if (branches.length === 0) redirect("/login?next=/dashboard");

@@ -10,6 +10,28 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.5.0] — 2026-11-07
+
+The **manager role + mobile polish** release.
+
+### Added
+- **Manager staff role**:
+  - Monitors every brand and branch they are scoped to.
+  - Can operate the live host floor and view reports, customers and QR posters.
+  - Cannot manage staff accounts, PINs, settings, brands, branches or tables.
+- Manager option in Team, with brand/branch scope (all brands, one brand, or one branch).
+- Manager quick-login shortcut in local development.
+- Seeded demo manager **Rina Manager** for fresh databases.
+
+### Changed
+- Toasts now sit **above the mobile bottom navigation** instead of covering it.
+- The branch page logo and footer logo now link to the **brand page** (mobile-friendly branch list) instead of the global picker.
+- Mobile navigation hides owner-only items for managers.
+
+### Fixed
+- Staff role constraint accepts `manager` on existing databases.
+- Owner-only pages redirect managers back to the dashboard instead of the host stand.
+
 ## [0.4.0] — 2026-11-07
 
 The **single-group queue + production access** release.

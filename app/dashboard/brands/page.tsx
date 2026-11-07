@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default async function BrandsPage() {
   const session = await getSession();
   if (!session) redirect("/login?next=/dashboard");
-  if (session.role !== "owner") redirect("/host");
+  if (session.role !== "owner") redirect(session.role === "manager" ? "/dashboard" : "/host");
 
   const [allBrands, branches] = await Promise.all([listBrands(), listBranchesForStaff(session)]);
   let brands = allBrands;

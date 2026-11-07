@@ -46,8 +46,9 @@ AntriQ is a multi-brand, multi-branch queue system with three connected surfaces
 | Surface | Who | What they can do |
 | --- | --- | --- |
 | **Guest** | Diner, no account | Open a brand or branch URL, see the live queue, take a number, watch position and now-serving, get called, see the assigned table/seat and the host who opened it |
-| **Host stand** | Greeter, cashier or owner (PIN) | Work the line, call the next party, seat openly (no table required), release the seat, mark no-shows, add walk-ins, pause the queue |
+| **Host stand** | Greeter, cashier, manager or owner (PIN) | Work the line, call the next party, seat openly (no table required), release the seat, mark no-shows, add walk-ins, pause the queue |
 | **Owner dashboard** | Owner (PIN, scoped by brand/branch) | Live queue counts, service pulse, floor map, activity, reports, CSV, tables, team, brand assets, branches, settings, QR poster |
+| **Manager dashboard** | Manager (PIN, scoped by brand/branch or all) | Monitor every branch they cover: live queue, reports, customers and QR posters. Can operate the host floor, but cannot manage staff accounts, settings, brands, branches or tables |
 
 Brands own identity and assets (logo, menu PDF, Instagram); branches own hours, tables, staff, the queue and their own public URL. A platform owner manages every brand, a brand owner manages every branch in their brand, and a branch owner manages only their branch.
 
@@ -77,6 +78,7 @@ A fictional **ramen & izakaya** group with two brands and three branches:
 | Role | Name | Scope | PIN |
 | --- | --- | --- | --- |
 | Platform owner | Iwanna | All brands & branches | `1234` |
+| Manager | Rina Manager | All brands & branches (monitor, no user management) | `1234` |
 | Greeter | Wuri | Nikumaru Blok M | `1234` |
 | Greeter | Bima Pratama | Nikumaru Blok M | `1234` |
 | Cashier | Sari Kasir | Nikumaru Blok M | `1234` |
