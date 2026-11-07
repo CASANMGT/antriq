@@ -240,6 +240,26 @@ async function runDataMigrations(db: Queryable) {
     // Demo passcode: everyone signs in with 1234 until real PINs are assigned.
     await db.query("update staff set pin_hash = $1", [hashPin("1234")]);
   }
+
+  const legacyBranches = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('cleanup_legacy_branches_v1', 'done')
+     on conflict (key) do nothing returning key`,
+  );
+  if (legacyBranches.length > 0) {
+    // Remove the pre-correction duplicates now that the canonical branches exist.
+    await db.query(
+      `delete from branches br
+       using brands b
+       where br.brand_id = b.id
+         and (
+           (b.slug = 'nikumaru' and br.slug in ('senopati', 'kemang')
+             and exists (select 1 from branches c where c.brand_id = br.brand_id and c.slug in ('blok-m', 'tebet')))
+           or
+           (b.slug = 'tenka' and br.slug = 'senopati'
+             and exists (select 1 from branches c where c.brand_id = br.brand_id and c.slug = 'kamaja'))
+         )`,
+    );
+  }
 }
 
 const LEGACY_TABLES = [
