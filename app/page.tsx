@@ -56,9 +56,6 @@ export default async function HomePage() {
         <Logo />
         <div className="flex items-center gap-2">
           <LanguageToggle />
-          <Link href="/login" className="btn btn-outline btn-sm">
-            {t.guest.staff}
-          </Link>
         </div>
       </header>
 
@@ -177,7 +174,7 @@ export default async function HomePage() {
           <span>{t.guest.footerTagline}</span>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/login" className="hover:text-ink">
+          <Link href="/login" className="text-muted-soft hover:text-muted">
             {t.guest.staff}
           </Link>
           <span>© {new Date().getFullYear()}</span>

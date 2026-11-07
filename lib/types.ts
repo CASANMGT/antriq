@@ -1,6 +1,7 @@
 export type Role = "owner" | "greeter" | "cashier";
 export type WaitlistStatus = "open" | "paused" | "closed";
 export type SeatingMode = "queue" | "manual" | "plan";
+export type AcknowledgeAction = "pause" | "extend";
 export type QueueCategory = "A" | "B";
 export type EntryStatus =
   | "waiting"
@@ -46,6 +47,8 @@ export interface Branch {
   seatingMode: SeatingMode;
   avgTurnMinutes: number;
   holdMinutes: number;
+  acknowledgeAction: AcknowledgeAction;
+  acknowledgeMinutes: number;
   maxPartySize: number;
   maxQueueSize: number;
   autoNoShow: boolean;
@@ -240,4 +243,7 @@ export interface BranchSummary {
   announcement: string | null;
   waitlistStatus: WaitlistStatus;
   seatingMode: SeatingMode;
+  holdMinutes: number;
+  acknowledgeAction: AcknowledgeAction;
+  acknowledgeMinutes: number;
 }

@@ -10,6 +10,29 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.3.8] — 2026-11-07
+
+The **mobile join + hold settings** release.
+
+### Changed
+- Guest mobile layout puts the join card first, followed by brand/queue details.
+- Name field uses mobile-friendly autocomplete/capitalisation and “next” keyboard hints.
+- Removed the Staff link from the guest top navigation; Staff remains as a subtle footer link.
+- “Saya menuju host” is now **“Saya hadir”**.
+- Owner Settings can configure:
+  - call hold/countdown minutes
+  - what **Saya hadir** does: stop the countdown or add minutes
+  - how many minutes to add
+- Ticket shows “Countdown extended” when the guest adds time.
+
+### Added
+- Firefox-specific notification guidance (lock icon → Permissions → Notifications → Allow).
+- Unsupported-browser notification message.
+
+### Fixed
+- Queue-only and A/B mobile labels no longer clip.
+- Mobile queue bar fits all tabs and owner/QR shortcuts.
+
 ## [0.3.7] — 2026-11-07
 
 The **circular brand avatars + print-ready QR** release.

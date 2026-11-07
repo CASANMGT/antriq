@@ -42,9 +42,6 @@ export default async function BrandPage({ params }: { params: Params }) {
             <Store className="size-3.5" /> {t.picker.kicker}
           </Link>
           <LanguageToggle />
-          <Link href="/login" className="btn btn-outline btn-sm">
-            {t.guest.staff}
-          </Link>
         </div>
       </header>
 
@@ -139,8 +136,11 @@ export default async function BrandPage({ params }: { params: Params }) {
         </div>
       </section>
 
-      <footer className="mx-auto mt-14 max-w-5xl border-t-2 border-dashed border-ink/20 pt-5 text-xs font-semibold text-muted">
-        {t.guest.footerTagline}
+      <footer className="mx-auto mt-14 flex max-w-5xl flex-col gap-2 border-t-2 border-dashed border-ink/20 pt-5 text-xs font-semibold text-muted sm:flex-row sm:items-center sm:justify-between">
+        <span>{t.guest.footerTagline}</span>
+        <Link href="/login" className="w-fit text-muted-soft hover:text-muted">
+          {t.guest.staff}
+        </Link>
       </footer>
     </main>
   );

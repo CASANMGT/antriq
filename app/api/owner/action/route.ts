@@ -97,6 +97,8 @@ export async function POST(request: Request) {
             timezone: String(body.timezone ?? ""),
             avgTurnMinutes: Number(body.avgTurnMinutes),
             holdMinutes: Number(body.holdMinutes),
+            acknowledgeAction: body.acknowledgeAction === "extend" ? "extend" : "pause",
+            acknowledgeMinutes: Number(body.acknowledgeMinutes),
             maxPartySize: Number(body.maxPartySize),
             maxQueueSize: Number(body.maxQueueSize),
             autoNoShow: Boolean(body.autoNoShow),

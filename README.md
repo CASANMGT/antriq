@@ -113,6 +113,10 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - QR poster uses a **1600px high-resolution, high-error-correction QR** and prints on A4 at 68mm.
 - Queue screen includes an owner QR-poster shortcut.
 - Live queue snapshot: **Queue A (1–2), Queue B (3+)**, now serving and branch status. No empty-table count.
+- **Mobile-first join card comes first**: name, party size and “Ambil nomor antrean” before the long brand/queue details.
+- **“Saya hadir”** acknowledges the call; the owner chooses whether it stops the countdown or adds minutes.
+- Notification opt-in includes Firefox guidance (lock icon → Permissions → Notifications).
+- Staff link is only a subtle footer link; the guest top nav has no staff entry.
 - Queue-only mode is the default: parties are seated openly without a table or seat number.
 - Take a number in about 20 seconds: party size, name, optional phone/note.
 - Ticket with a human code (`A-024`), queue position, parties ahead, now-serving code.
@@ -151,7 +155,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Team management: owner/greeter/cashier, brand + branch assignment, reset PIN, pause access, last-owner protection.
 - **Brands:** name, slug, Instagram, accent, logo upload, menu PDF upload.
 - **Branches:** create/edit name, slug, address, phone, timezone, hours, announcement.
-- Settings: identity, accent, timezone, hours, max party, queue cap, auto no-show, announcement, **seating mode** (queue-only, manual, or table plan).
+- Settings: identity, accent, timezone, hours, max party, queue cap, auto no-show, announcement, **seating mode** (queue-only, manual, or table plan), **call countdown**, and **what “Saya hadir” does** (stop or add minutes).
 - Printable A4 QR poster whose QR points at the branch URL.
 
 ## Stack
@@ -217,7 +221,7 @@ npm run dev       # development
 npm run build     # production build
 npm start         # production server
 npm run lint      # ESLint (Next 16 + React 19 rules)
-npm test          # 25 domain + integration tests
+npm test          # 26 domain + integration tests
 ```
 
 ## Deploy to Vercel

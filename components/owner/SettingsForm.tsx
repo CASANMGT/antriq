@@ -85,7 +85,9 @@ export function SettingsForm({ branch }: { branch: Branch }) {
       announcement: String(form.get("announcement") ?? ""),
       timezone: String(form.get("timezone") ?? ""),
       avgTurnMinutes: branch.avgTurnMinutes,
-      holdMinutes: branch.holdMinutes,
+      holdMinutes: Number(form.get("holdMinutes")),
+      acknowledgeAction: String(form.get("acknowledgeAction") ?? "pause"),
+      acknowledgeMinutes: Number(form.get("acknowledgeMinutes")),
       maxPartySize: Number(form.get("maxPartySize")),
       maxQueueSize: Number(form.get("maxQueueSize")),
       autoNoShow: form.get("autoNoShow") === "on",
@@ -233,6 +235,47 @@ export function SettingsForm({ branch }: { branch: Branch }) {
                 <option value="plan">{t.owner.seatingPlan}</option>
               </select>
               <p className="mt-1.5 text-xs font-semibold leading-relaxed text-muted">{t.owner.seatingModeHint}</p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <div>
+              <label className="label" htmlFor="holdMinutes">{t.owner.callCountdown}</label>
+              <input
+                id="holdMinutes"
+                name="holdMinutes"
+                type="number"
+                min={2}
+                max={30}
+                className="input num"
+                defaultValue={branch.holdMinutes}
+              />
+              <p className="mt-1.5 text-xs font-semibold text-muted">{t.owner.callCountdownHint}</p>
+            </div>
+            <div>
+              <label className="label" htmlFor="acknowledgeAction">{t.owner.whenGuestArrives}</label>
+              <select
+                id="acknowledgeAction"
+                name="acknowledgeAction"
+                className="input bg-white"
+                defaultValue={branch.acknowledgeAction}
+              >
+                <option value="pause">{t.owner.ackPause}</option>
+                <option value="extend">{t.owner.ackExtend}</option>
+              </select>
+            </div>
+            <div>
+              <label className="label" htmlFor="acknowledgeMinutes">{t.owner.ackMinutes}</label>
+              <input
+                id="acknowledgeMinutes"
+                name="acknowledgeMinutes"
+                type="number"
+                min={1}
+                max={30}
+                className="input num"
+                defaultValue={branch.acknowledgeMinutes}
+              />
+              <p className="mt-1.5 text-xs font-semibold text-muted">{t.owner.ackMinutesHint}</p>
             </div>
           </div>
 

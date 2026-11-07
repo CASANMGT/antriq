@@ -18,6 +18,7 @@ import { isDemoAutoReset, isDemoMode, seedDatabase } from "./seed";
 import { PRIMARY_BRANCH_ID } from "./schema";
 import type {
   ActionResult,
+  AcknowledgeAction,
   ActivityItem,
   Brand,
   Branch,
@@ -117,7 +118,9 @@ function mapBranch(row: Row): Branch {
     pauseReason: row.pause_reason ?? null,
     seatingMode: (row.seating_mode ?? "queue") as SeatingMode,
     avgTurnMinutes: toNumber(row.avg_turn_minutes, 55),
-    holdMinutes: toNumber(row.hold_minutes, 8),
+    holdMinutes: toNumber(row.hold_minutes, 3),
+    acknowledgeAction: (row.acknowledge_action === "extend" ? "extend" : "pause") as AcknowledgeAction,
+    acknowledgeMinutes: toNumber(row.acknowledge_minutes, 3),
     maxPartySize: toNumber(row.max_party_size, 12),
     maxQueueSize: toNumber(row.max_queue_size, 40),
     autoNoShow: Boolean(row.auto_no_show),
@@ -422,7 +425,8 @@ export async function listBranches(brandId?: number): Promise<BranchSummary[]> {
   const rows = await q<Row>(
     `select br.id, br.name, br.slug, br.brand_id, b.name as brand_name, b.slug as brand_slug,
             br.tagline, br.address, br.phone, br.timezone, br.open_time, br.close_time,
-            coalesce(br.accent, b.accent) as accent, br.announcement, br.waitlist_status, br.seating_mode
+            coalesce(br.accent, b.accent) as accent, br.announcement, br.waitlist_status, br.seating_mode,
+            br.hold_minutes, br.acknowledge_action, br.acknowledge_minutes
      from branches br join brands b on b.id = br.brand_id
      ${brandId ? "where br.brand_id = $1" : ""}
      order by b.name asc, br.name asc`,
@@ -445,6 +449,9 @@ export async function listBranches(brandId?: number): Promise<BranchSummary[]> {
     announcement: row.announcement ?? null,
     waitlistStatus: (row.waitlist_status ?? "open") as WaitlistStatus,
     seatingMode: (row.seating_mode ?? "queue") as SeatingMode,
+    holdMinutes: toNumber(row.hold_minutes, 3),
+    acknowledgeAction: (row.acknowledge_action === "extend" ? "extend" : "pause") as AcknowledgeAction,
+    acknowledgeMinutes: toNumber(row.acknowledge_minutes, 3),
   }));
 }
 
@@ -509,6 +516,8 @@ export interface BranchPatch {
   seatingMode?: SeatingMode;
   avgTurnMinutes?: number;
   holdMinutes?: number;
+  acknowledgeAction?: AcknowledgeAction;
+  acknowledgeMinutes?: number;
   maxPartySize?: number;
   maxQueueSize?: number;
   autoNoShow?: boolean;
@@ -530,8 +539,9 @@ export async function createBranch(brandId: number, input: BranchPatch, actor: s
     const rows = await q<Row>(
       `insert into branches
         (brand_id, name, slug, tagline, address, phone, timezone, open_time, close_time, accent, announcement,
-         seating_mode, avg_turn_minutes, hold_minutes, max_party_size, max_queue_size, auto_no_show)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+         seating_mode, avg_turn_minutes, hold_minutes, acknowledge_action, acknowledge_minutes,
+         max_party_size, max_queue_size, auto_no_show)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
        returning *`,
       [
         brandId,
@@ -548,6 +558,8 @@ export async function createBranch(brandId: number, input: BranchPatch, actor: s
         input.seatingMode === "plan" ? "plan" : input.seatingMode === "manual" ? "manual" : "queue",
         clampInt(input.avgTurnMinutes ?? 55, 10, 240, 55),
         clampInt(input.holdMinutes ?? 3, 2, 30, 3),
+        input.acknowledgeAction === "extend" ? "extend" : "pause",
+        clampInt(input.acknowledgeMinutes ?? 3, 1, 30, 3),
         clampInt(input.maxPartySize ?? 12, 1, 40, 12),
         clampInt(input.maxQueueSize ?? 40, 1, 500, 40),
         input.autoNoShow ?? true,
@@ -589,6 +601,18 @@ export async function updateBranch(
             : current.seatingMode,
     avgTurnMinutes: clampInt(patch.avgTurnMinutes ?? current.avgTurnMinutes, 10, 240, current.avgTurnMinutes),
     holdMinutes: clampInt(patch.holdMinutes ?? current.holdMinutes, 2, 30, current.holdMinutes),
+    acknowledgeAction:
+      patch.acknowledgeAction === "extend"
+        ? "extend"
+        : patch.acknowledgeAction === "pause"
+          ? "pause"
+          : current.acknowledgeAction,
+    acknowledgeMinutes: clampInt(
+      patch.acknowledgeMinutes ?? current.acknowledgeMinutes,
+      1,
+      30,
+      current.acknowledgeMinutes,
+    ),
     maxPartySize: clampInt(patch.maxPartySize ?? current.maxPartySize, 1, 40, current.maxPartySize),
     maxQueueSize: clampInt(patch.maxQueueSize ?? current.maxQueueSize, 1, 500, current.maxQueueSize),
     autoNoShow: patch.autoNoShow ?? current.autoNoShow,
@@ -606,7 +630,8 @@ export async function updateBranch(
     await q<Row>(
       `update branches set name=$2, slug=$3, tagline=$4, address=$5, phone=$6, timezone=$7,
         open_time=$8, close_time=$9, accent=$10, announcement=$11, seating_mode=$12, avg_turn_minutes=$13,
-        hold_minutes=$14, max_party_size=$15, max_queue_size=$16, auto_no_show=$17, updated_at=now()
+        hold_minutes=$14, acknowledge_action=$15, acknowledge_minutes=$16,
+        max_party_size=$17, max_queue_size=$18, auto_no_show=$19, updated_at=now()
        where id=$1 returning *`,
       [
         branchId,
@@ -623,6 +648,8 @@ export async function updateBranch(
         next.seatingMode,
         next.avgTurnMinutes,
         next.holdMinutes,
+        next.acknowledgeAction,
+        next.acknowledgeMinutes,
         next.maxPartySize,
         next.maxQueueSize,
         next.autoNoShow,
@@ -1137,29 +1164,56 @@ export async function cancelTicket(token: string): Promise<ActionResult> {
 }
 
 export async function acknowledgeTicket(token: string): Promise<ActionResult> {
-  const rows = await q<Row>(
-    `update queue_entries
-     set acknowledged = true,
-         hold_expires_at = null
-     where token = $1 and status = 'called' and acknowledged = false
-     returning id, branch_id, code, guest_name, party_size`,
+  const target = await q<Row>(
+    "select branch_id from queue_entries where token = $1 and status = 'called' and acknowledged = false",
     [token],
   );
-  if (!rows[0]) {
+  if (!target[0]) {
     const existing = await q<Row>("select status, acknowledged from queue_entries where token = $1", [token]);
     if (existing[0]?.status === "called" && existing[0]?.acknowledged) {
-      return { ok: true, message: "Countdown is paused — the host is expecting you." };
+      return { ok: true, message: "We already have your confirmation. The host is expecting you." };
     }
     return { ok: false, message: "This ticket is not waiting for a table right now." };
+  }
+
+  const branchId = toNumber(target[0].branch_id);
+  const config = await q<Row>(
+    "select acknowledge_action, acknowledge_minutes from branches where id = $1",
+    [branchId],
+  );
+  const extend = config[0]?.acknowledge_action === "extend";
+  const minutes = clampInt(config[0]?.acknowledge_minutes ?? 3, 1, 30, 3);
+
+  const rows = await q<Row>(
+    extend
+      ? `update queue_entries
+         set acknowledged = true,
+             hold_expires_at = now() + ($2 || ' minutes')::interval
+         where token = $1 and status = 'called' and acknowledged = false
+         returning id, branch_id, code, guest_name, party_size`
+      : `update queue_entries
+         set acknowledged = true,
+             hold_expires_at = null
+         where token = $1 and status = 'called' and acknowledged = false
+         returning id, branch_id, code, guest_name, party_size`,
+    extend ? [token, minutes] : [token],
+  );
+  if (!rows[0]) {
+    return { ok: true, message: "We already have your confirmation. The host is expecting you." };
   }
   await logActivity(null, toNumber(rows[0].branch_id), "acknowledge", "Guest", {
     entryId: toNumber(rows[0].id),
     code: String(rows[0].code),
     name: String(rows[0].guest_name),
     partySize: toNumber(rows[0].party_size),
-    note: "Guest confirmed — countdown paused",
+    note: extend ? `Guest confirmed - countdown extended ${minutes} min` : "Guest confirmed - countdown paused",
   });
-  return { ok: true, message: "Countdown paused. The host is expecting you." };
+  return {
+    ok: true,
+    message: extend
+      ? `Countdown extended ${minutes} minutes. The host is expecting you.`
+      : "Countdown paused. The host is expecting you.",
+  };
 }
 
 async function updateEntryStatus(

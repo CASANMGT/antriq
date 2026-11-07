@@ -124,6 +124,8 @@ export function JoinForm({
             name="guestName"
             placeholder={t.guest.namePlaceholder}
             autoComplete="name"
+            autoCapitalize="words"
+            enterKeyHint="next"
             maxLength={60}
             required
             minLength={2}
@@ -143,6 +145,7 @@ export function JoinForm({
               placeholder="0812 3456 7890"
               inputMode="tel"
               autoComplete="tel"
+              enterKeyHint="next"
               maxLength={32}
             />
           </div>
@@ -156,6 +159,7 @@ export function JoinForm({
               id="notes"
               name="notes"
               placeholder={t.guest.notePlaceholder}
+              enterKeyHint="done"
               maxLength={200}
             />
           </div>

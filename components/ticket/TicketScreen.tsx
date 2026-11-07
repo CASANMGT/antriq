@@ -331,12 +331,18 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                   )}
                   <div className="min-w-0">
                     <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/55">
-                      {entry.countdownPaused ? t.ticket.countdownPausedTitle : t.ticket.countdownTitle}
+                      {entry.countdownPaused
+                        ? t.ticket.countdownPausedTitle
+                        : entry.acknowledged
+                          ? t.ticket.countdownExtendedTitle
+                          : t.ticket.countdownTitle}
                     </p>
                     <p className="mt-0.5 text-sm font-semibold leading-relaxed text-ink/75">
                       {entry.countdownPaused
                         ? t.ticket.countdownPausedBody
-                        : format(t.ticket.countdownBody, { minutes: branch.holdMinutes })}
+                        : entry.acknowledged
+                          ? format(t.ticket.countdownExtendedBody, { minutes: branch.acknowledgeMinutes })
+                          : format(t.ticket.countdownBody, { minutes: branch.holdMinutes })}
                     </p>
                   </div>
                 </div>

@@ -226,6 +226,22 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(after?.entry.seatNumber).toBeNull();
   });
 
+  it("can extend the countdown instead of pausing when the guest says I'm here", async () => {
+    const branchId = await primaryBranchId();
+    await q("update branches set acknowledge_action='extend', acknowledge_minutes=5 where id=$1", [branchId]);
+    const joined = await joinQueue(branchId, { guestName: "Extend Guest", partySize: 2 });
+    const view = await getTicketView(joined.token);
+    const called = await callEntry(branchId, view!.entry.id, "Wuri");
+    expect(called.ok).toBe(true);
+
+    const ack = await acknowledgeTicket(joined.token);
+    expect(ack.ok).toBe(true);
+    const after = await getTicketView(joined.token);
+    expect(after?.entry.acknowledged).toBe(true);
+    expect(after?.entry.countdownPaused).toBe(false);
+    expect(after?.entry.holdSecondsLeft).toBeGreaterThan(250);
+  });
+
   it("releases a seated table and records the cashier who freed it", async () => {
     const branchId = await primaryBranchId();
     const state = await getHostState(branchId);

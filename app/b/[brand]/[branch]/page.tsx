@@ -97,14 +97,11 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
             <Store className="size-3.5" /> {t.picker.kicker}
           </Link>
           <LanguageToggle />
-          <Link href="/login" className="btn btn-outline btn-sm">
-            {t.guest.staff}
-          </Link>
         </div>
       </header>
 
       <section className="relative mx-auto grid max-w-6xl gap-10 px-5 pb-14 pt-3 sm:px-8 lg:grid-cols-[1.02fr_0.98fr] lg:gap-14 lg:pt-8">
-        <div className="min-w-0">
+        <div className="order-last min-w-0 lg:order-none">
           <div className="flex flex-wrap items-center gap-2">
             <span className={`pill ${statusTone} md:hidden`}>
               {statusTone === "status-seated" && <span className="live-dot" />}
@@ -237,7 +234,7 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
           </div>
         </div>
 
-        <div className="relative lg:pt-3">
+        <div className="relative order-first lg:order-none lg:pt-3">
           <div className="absolute inset-x-6 -top-2 h-7 rotate-[-1.2deg] rounded-full border-2 border-ink bg-tomato" aria-hidden="true" />
           <div className="relative rounded-[1.75rem] border-2 border-ink bg-white p-5 shadow-[6px_6px_0_#262321] sm:p-7">
             <div className="flex items-start justify-between gap-3">
@@ -262,9 +259,6 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
             )}
 
             <MyTicketBanner branchId={branch.id} />
-            <div className="mt-4">
-              <NotificationPrompt variant="banner" />
-            </div>
 
             <JoinForm
               branchId={branch.id}
@@ -273,6 +267,10 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
               disabledTitle={paused ? t.guest.pauseTitle : t.guest.closedTitle}
               disabledNote={paused ? t.guest.pauseNote : t.guest.closedNote}
             />
+
+            <div className="mt-4">
+              <NotificationPrompt variant="banner" />
+            </div>
 
             <div className="mt-5 grid grid-cols-2 gap-3 border-t-2 border-dashed border-ink/20 pt-4 text-xs leading-relaxed">
               <div>
@@ -354,7 +352,7 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/login" className="hover:text-ink">{t.guest.staff}</Link>
+          <Link href="/login" className="text-muted-soft hover:text-muted">{t.guest.staff}</Link>
           <span className="hidden sm:inline">© {new Date().getFullYear()}</span>
         </div>
       </footer>

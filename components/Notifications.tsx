@@ -21,6 +21,7 @@ export function NotificationPrompt({
   const [permission, setPermission] = useState<NotificationPermissionState>("unsupported");
   const [busy, setBusy] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const firefox = typeof navigator !== "undefined" && /firefox/i.test(navigator.userAgent);
 
   useEffect(() => {
     const current = notificationPermission();
@@ -28,9 +29,22 @@ export function NotificationPrompt({
     if (current === "granted") void registerNotificationWorker();
   }, []);
 
-  if (permission === "unsupported" || permission === "granted" || dismissed) return null;
+  if (dismissed) return null;
+
+  if (permission === "unsupported") {
+    if (compact) return null;
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-xl border-2 border-ink/20 px-2.5 py-1.5 text-[0.6875rem] font-semibold text-muted">
+        <BellOff className="size-3.5" />
+        {t.common.notificationsUnsupported}
+      </span>
+    );
+  }
+
+  if (permission === "granted") return null;
 
   if (permission === "denied") {
+    const message = firefox ? t.common.notificationsBlockedFirefox : t.common.notificationsBlocked;
     return (
       <span
         className={
@@ -38,11 +52,11 @@ export function NotificationPrompt({
             ? "inline-flex size-8 items-center justify-center rounded-full border-2 border-ink/20 text-muted-soft"
             : "inline-flex items-center gap-1.5 rounded-xl border-2 border-ink/20 px-2.5 py-1.5 text-[0.6875rem] font-semibold text-muted"
         }
-        title={t.common.notificationsBlocked}
-        aria-label={t.common.notificationsBlocked}
+        title={message}
+        aria-label={message}
       >
         <BellOff className="size-3.5" />
-        {!compact && t.common.notificationsBlocked}
+        {!compact && message}
       </span>
     );
   }

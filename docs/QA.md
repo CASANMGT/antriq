@@ -8,7 +8,7 @@ npm test         # 21 domain + integration tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **7 Nov 2026** — lint clean, 25/25 tests passing, production build green (v0.3.5 branding + QR).
+Last run: **7 Nov 2026** — lint clean, 26/26 tests passing, production build green (v0.3.8 mobile/hold settings).
 
 ### Deployment verification
 
@@ -59,6 +59,11 @@ Last run: **7 Nov 2026** — lint clean, 25/25 tests passing, production build g
 - [x] Queue A (1–2) and Queue B (3+) codes/labels work
 - [x] Queue-only mode default; host hides table stat and seats openly
 - [x] Ticket shows circular brand logo and ticket-holding mascot
+- [x] Guest join card appears first on mobile; name + Ambil antrean above the fold
+- [x] Guest top nav has no Staff link; footer Staff link is subtle
+- [x] Firefox blocked-notification instructions render
+- [x] “Saya hadir” can stop or extend the countdown per Settings
+- [x] Countdown duration is configurable in Settings
 - [x] Unknown brand/branch returns 404
 - [x] Platform owner sees all branches; brand owner only Tenka; branch owner only their branch
 - [x] Host board switcher changes branch and all actions carry `branchId`
