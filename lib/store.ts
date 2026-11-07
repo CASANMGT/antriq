@@ -29,6 +29,7 @@ import type {
   OwnerOverview,
   PublicSnapshot,
   PublicStaff,
+  QueueCategory,
   QueueEntry,
   QueueSource,
   Role,
@@ -57,7 +58,7 @@ type Row = Record<string, any>;
 
 const ENTRY_COLUMNS = `
   qe.id, qe.branch_id, qe.token, qe.code, to_char(qe.day, 'YYYY-MM-DD') as day_text, qe.seq,
-  qe.guest_name, qe.phone, qe.party_size, qe.notes, qe.source, qe.status,
+  qe.category, qe.guest_name, qe.phone, qe.party_size, qe.notes, qe.source, qe.status,
   qe.table_id, qe.seat_number, qe.opened_by, qe.opened_by_staff_id,
   qe.released_by, qe.released_by_staff_id,
   qe.called_count, qe.acknowledged, qe.joined_at, qe.called_at,
@@ -114,7 +115,7 @@ function mapBranch(row: Row): Branch {
     announcement: row.announcement ?? null,
     waitlistStatus: (row.waitlist_status ?? "open") as WaitlistStatus,
     pauseReason: row.pause_reason ?? null,
-    seatingMode: (row.seating_mode ?? "manual") as SeatingMode,
+    seatingMode: (row.seating_mode ?? "queue") as SeatingMode,
     avgTurnMinutes: toNumber(row.avg_turn_minutes, 55),
     holdMinutes: toNumber(row.hold_minutes, 8),
     maxPartySize: toNumber(row.max_party_size, 12),
@@ -152,6 +153,7 @@ function mapEntry(row: Row, tablesById: Map<number, string>, now = new Date()): 
     code: String(row.code),
     day: String(row.day_text ?? row.day ?? "").slice(0, 10),
     seq: toNumber(row.seq),
+    category: (row.category === "B" ? "B" : "A") as QueueCategory,
     guestName: String(row.guest_name),
     phone: row.phone ?? null,
     partySize: toNumber(row.party_size),
@@ -442,7 +444,7 @@ export async function listBranches(brandId?: number): Promise<BranchSummary[]> {
     accent: String(row.accent ?? "#F24B3F"),
     announcement: row.announcement ?? null,
     waitlistStatus: (row.waitlist_status ?? "open") as WaitlistStatus,
-    seatingMode: (row.seating_mode ?? "manual") as SeatingMode,
+    seatingMode: (row.seating_mode ?? "queue") as SeatingMode,
   }));
 }
 
@@ -543,7 +545,7 @@ export async function createBranch(brandId: number, input: BranchPatch, actor: s
         input.closeTime ? validateTime(input.closeTime, "Closing time") : "23:30",
         input.accent ? validateAccent(input.accent) : null,
         input.announcement ? cleanText(input.announcement, 300) : null,
-        input.seatingMode === "plan" ? "plan" : "manual",
+        input.seatingMode === "plan" ? "plan" : input.seatingMode === "manual" ? "manual" : "queue",
         clampInt(input.avgTurnMinutes ?? 55, 10, 240, 55),
         clampInt(input.holdMinutes ?? 3, 2, 30, 3),
         clampInt(input.maxPartySize ?? 12, 1, 40, 12),
@@ -577,7 +579,14 @@ export async function updateBranch(
     accent: patch.accent !== undefined ? (patch.accent ? validateAccent(patch.accent) : null) : current.accent,
     announcement:
       patch.announcement !== undefined ? cleanText(patch.announcement, 300) || null : current.announcement,
-    seatingMode: patch.seatingMode === "plan" ? "plan" : patch.seatingMode === "manual" ? "manual" : current.seatingMode,
+    seatingMode:
+      patch.seatingMode === "plan"
+        ? "plan"
+        : patch.seatingMode === "manual"
+          ? "manual"
+          : patch.seatingMode === "queue"
+            ? "queue"
+            : current.seatingMode,
     avgTurnMinutes: clampInt(patch.avgTurnMinutes ?? current.avgTurnMinutes, 10, 240, current.avgTurnMinutes),
     holdMinutes: clampInt(patch.holdMinutes ?? current.holdMinutes, 2, 30, current.holdMinutes),
     maxPartySize: clampInt(patch.maxPartySize ?? current.maxPartySize, 1, 40, current.maxPartySize),
@@ -928,6 +937,8 @@ export async function getPublicSnapshot(branchId: number): Promise<PublicSnapsho
   const tables = await listTables(branchId);
   const entries = await entriesForDay(branchId, today);
   const waiting = orderWaiting(entries.filter((entry) => entry.status === "waiting"));
+  const waitingA = waiting.filter((entry) => entry.category === "A").length;
+  const waitingB = waiting.filter((entry) => entry.category === "B").length;
   const lastCalledRows = await q<Row>(
     `select code from queue_entries
      where branch_id = $1 and day = $2::date and called_at is not null
@@ -941,6 +952,8 @@ export async function getPublicSnapshot(branchId: number): Promise<PublicSnapsho
     branch,
     brand,
     waiting: waiting.length,
+    waitingA,
+    waitingB,
     availableTables: tables.filter((table) => table.status === "available").length,
     lastCalledCode: lastCalledRows[0]?.code ?? null,
     isOpenNow: isOpenAt(branch, now),
@@ -1066,14 +1079,15 @@ export async function joinQueue(branchId: number, input: JoinInput, allowPaused 
     );
     const seq = toNumber(seqRows[0]?.last_seq, 1);
     const token = randomBytes(18).toString("base64url");
-    const code = codeFor(seq);
+    const category: QueueCategory = partySize <= 2 ? "A" : "B";
+    const code = codeFor(seq, category);
 
     const inserted = await db.query<Row>(
       `insert into queue_entries
-        (branch_id, token, code, day, seq, guest_name, phone, party_size, notes, source, status)
-       values ($1,$2,$3,$4::date,$5,$6,$7,$8,$9,$10,'waiting')
+        (branch_id, token, code, day, seq, category, guest_name, phone, party_size, notes, source, status)
+       values ($1,$2,$3,$4::date,$5,$6,$7,$8,$9,$10,$11,'waiting')
        returning id`,
-      [branchId, token, code, today, seq, name, phone, partySize, notes, source],
+      [branchId, token, code, today, seq, category, name, phone, partySize, notes, source],
     );
     const entryId = toNumber(inserted[0]?.id);
 
@@ -1221,7 +1235,7 @@ export async function callNext(
     const entries = await entriesForDay(branchId, today, db);
     const waiting = orderWaiting(entries.filter((entry) => entry.status === "waiting"));
     const tables = await listTables(branchId, db);
-    const pick = pickNext(waiting, tables, force || branch.seatingMode === "manual");
+    const pick = pickNext(waiting, tables, force || branch.seatingMode !== "plan");
     if (!pick.ok) return { ok: false, message: pick.message };
 
     const hold = new Date(Date.now() + branch.holdMinutes * 60_000).toISOString();
@@ -1273,7 +1287,7 @@ export async function seatEntry(
 
     if (tableId === null) {
       const branchRows = await db.query<Row>("select seating_mode from branches where id = $1", [branchId]);
-      if (branchRows[0]?.seating_mode !== "manual") {
+      if (branchRows[0]?.seating_mode === "plan") {
         return { ok: false, message: "Choose a table from the seating plan." };
       }
       await db.query(

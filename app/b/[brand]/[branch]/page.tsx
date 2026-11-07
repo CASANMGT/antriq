@@ -14,7 +14,6 @@ import {
   Store,
   Ticket,
   Users,
-  UtensilsCrossed,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Mascot } from "@/components/Mascot";
@@ -197,16 +196,16 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
           <div className="mt-9 grid max-w-lg grid-cols-3 gap-2.5">
             <div className="rounded-2xl border-2 border-ink bg-pink p-3 shadow-[3px_3px_0_#262321]">
               <Users className="size-4 text-tomato-dark" />
-              <p className="stat-number mt-2 text-4xl">{String(snapshot.waiting).padStart(2, "0")}</p>
+              <p className="stat-number mt-2 text-4xl">{String(snapshot.waitingA).padStart(2, "0")}</p>
               <p className="mt-1.5 text-[0.5625rem] font-extrabold uppercase leading-tight tracking-[0.1em] text-tomato-dark/70">
-                {t.guest.statsWaiting}
+                {t.guest.queueA}
               </p>
             </div>
             <div className="rounded-2xl border-2 border-ink bg-cream p-3 shadow-[3px_3px_0_#262321]">
-              <UtensilsCrossed className="size-4 text-ink/70" />
-              <p className="stat-number mt-2 text-4xl">{String(snapshot.availableTables).padStart(2, "0")}</p>
+              <Users className="size-4 text-ink/70" />
+              <p className="stat-number mt-2 text-4xl">{String(snapshot.waitingB).padStart(2, "0")}</p>
               <p className="mt-1.5 text-[0.5625rem] font-extrabold uppercase leading-tight tracking-[0.1em] text-ink/55">
-                {t.guest.statsTables}
+                {t.guest.queueB}
               </p>
             </div>
             <div className="rounded-2xl border-2 border-ink bg-leaf-soft p-3 shadow-[3px_3px_0_#262321]">

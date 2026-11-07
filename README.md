@@ -46,7 +46,7 @@ AntriQ is a multi-brand, multi-branch queue system with three connected surfaces
 | Surface | Who | What they can do |
 | --- | --- | --- |
 | **Guest** | Diner, no account | Open a brand or branch URL, see the live queue, take a number, watch position and now-serving, get called, see the assigned table/seat and the host who opened it |
-| **Host stand** | Greeter, cashier or owner (PIN) | Work the line, call the next fitting party, seat at a table and optional seat number, record the PIC, mark no-shows, add walk-ins, manage tables, pause the queue |
+| **Host stand** | Greeter, cashier or owner (PIN) | Work the line, call the next party, seat openly (no table required), release the seat, mark no-shows, add walk-ins, pause the queue |
 | **Owner dashboard** | Owner (PIN, scoped by brand/branch) | Live queue counts, service pulse, floor map, activity, reports, CSV, tables, team, brand assets, branches, settings, QR poster |
 
 Brands own identity and assets (logo, menu PDF, Instagram); branches own hours, tables, staff, the queue and their own public URL. A platform owner manages every brand, a brand owner manages every branch in their brand, and a branch owner manages only their branch.
@@ -109,12 +109,13 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 ### Guest
 - **Restaurant picker at `/`** with every brand and branch, live waiting/tables/now-serving, address, hours, menu and Instagram.
 - Brand page (`/b/[brand]`) with logo, menu PDF, Instagram and branch cards.
-- Branch page (`/b/[brand]/[branch]`) with live queue snapshot: parties waiting, tables open, now serving, branch status.
+- Branch page (`/b/[brand]/[branch]`) with live queue snapshot: **Queue A (1–2), Queue B (3+)**, now serving and branch status. No empty-table count.
+- Queue-only mode is the default: parties are seated openly without a table or seat number.
 - Take a number in about 20 seconds: party size, name, optional phone/note.
 - Ticket with a human code (`A-024`), queue position, parties ahead, now-serving code.
 - Called state: **“Meja siap!”** with a **3-minute call countdown**, “Saya menuju host” (pauses the countdown), directions and release.
 - Browser notification permission prompt on the ticket, plus a notification when the call changes while the tab is hidden.
-- Seated state shows the assigned **table and seat number**, plus the host/cashier PIC who opened it.
+- Seated state shows the open-seat confirmation, or the assigned table/seat when the branch uses the table plan.
 - Completed, no-show and cancelled end states.
 - Capability URL + local ticket memory; no account.
 - Mobile-first, installable, reduced-motion aware, Indonesian/English.
@@ -126,7 +127,9 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Queue positions on every card, not waiting-time guesses.
 - **Call next** selects the first party a free table can physically seat; suggests the smallest fitting table.
 - Seat from waiting or called at a specific table and optional **seat number**, or use **Open seat** to skip the number entirely.
-- **Manual seating mode** (default): tap **Seat** once, no table or seat number, then release from the **Seated** list.
+- **Queue-only mode** (default): tap **Seat** once, no table or seat number, then release from the **Seated** list.
+- Manual mode adds a seated list without table numbers; Table plan adds tables + optional seat numbers.
+- Live stats: waiting, called, seated, seated today, no-shows. The table stat is hidden in queue-only mode.
 - Called cards show the live call countdown; it pauses when the guest confirms they are on the way.
 - Browser notification prompt, plus a hidden-tab notification when a guest is called from another device.
 - **Release seat** after payment or when a visit ends; records the staff member who released it.
@@ -145,7 +148,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Team management: owner/greeter/cashier, brand + branch assignment, reset PIN, pause access, last-owner protection.
 - **Brands:** name, slug, Instagram, accent, logo upload, menu PDF upload.
 - **Branches:** create/edit name, slug, address, phone, timezone, hours, announcement.
-- Settings: identity, accent, timezone, hours, max party, queue cap, auto no-show, announcement, **seating mode** (manual or table plan).
+- Settings: identity, accent, timezone, hours, max party, queue cap, auto no-show, announcement, **seating mode** (queue-only, manual, or table plan).
 - Printable A4 QR poster whose QR points at the branch URL.
 
 ## Stack

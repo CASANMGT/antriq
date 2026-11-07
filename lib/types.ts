@@ -1,6 +1,7 @@
 export type Role = "owner" | "greeter" | "cashier";
 export type WaitlistStatus = "open" | "paused" | "closed";
-export type SeatingMode = "manual" | "plan";
+export type SeatingMode = "queue" | "manual" | "plan";
+export type QueueCategory = "A" | "B";
 export type EntryStatus =
   | "waiting"
   | "called"
@@ -71,6 +72,7 @@ export interface QueueEntry {
   code: string;
   day: string;
   seq: number;
+  category: QueueCategory;
   guestName: string;
   phone: string | null;
   partySize: number;
@@ -141,6 +143,8 @@ export interface PublicSnapshot {
   branch: Branch;
   brand: Brand | null;
   waiting: number;
+  waitingA: number;
+  waitingB: number;
   availableTables: number;
   lastCalledCode: string | null;
   isOpenNow: boolean;

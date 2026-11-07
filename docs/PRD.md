@@ -687,3 +687,12 @@ Addresses:
 
 - Demo rows seed only on first boot unless `DEMO_AUTO_RESET=1`; cleared production queues stay empty across redeploys.
 - `npm run db:clear -- --yes` clears queue/activity/table state; `db:reset` clears everything.
+
+### 23.6 Queue-only mode and A/B categories (v1.4)
+
+- `seating_mode = queue` is the default. No table or seat assignment is required; the host calls and seats openly.
+- **Queue A:** parties of 1–2. **Queue B:** parties of 3+. Ticket codes use the category prefix.
+- Customer surfaces show Queue A, Queue B and now-serving. They do not show empty-table counts.
+- Host queue-only view shows Queue, Called and Seated; the table stat is hidden.
+- Owners can switch to `manual` (seated list, no table numbers) or `plan` (tables + optional seat numbers) from Settings.
+- Ticket header uses a circular brand logo; the waiting ticket uses the ticket-holding mascot pose.

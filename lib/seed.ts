@@ -1,6 +1,7 @@
 import { hashPin } from "./pin";
 import type { Queryable } from "./db";
 import { dayInTz } from "./time";
+import { codeFor } from "./queue";
 
 export const DEMO_BRANDS = [
   {
@@ -423,18 +424,20 @@ export async function seedDatabase(db: Queryable): Promise<void> {
       const calledAt = item.called ? isoMinutesAgo(item.called) : null;
       const seatedAt = item.seated ? isoMinutesAgo(item.seated) : null;
       const closedAt = item.closed ? isoMinutesAgo(item.closed) : null;
+      const category = item.party <= 2 ? "A" : "B";
       await db.query(
         `insert into queue_entries
-          (branch_id, token, code, day, seq, guest_name, phone, party_size, notes, source, status,
+          (branch_id, token, code, day, seq, category, guest_name, phone, party_size, notes, source, status,
            table_id, seat_number, opened_by, called_count, acknowledged, joined_at, called_at,
            hold_expires_at, seated_at, closed_at, cancelled_by)
-         values ($1,$2,$3,$4::date,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
+         values ($1,$2,$3,$4::date,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)`,
         [
           branchId,
           `demo-${branchId}-${item.seq}-${today}`,
-          item.code,
+          codeFor(item.seq, category),
           today,
           item.seq,
+          category,
           item.name,
           item.phone,
           item.party,

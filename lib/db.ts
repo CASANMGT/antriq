@@ -282,6 +282,26 @@ async function runDataMigrations(db: Queryable) {
       Buffer.from(logoTenka()),
     ]);
   }
+
+  const queueMode = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('seating_queue_default_v1', 'done')
+     on conflict (key) do nothing returning key`,
+  );
+  if (queueMode.length > 0) {
+    await db.query("update branches set seating_mode = 'queue' where seating_mode = 'manual'");
+  }
+
+  const queueCategories = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('queue_categories_v1', 'done')
+     on conflict (key) do nothing returning key`,
+  );
+  if (queueCategories.length > 0) {
+    await db.query(
+      `update queue_entries
+       set category = case when party_size <= 2 then 'A' else 'B' end,
+           code = (case when party_size <= 2 then 'A' else 'B' end) || '-' || lpad(seq::text, 3, '0')`,
+    );
+  }
 }
 
 const LEGACY_TABLES = [

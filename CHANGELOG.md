@@ -10,6 +10,27 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.3.6] — 2026-11-07
+
+The **queue-only + A/B categories** release.
+
+### Added
+- **Queue-only mode** (`seating_mode = queue`) is now the default. Guests and hosts do not need tables or seat numbers.
+- **Queue A** for parties of 1–2 and **Queue B** for parties of 3+. Ticket codes use the matching prefix (`A-001`, `B-002`).
+- Category badge on host cards and “your queue category” on the ticket.
+- New mascot pose holding an AntriQ ticket, used on the waiting ticket.
+- Circular, larger brand logo on the ticket.
+
+### Changed
+- Customer surfaces no longer show empty-table counts. The branch page, restaurant picker and ticket show Queue A / Queue B / now-serving instead.
+- Host board in queue mode shows Queue, Called and Seated only; the table stat is hidden.
+- Existing manual branches migrate to queue-only; owners can still choose Manual or Table plan in Settings.
+
+### Fixed
+- Old `seating_mode` check constraints now accept `queue`.
+- Existing queue rows get A/B categories from party size and regenerated codes.
+- Demo entries generate `A-` or `B-` codes from party size.
+
 ## [0.3.5] — 2026-11-07
 
 The **branding, upload and QR** release.

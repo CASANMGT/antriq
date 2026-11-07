@@ -24,6 +24,7 @@ export function JoinForm({
   const [partySize, setPartySize] = useState(2);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const category = partySize <= 2 ? "A" : "B";
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -103,6 +104,14 @@ export function JoinForm({
           {partySize >= maxPartySize && (
             <p className="mt-2 text-xs leading-relaxed text-muted">{t.guest.closedNote}</p>
           )}
+          <div className="mt-2 flex items-center gap-2 rounded-xl border-2 border-ink/15 bg-cream/70 px-3 py-2">
+            <span className="grid size-7 shrink-0 place-items-center rounded-lg border-2 border-ink bg-white font-display text-sm font-bold">
+              {category}
+            </span>
+            <p className="text-[0.6875rem] font-semibold leading-relaxed text-muted">
+              {category === "A" ? t.guest.queueA : t.guest.queueB}
+            </p>
+          </div>
         </div>
 
         <div>

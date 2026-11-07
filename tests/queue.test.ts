@@ -18,6 +18,7 @@ function entry(overrides: Partial<QueueEntry> & { id: number; joinedAt: string }
     code: `A-00${overrides.id}`,
     day: "2026-11-06",
     seq: overrides.id,
+    category: "A",
     guestName: `Guest ${overrides.id}`,
     phone: null,
     partySize: 2,
@@ -64,6 +65,7 @@ describe("queue domain", () => {
     expect(codeFor(1)).toBe("A-001");
     expect(codeFor(42)).toBe("A-042");
     expect(codeFor(1234)).toBe("A-1234");
+    expect(codeFor(7, "B")).toBe("B-007");
   });
 
   it("orders the waiting line by join time, then id", () => {

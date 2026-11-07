@@ -178,13 +178,23 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
         <div className="ticket overflow-hidden animate-rise">
           <div className={`${meta.header} px-6 pb-7 pt-6 text-white`}>
             <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[0.6875rem] font-extrabold uppercase tracking-[0.16em] text-white/65">
-                  {branch.name}
-                </p>
-                <p className="mt-1 text-sm font-bold text-white/90">{meta.kicker}</p>
+              <div className="flex min-w-0 items-center gap-2.5">
+                {brand?.hasLogo && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={`/api/brands/${brand.id}/logo`}
+                    alt={`${brand.name} logo`}
+                    className="size-16 shrink-0 rounded-full border-2 border-white/70 bg-paper object-contain p-1.5"
+                  />
+                )}
+                <div className="min-w-0">
+                  <p className="text-[0.6875rem] font-extrabold uppercase tracking-[0.16em] text-white/65">
+                    {branch.name}
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-white/90">{meta.kicker}</p>
+                </div>
               </div>
-              <span className="pill bg-white/20 text-white">{meta.label}</span>
+              <span className="pill shrink-0 bg-white/20 text-white">{meta.label}</span>
             </div>
 
             <div className="mt-6 flex items-end justify-between gap-4">
@@ -211,11 +221,14 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
             {entry.status === "waiting" && (
               <div>
                 <p className="eyebrow text-ink/50">{t.ticket.placeLabel}</p>
-                <div className="mt-2 flex items-end gap-3">
-                  <span className="stat-number text-[5.7rem] text-tomato">#{view.position ?? "—"}</span>
-                  <span className="mb-3 text-sm font-bold text-muted">
-                    {format(t.ticket.ofParties, { count: view.waitingCount })}
-                  </span>
+                <div className="mt-2 flex items-end justify-between gap-3">
+                  <div className="flex items-end gap-3">
+                    <span className="stat-number text-[5.7rem] text-tomato">#{view.position ?? "—"}</span>
+                    <span className="mb-3 text-sm font-bold text-muted">
+                      {format(t.ticket.ofParties, { count: view.waitingCount })}
+                    </span>
+                  </div>
+                  <Mascot mood="ticket" className="w-24 shrink-0" title="AntriQ ticket mascot" />
                 </div>
 
                 <p className="mt-4 text-sm font-semibold leading-relaxed text-ink/75">
@@ -242,9 +255,12 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                   </div>
                   <div className="rounded-xl border-2 border-ink bg-white px-3 py-3">
                     <p className="text-[0.625rem] font-extrabold uppercase tracking-[0.12em] text-ink/55">
-                      {t.ticket.tablesFree}
+                      {t.ticket.yourQueue}
                     </p>
-                    <p className="num mt-1 font-display text-2xl font-semibold">{view.availableTables}</p>
+                    <p className="num mt-1 font-display text-2xl font-semibold">{entry.category}</p>
+                    <p className="text-[0.625rem] font-bold text-muted">
+                      {entry.category === "A" ? t.ticket.queueA : t.ticket.queueB}
+                    </p>
                   </div>
                 </div>
 

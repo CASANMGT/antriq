@@ -2,14 +2,15 @@ import type {
   DiningTable,
   HourPoint,
   HostStats,
+  QueueCategory,
   QueueEntry,
 } from "./types";
 import { minutesInTz, parseTimeToMinutes } from "./time";
 
 export const ACTIVE_STATUSES = ["waiting", "called", "seated"] as const;
 
-export function codeFor(seq: number): string {
-  return `A-${String(seq).padStart(3, "0")}`;
+export function codeFor(seq: number, category: QueueCategory = "A"): string {
+  return `${category}-${String(seq).padStart(3, "0")}`;
 }
 
 export function orderWaiting<T extends { joinedAt: string; id: number }>(entries: T[]): T[] {

@@ -228,6 +228,7 @@ export function SettingsForm({ branch }: { branch: Branch }) {
             <div className="sm:col-span-2">
               <label className="label" htmlFor="seatingMode">{t.owner.seatingMode}</label>
               <select id="seatingMode" name="seatingMode" className="input bg-white" defaultValue={branch.seatingMode}>
+                <option value="queue">{t.owner.seatingQueue}</option>
                 <option value="manual">{t.owner.seatingManual}</option>
                 <option value="plan">{t.owner.seatingPlan}</option>
               </select>

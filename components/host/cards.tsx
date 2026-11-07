@@ -24,19 +24,21 @@ const sourceLabel: Record<string, string> = {
   walkin: "Walk-in",
 };
 
-export function StatsStrip({ stats }: { stats: HostStats }) {
+export function StatsStrip({ stats, showTables = true }: { stats: HostStats; showTables?: boolean }) {
   const { t } = useLang();
   const items = [
     { label: t.host.waiting, value: stats.waiting, tone: "text-gold" },
     { label: t.host.atDoor, value: stats.called, tone: "text-tomato" },
     { label: t.host.seated, value: stats.seated, tone: "text-leaf-dark" },
-    { label: t.host.tablesFreeLabel, value: `${stats.availableTables}/${stats.totalTables}`, tone: "text-ink" },
+    ...(showTables
+      ? [{ label: t.host.tablesFreeLabel, value: `${stats.availableTables}/${stats.totalTables}`, tone: "text-ink" }]
+      : []),
     { label: t.host.seatedToday, value: stats.seatedToday, tone: "text-ink" },
     { label: t.owner.noShows, value: stats.noShowToday, tone: "text-tomato-dark" },
   ];
 
   return (
-    <div className="grid grid-cols-3 border-t-2 border-ink bg-cream sm:grid-cols-6">
+    <div className={`grid grid-cols-3 border-t-2 border-ink bg-cream ${showTables ? "sm:grid-cols-6" : "sm:grid-cols-5"}`}>
       {items.map((item) => (
         <div key={item.label} className="border-b border-r border-ink/15 px-3 py-2.5 last:border-r-0 sm:border-b-0">
           <p className={`num font-display text-xl font-semibold leading-none ${item.tone}`}>{item.value}</p>
@@ -84,6 +86,9 @@ export function QueueCard({
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="num rounded-md border-2 border-ink bg-ink px-1.5 py-0.5 text-[0.6875rem] font-extrabold tracking-wide text-paper">
               {entry.code}
+            </span>
+            <span className="pill status-muted" title={entry.category === "A" ? t.guest.queueA : t.guest.queueB}>
+              {entry.category}
             </span>
             <span className="pill status-muted">{sourceLabel[entry.source] ?? entry.source}</span>
             {next && !called && (
@@ -289,6 +294,9 @@ export function SeatedCard({
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="num rounded-md border-2 border-ink bg-ink px-1.5 py-0.5 text-[0.6875rem] font-extrabold tracking-wide text-paper">
               {entry.code}
+            </span>
+            <span className="pill status-muted" title={entry.category === "A" ? t.guest.queueA : t.guest.queueB}>
+              {entry.category}
             </span>
             <span className="pill status-seated">{t.ticket.seated}</span>
           </div>

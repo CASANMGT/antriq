@@ -36,7 +36,7 @@ export const SCHEMA_STATEMENTS: string[] = [
     announcement text,
     waitlist_status text not null default 'open' check (waitlist_status in ('open','paused','closed')),
     pause_reason text,
-    seating_mode text not null default 'manual' check (seating_mode in ('manual','plan')),
+    seating_mode text not null default 'queue' check (seating_mode in ('queue','manual','plan')),
     avg_turn_minutes integer not null default 55 check (avg_turn_minutes between 10 and 240),
     hold_minutes integer not null default 3 check (hold_minutes between 2 and 30),
     max_party_size integer not null default 12 check (max_party_size between 1 and 40),
@@ -79,6 +79,7 @@ export const SCHEMA_STATEMENTS: string[] = [
     code text not null,
     day date not null,
     seq integer not null,
+    category text not null default 'A',
     guest_name text not null,
     phone text,
     party_size integer not null check (party_size between 1 and 40),
@@ -128,7 +129,11 @@ export const SCHEMA_STATEMENTS: string[] = [
 
   /* v0.3.1 — seat release audit + 3-minute call countdown default. */
   `alter table branches alter column hold_minutes set default 3`,
-  `alter table branches add column if not exists seating_mode text not null default 'manual'`,
+  `alter table branches add column if not exists seating_mode text not null default 'queue'`,
+  `alter table branches alter column seating_mode set default 'queue'`,
+  `alter table branches drop constraint if exists branches_seating_mode_check`,
+  `alter table branches add constraint branches_seating_mode_check check (seating_mode in ('queue','manual','plan'))`,
+  `alter table queue_entries add column if not exists category text not null default 'A'`,
   `alter table queue_entries add column if not exists released_by text`,
   `alter table queue_entries add column if not exists released_by_staff_id integer references staff(id) on delete set null`,
 
@@ -137,6 +142,7 @@ export const SCHEMA_STATEMENTS: string[] = [
   `create index if not exists queue_entries_branch_status_idx on queue_entries (branch_id, status, joined_at)`,
   `create index if not exists queue_entries_branch_day_idx on queue_entries (branch_id, day)`,
   `create index if not exists queue_entries_token_idx on queue_entries (token)`,
+  `create index if not exists queue_entries_branch_category_idx on queue_entries (branch_id, category, status, joined_at)`,
   `create index if not exists dining_tables_branch_status_idx on dining_tables (branch_id, status)`,
   `create index if not exists activity_branch_created_idx on activity (branch_id, created_at desc)`,
 

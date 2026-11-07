@@ -1,4 +1,4 @@
-export type MascotMood = "happy" | "calm" | "celebrate" | "sleep";
+export type MascotMood = "happy" | "calm" | "celebrate" | "sleep" | "ticket";
 
 export function Mascot({
   mood = "happy",
@@ -12,6 +12,7 @@ export function Mascot({
   const celebrate = mood === "celebrate";
   const sleep = mood === "sleep";
   const calm = mood === "calm";
+  const ticket = mood === "ticket";
 
   return (
     <svg
@@ -76,7 +77,25 @@ export function Mascot({
       )}
 
       {/* arms */}
-      {calm ? (
+      {ticket ? (
+        <>
+          <path d="M57 132C38 124 28 104 34 92" stroke="#262321" strokeWidth="7" strokeLinecap="round" />
+          <circle cx="34" cy="89" r="9" fill="#FFF1CA" stroke="#262321" strokeWidth="6" />
+          <path d="M78 150C62 154 48 164 44 176" stroke="#262321" strokeWidth="7" strokeLinecap="round" />
+          <circle cx="42" cy="178" r="9" fill="#FFF1CA" stroke="#262321" strokeWidth="6" />
+          <g transform="rotate(-10 52 192)">
+            <path
+              d="M18 172h58v34l-5 4-5-4-5 4-5-4-5 4-5-4-5 4-5-4-5 4-5-4-5 4-5-4Z"
+              fill="#F24B3F"
+              stroke="#262321"
+              strokeWidth="5"
+              strokeLinejoin="round"
+            />
+            <path d="M28 184h36M28 194h26" stroke="#FFF1CA" strokeWidth="4" strokeLinecap="round" />
+            <circle cx="68" cy="181" r="3" fill="#FFF1CA" />
+          </g>
+        </>
+      ) : calm ? (
         <>
           <path d="M57 138C42 146 42 162 52 168" stroke="#262321" strokeWidth="7" strokeLinecap="round" />
           <path d="M187 138C202 146 202 162 192 168" stroke="#262321" strokeWidth="7" strokeLinecap="round" />

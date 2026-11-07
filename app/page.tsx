@@ -243,12 +243,12 @@ function BranchCardView({
 
       <div className="mt-4 grid grid-cols-3 gap-1.5">
         <div className="rounded-xl border-2 border-ink/15 bg-pink/60 px-2 py-2 text-center">
-          <p className="num font-display text-xl font-semibold">{snapshot?.waiting ?? "—"}</p>
-          <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.statsWaiting}</p>
+          <p className="num font-display text-xl font-semibold">{snapshot?.waitingA ?? "—"}</p>
+          <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.queueA}</p>
         </div>
         <div className="rounded-xl border-2 border-ink/15 bg-cream px-2 py-2 text-center">
-          <p className="num font-display text-xl font-semibold">{snapshot?.availableTables ?? "—"}</p>
-          <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.statsTables}</p>
+          <p className="num font-display text-xl font-semibold">{snapshot?.waitingB ?? "—"}</p>
+          <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-ink/50">{t.guest.queueB}</p>
         </div>
         <div className="rounded-xl border-2 border-ink/15 bg-leaf-soft px-2 py-2 text-center">
           <p className="num font-display text-xl font-semibold">{snapshot?.lastCalledCode ?? "—"}</p>

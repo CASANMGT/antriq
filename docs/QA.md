@@ -55,6 +55,10 @@ Last run: **7 Nov 2026** — lint clean, 25/25 tests passing, production build g
 - [x] Brand logo/menu upload survives MIME fallback and is served immediately
 - [x] QR poster shows the Tenka/Nikumaru brand logo and decodes to the branch URL
 - [x] Platform owner is Iwanna; primary greeter is Wuri
+- [x] Customer pages do not show empty-table counts
+- [x] Queue A (1–2) and Queue B (3+) codes/labels work
+- [x] Queue-only mode default; host hides table stat and seats openly
+- [x] Ticket shows circular brand logo and ticket-holding mascot
 - [x] Unknown brand/branch returns 404
 - [x] Platform owner sees all branches; brand owner only Tenka; branch owner only their branch
 - [x] Host board switcher changes branch and all actions carry `branchId`

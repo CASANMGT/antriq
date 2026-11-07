@@ -68,7 +68,8 @@ export function HostBoard({
   const [pending, startTransition] = useTransition();
 
   const { branch, brand, stats } = state;
-  const manual = branch.seatingMode === "manual";
+  const plan = branch.seatingMode === "plan";
+  const manual = !plan;
 
   const hostAction = useCallback(
     (type: string, extra: Record<string, unknown> = {}) =>
@@ -405,7 +406,7 @@ export function HostBoard({
             </form>
           </div>
         </div>
-        <StatsStrip stats={stats} />
+        <StatsStrip stats={stats} showTables={plan} />
       </header>
 
       <main className="mx-auto max-w-[1500px] px-3 pb-28 pt-4 sm:px-5 lg:pb-8">
@@ -424,9 +425,9 @@ export function HostBoard({
           </div>
           <div className="flex items-center gap-2 text-xs font-bold text-muted">
             <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-white px-2.5 py-1">
-              <span className="live-dot" /> {t.host.liveFloor}
+              <span className="live-dot" /> {plan ? t.host.liveFloor : t.host.live}
             </span>
-            <span>{format(t.host.tablesFree, { count: stats.availableTables })}</span>
+            <span>{plan ? format(t.host.tablesFree, { count: stats.availableTables }) : t.host.queueOnly}</span>
           </div>
         </div>
 

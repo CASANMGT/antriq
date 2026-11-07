@@ -45,9 +45,12 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(snapshot.branch.name).toBe("Nikumaru Blok M");
     expect(snapshot.brand?.name).toBe("Nikumaru");
     expect(snapshot.waiting).toBe(6);
+    expect(snapshot.waitingA + snapshot.waitingB).toBe(6);
+    expect(snapshot.waitingA).toBeGreaterThan(0);
+    expect(snapshot.waitingB).toBeGreaterThan(0);
     expect(snapshot.availableTables).toBe(2);
     expect(snapshot.typicalWaitMinutes).toBeGreaterThan(5);
-    expect(snapshot.lastCalledCode).toBe("A-005");
+    expect(snapshot.lastCalledCode).toBe("B-005");
 
     expect(await getBranchBySlugs("nikumaru", "tebet")).not.toBeNull();
     expect(await getBranchBySlugs("tenka", "kamaja")).not.toBeNull();
@@ -72,7 +75,7 @@ describe("store integration (PGlite + demo seed)", () => {
       phone: "081234567890",
       notes: "Window seat",
     });
-    expect(joined.code).toMatch(/^A-\d{3,}$/);
+    expect(joined.code).toMatch(/^B-\d{3,}$/);
     expect(joined.position).toBe(7);
 
     const view = await getTicketView(joined.token);
