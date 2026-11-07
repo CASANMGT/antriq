@@ -8,7 +8,7 @@ npm test         # 21 domain + integration tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **7 Nov 2026** — lint clean, 23/23 tests passing, production build green (v0.3.3 manual seating).
+Last run: **7 Nov 2026** — lint clean, 25/25 tests passing, production build green (v0.3.5 branding + QR).
 
 ### Deployment verification
 
@@ -51,6 +51,10 @@ Last run: **7 Nov 2026** — lint clean, 23/23 tests passing, production build g
 - [x] Legacy `/b/nikumaru/senopati`, `/b/nikumaru/kemang`, `/b/tenka/senopati` redirect
 - [x] Manual seating mode: one-tap seat, no table required, Seated list + release
 - [x] Table-plan mode still supports table + seat number
+- [x] Customer branch page shows notification opt-in; Chrome/Firefox permission prompt works
+- [x] Brand logo/menu upload survives MIME fallback and is served immediately
+- [x] QR poster shows the Tenka/Nikumaru brand logo and decodes to the branch URL
+- [x] Platform owner is Iwanna; primary greeter is Wuri
 - [x] Unknown brand/branch returns 404
 - [x] Platform owner sees all branches; brand owner only Tenka; branch owner only their branch
 - [x] Host board switcher changes branch and all actions carry `branchId`
@@ -140,7 +144,7 @@ Tested on Chrome 152 (Windows) at **1440×1000**, **816×2412**, and emulated **
 
 | # | Step | Expected | Result |
 | --- | --- | --- | --- |
-| 1 | Sign in with Ayu / 1234 | Redirect to `/host`, session persists | Pass |
+| 1 | Sign in with Wuri / 1234 | Redirect to `/host`, session persists | Pass |
 | 2 | Wrong PIN ×7 | Throttle message after 6 failures | Pass |
 | 3 | Open `/dashboard` as greeter | Redirect to `/host` | Pass |
 | 4 | Call next | First fitting party moves to At the door, hold starts, toast names table | Pass |
@@ -164,7 +168,7 @@ Tested on Chrome 152 (Windows) at **1440×1000**, **816×2412**, and emulated **
 
 | # | Step | Expected | Result |
 | --- | --- | --- | --- |
-| 1 | Sign in with Rani / 1234 | `/dashboard` | Pass |
+| 1 | Sign in with Iwanna / 1234 | `/dashboard` | Pass |
 | 2 | Overview | KPIs, hourly pulse, floor by zone, queue, activity, 7-day strip | Pass |
 | 3 | Waitlist control | Pause/Reopen from settings; guest page reflects it | Pass |
 | 4 | Reports 7/30/90 | Totals, daily table, insights; range persists | Pass |

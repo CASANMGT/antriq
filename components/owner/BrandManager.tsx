@@ -89,6 +89,10 @@ export function BrandManager({
 
   function upload(brandId: number, kind: "logo" | "menu", file: File | null) {
     if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      show(t.owner.uploadTooLarge, "error");
+      return;
+    }
     const key = `${brandId}-${kind}`;
     setUploading(key);
     startTransition(async () => {
@@ -98,14 +102,22 @@ export function BrandManager({
       body.set("file", file);
       try {
         const response = await fetch("/api/owner/brand/asset", { method: "POST", body });
-        const result = (await response.json()) as { ok: boolean; message?: string };
-        show(result.message ?? (result.ok ? t.owner.saved : t.owner.quiet), result.ok ? "success" : "error");
+        let result: { ok: boolean; message?: string } = {
+          ok: false,
+          message: response.status === 413 ? t.owner.uploadTooLarge : t.owner.uploadFailed,
+        };
+        try {
+          result = (await response.json()) as { ok: boolean; message?: string };
+        } catch {
+          // A non-JSON response is usually a platform body-size error.
+        }
+        show(result.message ?? (result.ok ? t.owner.saved : t.owner.uploadFailed), result.ok ? "success" : "error");
         if (result.ok) {
           setStamp(Date.now());
           router.refresh();
         }
       } catch {
-        show(t.owner.quiet, "error");
+        show(t.owner.uploadFailed, "error");
       } finally {
         setUploading(null);
       }
@@ -139,7 +151,7 @@ export function BrandManager({
                   <img
                     src={`/api/brands/${brand.id}/logo${logoStamp}`}
                     alt={`${brand.name} logo`}
-                    className="size-16 shrink-0 rounded-2xl border-2 border-ink bg-white object-contain p-1"
+                    className="h-16 w-28 shrink-0 rounded-2xl border-2 border-ink bg-white object-contain p-1"
                   />
                 ) : (
                   <span className="grid size-16 shrink-0 place-items-center rounded-2xl border-2 border-ink bg-cream">
@@ -194,7 +206,10 @@ export function BrandManager({
                       type="file"
                       accept="image/png,image/jpeg,image/webp,image/svg+xml"
                       className="hidden"
-                      onChange={(event) => upload(brand.id, "logo", event.target.files?.[0] ?? null)}
+                      onChange={(event) => {
+                        upload(brand.id, "logo", event.target.files?.[0] ?? null);
+                        event.currentTarget.value = "";
+                      }}
                     />
                   </label>
                   <label className="btn btn-soft btn-sm cursor-pointer justify-center">
@@ -204,7 +219,10 @@ export function BrandManager({
                       type="file"
                       accept="application/pdf"
                       className="hidden"
-                      onChange={(event) => upload(brand.id, "menu", event.target.files?.[0] ?? null)}
+                      onChange={(event) => {
+                        upload(brand.id, "menu", event.target.files?.[0] ?? null);
+                        event.currentTarget.value = "";
+                      }}
                     />
                   </label>
                 </div>

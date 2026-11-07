@@ -21,6 +21,7 @@ import { Mascot } from "@/components/Mascot";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { JoinForm } from "@/components/diner/JoinForm";
 import { MyTicketBanner } from "@/components/diner/MyTicketBanner";
+import { NotificationPrompt } from "@/components/Notifications";
 import { Scribble, Sparks } from "@/components/Doodles";
 import { getBranchBySlugs, getPublicSnapshot } from "@/lib/store";
 import { dayInTz, formatDayLong } from "@/lib/time";
@@ -119,7 +120,7 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
               <img
                 src={logoUrl}
                 alt={`${brand?.name ?? branch.name} logo`}
-                className="size-14 shrink-0 rounded-2xl border-2 border-ink bg-white object-contain p-1 shadow-[2px_2px_0_#262321]"
+                className="h-14 w-auto max-w-[11rem] shrink-0 rounded-2xl border-2 border-ink bg-white object-contain p-1 shadow-[2px_2px_0_#262321]"
               />
             ) : null}
             <div>
@@ -262,6 +263,9 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
             )}
 
             <MyTicketBanner branchId={branch.id} />
+            <div className="mt-4">
+              <NotificationPrompt variant="banner" />
+            </div>
 
             <JoinForm
               branchId={branch.id}

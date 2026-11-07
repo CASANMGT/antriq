@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
 import QRCode from "qrcode";
-import { ArrowLeft, ExternalLink, ScanLine, Smartphone, Timer, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, ExternalLink, MapPin, ScanLine, Smartphone, Timer, UtensilsCrossed } from "lucide-react";
 import { CopyLinkButton, PrintButton } from "@/components/owner/QrActions";
 import { Logo } from "@/components/Logo";
 import { Mascot } from "@/components/Mascot";
@@ -36,9 +36,9 @@ export default async function QrPage({
   const url = `${base}/b/${brand?.slug ?? "brand"}/${branch.slug}`;
 
   const qr = await QRCode.toDataURL(url, {
-    width: 760,
-    margin: 1,
-    errorCorrectionLevel: "M",
+    width: 900,
+    margin: 2,
+    errorCorrectionLevel: "H",
     color: { dark: "#262321", light: "#FFFDF7" },
   });
 
@@ -76,7 +76,7 @@ export default async function QrPage({
               </span>
             </div>
             <p className="mt-7 text-[0.6875rem] font-extrabold uppercase tracking-[0.2em] text-white/70">
-              {brand?.name ? `${brand.name} · ` : ""}{branch.name}
+              {t.owner.posterTagline}
             </p>
             <h2 className="mt-2 font-display text-[3.2rem] font-semibold leading-[0.88] tracking-tight sm:text-[3.9rem]">
               {t.owner.posterHeadline1}
@@ -93,6 +93,29 @@ export default async function QrPage({
             <div className="absolute inset-x-0 top-1/2 border-t-2 border-dashed border-ink/25" />
             <div className="absolute -left-3 top-1/2 size-6 -translate-y-1/2 rounded-full border-2 border-ink bg-cream" />
             <div className="absolute -right-3 top-1/2 size-6 -translate-y-1/2 rounded-full border-2 border-ink bg-cream" />
+          </div>
+
+          <div className="bg-paper px-8 pt-5 sm:px-10">
+            <div className="flex items-center gap-4 rounded-2xl border-2 border-ink bg-white p-4 shadow-[2px_2px_0_#262321]">
+              {brand?.hasLogo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={`/api/brands/${brand.id}/logo`}
+                  alt={`${brand.name} logo`}
+                  className="h-14 w-auto max-w-[11rem] shrink-0 object-contain"
+                />
+              ) : (
+                <p className="shrink-0 font-display text-2xl font-semibold">{brand?.name ?? "AntriQ"}</p>
+              )}
+              <div className="h-10 w-px shrink-0 bg-ink/15" />
+              <div className="min-w-0">
+                <p className="font-display text-2xl leading-tight">{branch.name}</p>
+                <p className="mt-1 flex items-start gap-1 text-[0.625rem] font-bold uppercase tracking-[0.08em] text-muted">
+                  <MapPin className="mt-0.5 size-3 shrink-0 text-tomato" />
+                  <span className="line-clamp-2">{branch.address ?? branch.timezone}</span>
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="bg-paper px-8 pb-8 pt-5 sm:px-10">

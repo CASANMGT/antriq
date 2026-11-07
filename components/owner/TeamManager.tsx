@@ -240,7 +240,7 @@ export function TeamManager({
               className="input"
               value={draft.name}
               onChange={(event) => setDraft({ ...draft, name: event.target.value })}
-              placeholder="Ayu Lestari"
+              placeholder="Wuri"
               maxLength={60}
               required
             />

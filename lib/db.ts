@@ -3,7 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import postgres from "postgres";
 import { SCHEMA_STATEMENTS } from "./schema";
 import { hashPin } from "./pin";
-import { seedDatabase } from "./seed";
+import { logoNikumaru, logoTenka, seedDatabase } from "./seed";
 
 export interface Queryable {
   query<T = Record<string, unknown>>(text: string, params?: unknown[]): Promise<T[]>;
@@ -241,6 +241,15 @@ async function runDataMigrations(db: Queryable) {
     await db.query("update staff set pin_hash = $1", [hashPin("1234")]);
   }
 
+  const staffNames = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('staff_names_v1', 'done')
+     on conflict (key) do nothing returning key`,
+  );
+  if (staffNames.length > 0) {
+    await db.query("update staff set name = 'Iwanna', initials = 'IW' where name in ('Rani Wijaya', 'Rani')");
+    await db.query("update staff set name = 'Wuri', initials = 'WU' where name in ('Ayu Lestari', 'Ayu')");
+  }
+
   const legacyBranches = await db.query<{ key: string }>(
     `insert into app_meta (key, value) values ('cleanup_legacy_branches_v1', 'done')
      on conflict (key) do nothing returning key`,
@@ -259,6 +268,19 @@ async function runDataMigrations(db: Queryable) {
              and exists (select 1 from branches c where c.brand_id = br.brand_id and c.slug = 'kamaja'))
          )`,
     );
+  }
+
+  const brandLogos = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('brand_logos_v2', 'done')
+     on conflict (key) do nothing returning key`,
+  );
+  if (brandLogos.length > 0) {
+    await db.query("update brands set logo_data = $1, logo_mime = 'image/svg+xml', updated_at = now() where slug = 'nikumaru'", [
+      Buffer.from(logoNikumaru()),
+    ]);
+    await db.query("update brands set logo_data = $1, logo_mime = 'image/svg+xml', updated_at = now() where slug = 'tenka'", [
+      Buffer.from(logoTenka()),
+    ]);
   }
 }
 

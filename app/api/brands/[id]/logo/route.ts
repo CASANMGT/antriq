@@ -16,7 +16,7 @@ export async function GET(
   return new Response(Buffer.from(asset.data), {
     headers: {
       "Content-Type": asset.mime,
-      "Cache-Control": "public, max-age=60, stale-while-revalidate=86400",
+      "Cache-Control": "public, max-age=0, must-revalidate",
     },
   });
 }

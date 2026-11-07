@@ -76,8 +76,8 @@ A fictional **ramen & izakaya** group with two brands and three branches:
 
 | Role | Name | Scope | PIN |
 | --- | --- | --- | --- |
-| Platform owner | Rani Wijaya | All brands & branches | `1234` |
-| Greeter | Ayu Lestari | Nikumaru Blok M | `1234` |
+| Platform owner | Iwanna | All brands & branches | `1234` |
+| Greeter | Wuri | Nikumaru Blok M | `1234` |
 | Greeter | Bima Pratama | Nikumaru Blok M | `1234` |
 | Cashier | Sari Kasir | Nikumaru Blok M | `1234` |
 | Greeter | Dewi Larasati | Nikumaru Tebet | `1234` |
@@ -211,7 +211,7 @@ npm run dev       # development
 npm run build     # production build
 npm start         # production server
 npm run lint      # ESLint (Next 16 + React 19 rules)
-npm test          # 23 domain + integration tests
+npm test          # 25 domain + integration tests
 ```
 
 ## Deploy to Vercel

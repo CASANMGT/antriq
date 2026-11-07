@@ -55,7 +55,7 @@ export default async function BrandPage({ params }: { params: Params }) {
             <img
               src={logoUrl}
               alt={`${brand.name} logo`}
-              className="size-24 rounded-3xl border-2 border-ink bg-white object-contain p-2 shadow-[4px_4px_0_#262321]"
+              className="h-20 w-auto max-w-[16rem] rounded-3xl border-2 border-ink bg-white object-contain p-2 shadow-[4px_4px_0_#262321]"
             />
           ) : (
             <span className="grid size-24 place-items-center rounded-3xl border-2 border-ink bg-white shadow-[4px_4px_0_#262321]">

@@ -10,6 +10,28 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.3.5] — 2026-11-07
+
+The **branding, upload and QR** release.
+
+### Added
+- Customer-facing notification opt-in banner on the branch page, so Chrome/Firefox guests can allow notifications before joining.
+- Brand identity card on the printable QR poster: brand logo + branch name + address, with the branch URL QR below it.
+- A decoded-QR test (`jsqr`) proving the poster QR resolves to the branch URL.
+- New horizontal Nikumaru and Tenka seed logos; refreshed AntriQ wordmark and app icon.
+
+### Changed
+- Platform owner name: **Iwanna**; primary greeter name: **Wuri**. Existing demo staff migrate once.
+- QR uses high error correction (`H`) and a larger print size.
+- Brand assets revalidate immediately after upload.
+
+### Fixed
+- Brand logo/menu upload now accepts files with missing or generic MIME types by falling back to the filename extension.
+- Upload errors are shown in the UI instead of a generic failure; files over 4 MB are caught before upload.
+- Re-selecting the same file now triggers upload again.
+- Asset routes no longer serve stale logos/menus for 60 seconds after an upload.
+- Brand upload failures return JSON instead of an HTML 500.
+
 ## [0.3.4] — 2026-11-07
 
 ### Changed

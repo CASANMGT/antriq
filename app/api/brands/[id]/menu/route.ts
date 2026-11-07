@@ -17,7 +17,7 @@ export async function GET(
     headers: {
       "Content-Type": asset.mime,
       "Content-Disposition": `inline; filename="${(asset.filename ?? "menu.pdf").replace(/"/g, "")}"`,
-      "Cache-Control": "public, max-age=60, stale-while-revalidate=86400",
+      "Cache-Control": "public, max-age=0, must-revalidate",
     },
   });
 }

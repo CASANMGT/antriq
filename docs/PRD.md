@@ -93,14 +93,14 @@ Indonesian F&B operators increasingly use queue products (WaitHub, Antrian.onlin
 - Wants to know: *how long, where am I, will I lose my table if I step out?*
 - Success: joins in under 30 seconds; sees a clear queue position and call; is seated without repeating her name.
 
-### 4.2 Ayu — the greeter
+### 4.2 Wuri — the greeter
 
 - 20–35, host stand, tablet or phone, high interruption rate.
 - Manages walk-ins, phone calls, seating, table resets, and the door simultaneously.
 - Wants: one screen, big tap targets, no typing, no ambiguity, fast recovery from mistakes.
 - Success: calls the right party, seats them at a table that fits, clears the table, repeats.
 
-### 4.3 Rani — the owner
+### 4.3 Iwanna — the owner
 
 - 30–50, operates one or two restaurants, checks the floor at service and the numbers after.
 - Wants: “Are we busy? Are people waiting too long? Are we losing tables to no-shows?”

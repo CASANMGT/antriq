@@ -158,8 +158,8 @@ const TABLES_BY_BRANCH: Record<string, { label: string; capacity: number; zone: 
 };
 
 const STAFF_SEED = [
-  { name: "Rani Wijaya", role: "owner", pin: "1234", initials: "RW", brand: null, branch: null },
-  { name: "Ayu Lestari", role: "greeter", pin: "1234", initials: "AL", brand: "nikumaru", branch: "nikumaru/blok-m" },
+  { name: "Iwanna", role: "owner", pin: "1234", initials: "IW", brand: null, branch: null },
+  { name: "Wuri", role: "greeter", pin: "1234", initials: "WU", brand: "nikumaru", branch: "nikumaru/blok-m" },
   { name: "Bima Pratama", role: "greeter", pin: "1234", initials: "BP", brand: "nikumaru", branch: "nikumaru/blok-m" },
   { name: "Sari Kasir", role: "cashier", pin: "1234", initials: "SK", brand: "nikumaru", branch: "nikumaru/blok-m" },
   { name: "Dewi Larasati", role: "greeter", pin: "1234", initials: "DL", brand: "nikumaru", branch: "nikumaru/tebet" },
@@ -192,25 +192,25 @@ const DEMO_ENTRIES: Record<string, DemoEntry[]> = {
     { seq: 3, code: "A-003", name: "Daniel Park", party: 2, phone: "+62 812 1111 0103", source: "qr", status: "waiting", joined: 19 },
     { seq: 4, code: "A-004", name: "The Oka Family", party: 6, phone: "+62 812 1111 0104", source: "qr", status: "waiting", joined: 11, notes: "Butuh satu kursi bayi" },
     { seq: 5, code: "A-005", name: "Clara Nguyen", party: 3, phone: "+62 812 1111 0105", source: "online", status: "called", joined: 22, notes: "Merayakan ulang tahun", called: 2 },
-    { seq: 6, code: "A-006", name: "Ben Hartono", party: 2, phone: "+62 812 1111 0106", source: "qr", status: "seated", joined: 55, seated: 38, table: "T4", seat: 2, openedBy: "Ayu Lestari" },
+    { seq: 6, code: "A-006", name: "Ben Hartono", party: 2, phone: "+62 812 1111 0106", source: "qr", status: "seated", joined: 55, seated: 38, table: "T4", seat: 2, openedBy: "Wuri" },
     { seq: 7, code: "A-007", name: "Sari & Dimas", party: 4, phone: "+62 812 1111 0107", source: "qr", status: "seated", joined: 48, notes: "Anniversary", seated: 31, table: "P2", seat: 1, openedBy: "Sari Kasir" },
-    { seq: 8, code: "A-008", name: "Noah Lim", party: 6, phone: "+62 812 1111 0108", source: "online", status: "seated", joined: 70, seated: 50, table: "T7", seat: 3, openedBy: "Ayu Lestari" },
+    { seq: 8, code: "A-008", name: "Noah Lim", party: 6, phone: "+62 812 1111 0108", source: "online", status: "seated", joined: 70, seated: 50, table: "T7", seat: 3, openedBy: "Wuri" },
     { seq: 9, code: "A-009", name: "Emma Wijaya", party: 2, phone: "+62 812 1111 0109", source: "qr", status: "completed", joined: 120, seated: 95, closed: 50, table: "T2", seat: 1, openedBy: "Bima Pratama" },
     { seq: 10, code: "A-010", name: "Arif Setiawan", party: 8, phone: "+62 812 1111 0110", source: "online", status: "no_show", joined: 90, called: 80, closed: 72 },
     { seq: 11, code: "A-011", name: "Nadia Kusuma", party: 2, phone: "+62 812 1111 0111", source: "qr", status: "cancelled", joined: 100, closed: 88 },
     { seq: 12, code: "A-012", name: "Priya Nair", party: 2, phone: "+62 812 1111 0112", source: "qr", status: "waiting", joined: 7 },
     { seq: 13, code: "A-013", name: "Tom Bakker", party: 3, phone: "+62 812 1111 0113", source: "online", status: "waiting", joined: 3, notes: "Boleh di bar" },
-    { seq: 14, code: "A-014", name: "Luca Moretti", party: 4, phone: "+62 812 1111 0114", source: "qr", status: "seated", joined: 47, seated: 22, table: "T3", seat: 4, openedBy: "Ayu Lestari" },
+    { seq: 14, code: "A-014", name: "Luca Moretti", party: 4, phone: "+62 812 1111 0114", source: "qr", status: "seated", joined: 47, seated: 22, table: "T3", seat: 4, openedBy: "Wuri" },
     { seq: 15, code: "A-015", name: "Nina Halim", party: 3, phone: "+62 812 1111 0115", source: "qr", status: "seated", joined: 62, notes: "Alergi kerang", seated: 18, table: "T5", seat: 2, openedBy: "Sari Kasir" },
     { seq: 16, code: "A-016", name: "Omar Haddad", party: 4, phone: "+62 812 1111 0116", source: "online", status: "seated", joined: 44, seated: 12, table: "P3", seat: 1, openedBy: "Bima Pratama" },
-    { seq: 17, code: "A-017", name: "Grace Tan", party: 6, phone: "+62 812 1111 0117", source: "qr", status: "seated", joined: 58, notes: "Kue ulang tahun di kulkas", seated: 8, table: "P4", seat: 6, openedBy: "Ayu Lestari" },
+    { seq: 17, code: "A-017", name: "Grace Tan", party: 6, phone: "+62 812 1111 0117", source: "qr", status: "seated", joined: 58, notes: "Kue ulang tahun di kulkas", seated: 8, table: "P4", seat: 6, openedBy: "Wuri" },
     { seq: 18, code: "A-018", name: "Sam Rivera", party: 1, phone: "+62 812 1111 0118", source: "walkin", status: "seated", joined: 30, seated: 5, table: "C1", seat: 1, openedBy: "Sari Kasir" },
-    { seq: 19, code: "A-019", name: "Theo Lim", party: 2, phone: "+62 812 1111 0119", source: "qr", status: "completed", joined: 150, seated: 120, closed: 78, table: "T1", seat: 1, openedBy: "Ayu Lestari" },
+    { seq: 19, code: "A-019", name: "Theo Lim", party: 2, phone: "+62 812 1111 0119", source: "qr", status: "completed", joined: 150, seated: 120, closed: 78, table: "T1", seat: 1, openedBy: "Wuri" },
     { seq: 20, code: "A-020", name: "Iris Chen", party: 2, phone: "+62 812 1111 0120", source: "online", status: "completed", joined: 160, seated: 135, closed: 95, table: "P1", seat: 2, openedBy: "Bima Pratama" },
-    { seq: 21, code: "A-021", name: "Will Tan", party: 2, phone: "+62 812 1111 0121", source: "qr", status: "seated", joined: 40, seated: 20, table: "T1", seat: 2, openedBy: "Ayu Lestari" },
+    { seq: 21, code: "A-021", name: "Will Tan", party: 2, phone: "+62 812 1111 0121", source: "qr", status: "seated", joined: 40, seated: 20, table: "T1", seat: 2, openedBy: "Wuri" },
     { seq: 22, code: "A-022", name: "Zoe Park", party: 2, phone: "+62 812 1111 0122", source: "qr", status: "seated", joined: 36, seated: 16, table: "P1", seat: 1, openedBy: "Sari Kasir" },
     { seq: 23, code: "A-023", name: "Hana Sato", party: 2, phone: "+62 812 1111 0123", source: "qr", status: "completed", joined: 180, seated: 140, closed: 110, table: "T6", seat: 1, openedBy: "Bima Pratama" },
-    { seq: 24, code: "A-024", name: "Ravi Menon", party: 4, phone: "+62 812 1111 0124", source: "online", status: "completed", joined: 200, seated: 165, closed: 125, table: "T5", seat: 3, openedBy: "Ayu Lestari" },
+    { seq: 24, code: "A-024", name: "Ravi Menon", party: 4, phone: "+62 812 1111 0124", source: "online", status: "completed", joined: 200, seated: 165, closed: 125, table: "T5", seat: 3, openedBy: "Wuri" },
     { seq: 25, code: "A-025", name: "Elena Rossi", party: 6, phone: "+62 812 1111 0125", source: "qr", status: "completed", joined: 210, seated: 175, closed: 130, table: "P4", seat: 4, openedBy: "Sari Kasir" },
   ],
   "nikumaru/tebet": [
@@ -237,24 +237,34 @@ const DEMO_ENTRIES: Record<string, DemoEntry[]> = {
   ],
 };
 
-function logoNikumaru(): Uint8Array {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
-    <rect width="128" height="128" rx="32" fill="#FFF1CA"/>
-    <path d="M24 54h80c0 26-18 44-40 44S24 80 24 54Z" fill="#F24B3F" stroke="#262321" stroke-width="6"/>
-    <path d="M18 54h92" stroke="#262321" stroke-width="7" stroke-linecap="round"/>
-    <path d="M42 42c-3-9 8-12 4-21M64 40c-3-9 8-12 4-21M86 42c-3-9 8-12 4-21" stroke="#262321" stroke-width="4" stroke-linecap="round"/>
-    <path d="M48 66c8 8 24 8 32 0" stroke="#FFF1CA" stroke-width="5" stroke-linecap="round"/>
-    <path d="M92 28l10-8M96 38l13-2" stroke="#F24B3F" stroke-width="4" stroke-linecap="round"/>
+export function logoNikumaru(): Uint8Array {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 140" width="360" height="140">
+    <g fill="none" stroke="#262321" stroke-width="7">
+      <circle cx="70" cy="70" r="52"/>
+      <circle cx="70" cy="70" r="34"/>
+    </g>
+    <circle cx="70" cy="70" r="20" fill="#262321"/>
+    <path d="M61 57v26M70 54v32M79 58v24" stroke="#FFF1CA" stroke-width="3" stroke-linecap="round"/>
+    <text x="145" y="72" font-family="Arial Black, Arial, sans-serif" font-size="40" font-weight="900" letter-spacing="5" fill="#262321">NIKUMARU</text>
+    <text x="148" y="99" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="5" fill="#262321">BEEFY EGGY HAPPY</text>
+    <path d="M145 110h200" stroke="#F24B3F" stroke-width="4" stroke-linecap="round"/>
   </svg>`;
   return new Uint8Array(Buffer.from(svg));
 }
 
-function logoTenka(): Uint8Array {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
-    <rect width="128" height="128" rx="32" fill="#262321"/>
-    <path d="M64 18v12M52 30h24M44 34h40l-4 52c-1 13-8 22-16 22s-15-9-16-22l-4-52Z" fill="#E3A02D" stroke="#FFF1CA" stroke-width="4"/>
-    <path d="M52 58h24M50 76h28" stroke="#262321" stroke-width="5" stroke-linecap="round"/>
-    <path d="M28 92c8-8 16-10 24-6M100 92c-8-8-16-10-24-6" stroke="#F24B3F" stroke-width="4" stroke-linecap="round"/>
+export function logoTenka(): Uint8Array {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 140" width="360" height="140">
+    <g transform="translate(4 12)">
+      <path d="M16 54h92c-2 31-20 52-46 52S18 85 16 54Z" fill="#1E5AA8" stroke="#262321" stroke-width="6"/>
+      <path d="M10 54h104" stroke="#262321" stroke-width="8" stroke-linecap="round"/>
+      <path d="M34 46c6-12 20-18 32-14 11 4 19 14 22 24-18 8-39 6-54-10Z" fill="#F4C430" stroke="#262321" stroke-width="4"/>
+      <path d="M46 40c4-6 10-9 16-7" stroke="#FFF1CA" stroke-width="4" stroke-linecap="round"/>
+      <path d="M44 82c8 6 24 6 32 0" stroke="#FFF1CA" stroke-width="4" stroke-linecap="round"/>
+      <text x="32" y="96" font-family="Arial Black, Arial, sans-serif" font-size="18" font-weight="900" fill="#FFF1CA">天下</text>
+    </g>
+    <text x="145" y="76" font-family="Arial Black, Arial, sans-serif" font-size="48" font-weight="900" letter-spacing="3" fill="#F4C430" stroke="#1E5AA8" stroke-width="3" paint-order="stroke">TENKA</text>
+    <text x="148" y="103" font-family="Arial, sans-serif" font-size="12" font-weight="800" letter-spacing="4" fill="#1E5AA8">TEMPURA &amp; KATSU</text>
+    <path d="M145 114h200" stroke="#F4C430" stroke-width="4" stroke-linecap="round"/>
   </svg>`;
   return new Uint8Array(Buffer.from(svg));
 }
@@ -470,10 +480,10 @@ export async function seedDatabase(db: Queryable): Promise<void> {
   // A small activity feed for the primary branch.
   const feed = [
     { type: "join", name: "The Oka Family", code: "A-004", party: 6, actor: "Tamu", minutes: 11, table: null },
-    { type: "call", name: "Clara Nguyen", code: "A-005", party: 3, actor: "Ayu Lestari", minutes: 2, table: null },
-    { type: "seat", name: "Ben Hartono", code: "A-006", party: 2, actor: "Ayu Lestari", minutes: 38, table: "T4" },
+    { type: "call", name: "Clara Nguyen", code: "A-005", party: 3, actor: "Wuri", minutes: 2, table: null },
+    { type: "seat", name: "Ben Hartono", code: "A-006", party: 2, actor: "Wuri", minutes: 38, table: "T4" },
     { type: "complete", name: "Emma Wijaya", code: "A-009", party: 2, actor: "Bima Pratama", minutes: 50, table: "T2" },
-    { type: "no_show", name: "Arif Setiawan", code: "A-010", party: 8, actor: "Ayu Lestari", minutes: 72, table: null },
+    { type: "no_show", name: "Arif Setiawan", code: "A-010", party: 8, actor: "Wuri", minutes: 72, table: null },
     { type: "cancel", name: "Nadia Kusuma", code: "A-011", party: 2, actor: "Tamu", minutes: 88, table: null },
   ];
   for (const item of feed) {

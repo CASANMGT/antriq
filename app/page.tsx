@@ -99,7 +99,7 @@ export default async function HomePage() {
                       <img
                         src={`/api/brands/${brand.id}/logo`}
                         alt={`${brand.name} logo`}
-                        className="size-14 shrink-0 rounded-2xl border-2 border-ink bg-white object-contain p-1 shadow-[2px_2px_0_#262321]"
+                        className="h-12 w-auto max-w-[10rem] shrink-0 rounded-2xl border-2 border-ink bg-white object-contain p-1 shadow-[2px_2px_0_#262321]"
                       />
                     ) : (
                       <span className="grid size-14 shrink-0 place-items-center rounded-2xl border-2 border-ink bg-white shadow-[2px_2px_0_#262321]">
