@@ -22,7 +22,7 @@ Last run: **7 Nov 2026** — lint clean, 26/26 tests passing, production build g
 
 - Generate `/dashboard/qr?branch=1` as an A4 PDF from a **390 × 844** viewport.
 - Assert exactly **1 page**, no dashboard header/buttons/download link.
-- Visual check: brand mark, branch name, 70 mm QR and footer all on one page.
+- Visual check: brand mark, branch name, 80 mm QR and footer all on one page.
 
 ### Deployment verification
 

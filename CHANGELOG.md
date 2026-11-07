@@ -17,7 +17,7 @@ The **clean print + verified notifications** release.
 ### Fixed
 - Print poster no longer prints the dashboard header, action buttons or download link.
 - Print poster prints on exactly **one A4 page**; the poster card fills the page and the footer sits at the bottom.
-- QR prints at **70 mm** and stays high resolution.
+- QR prints at **80 mm** and stays high resolution.
 
 ### Changed
 - Mobile tap targets are larger for the language switch and the AntriQ logo.

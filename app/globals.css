@@ -656,7 +656,7 @@
   .poster {
     width: 100% !important;
     max-width: none !important;
-    min-height: 268mm !important;
+    min-height: 250mm !important;
     display: flex !important;
     flex-direction: column !important;
     margin: 0 !important;
@@ -673,18 +673,23 @@
     flex-direction: column !important;
   }
 
-  .poster > div:last-child > div:last-child {
+  .poster > div:last-child > div:first-child {
     margin-top: auto !important;
+    margin-bottom: auto !important;
+  }
+
+  .poster > div:last-child > div:last-child {
+    margin-top: 6mm !important;
   }
 
   .poster .qr-image {
-    width: 70mm !important;
-    height: 70mm !important;
+    width: 80mm !important;
+    height: 80mm !important;
     image-rendering: auto;
   }
 
   .poster h2 {
-    font-size: 30pt !important;
+    font-size: 32pt !important;
   }
 
   .poster .px-8 {
