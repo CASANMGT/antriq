@@ -89,6 +89,7 @@ export function SettingsForm({ branch }: { branch: Branch }) {
       maxPartySize: Number(form.get("maxPartySize")),
       maxQueueSize: Number(form.get("maxQueueSize")),
       autoNoShow: form.get("autoNoShow") === "on",
+      seatingMode: String(form.get("seatingMode") ?? "manual"),
     });
     setSaving(false);
     setState({ ok: result.ok, message: result.ok ? t.owner.saved : result.message });
@@ -223,6 +224,14 @@ export function SettingsForm({ branch }: { branch: Branch }) {
             <div>
               <label className="label" htmlFor="maxQueueSize">{t.owner.queueCap}</label>
               <input id="maxQueueSize" name="maxQueueSize" type="number" min={1} max={500} className="input num" defaultValue={branch.maxQueueSize} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="label" htmlFor="seatingMode">{t.owner.seatingMode}</label>
+              <select id="seatingMode" name="seatingMode" className="input bg-white" defaultValue={branch.seatingMode}>
+                <option value="manual">{t.owner.seatingManual}</option>
+                <option value="plan">{t.owner.seatingPlan}</option>
+              </select>
+              <p className="mt-1.5 text-xs font-semibold leading-relaxed text-muted">{t.owner.seatingModeHint}</p>
             </div>
           </div>
 

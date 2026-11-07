@@ -644,3 +644,46 @@ brand (identity, logo, menu PDF, Instagram, accent)
 - Functions are pinned to `sin1` in `vercel.json`; the Postgres pool uses a small max, short idle timeout and 15-minute max lifetime for serverless.
 - The v0.2 schema is not compatible. v0.3 automatically moves the old tables into `antriq_v2_backup` and seeds the new model; `npm run db:reset -- --yes` is available when you want a clean slate.
 - `DEMO_MODE=1` seeds the lived-in queue; without it, brands/branches/staff/tables are still created on an empty database but the queue starts empty.
+
+---
+
+## 23. v1.3 — brand correction, manual seating and navigation
+
+### 23.1 Brand map
+
+| Brand | Positioning | Branches |
+| --- | --- | --- |
+| Nikumaru | Japanese beef hamburg & niku rice; no pork, no lard, no mirin | Blok M, Tebet |
+| Tenka | Halal-certified tempura & katsu | AEON Mall Tanjung Barat, Bintaro Xchange Mall 2, KAMAJA Social Space |
+
+Addresses:
+
+- **Nikumaru Blok M:** Jl. Sunan Kalijaga No. 1, RT.1/RW.1, Melawai, Kebayoran Baru, Jakarta Selatan 12160 (seberang Taman Literasi, samping M Bloc Space).
+- **Nikumaru Tebet:** Jl. Tebet Raya, Tebet Barat, Tebet, Jakarta Selatan 12810.
+- **Tenka AEON Tanjung Barat:** AEON Mall Tanjung Barat, Jl. Lenteng Agung Raya No. 163, Tanjung Barat, Jagakarsa, Jakarta Selatan 12530.
+- **Tenka Bintaro Xchange:** Bintaro Jaya Xchange Mall 2, Lantai FF Unit FF-F-09, Jl. Boulevard Bintaro Jaya No. 2, Pondok Jaya, Pondok Aren, Tangerang Selatan 15227.
+- **Tenka KAMAJA:** KAMAJA Social Space, Jl. Kyai Maja No. 70, Kramat Pela, Kebayoran Baru, Jakarta Selatan 12120.
+
+### 23.2 Navigation
+
+- `/` is the customer restaurant picker. Guests can open any brand or branch from one page.
+- Brand and branch headers link back to the picker.
+- Legacy v0.3 slugs redirect: `senopati → blok-m`, `kemang → tebet`, `tenka/senopati → kamaja`.
+
+### 23.3 Seating mode
+
+- Branches have `seating_mode = manual | plan` (default **manual**).
+- **Manual:** host taps Seat once; no table/seat required. A Seated list lets the host/cashier release the seat.
+- **Plan:** existing table picker + optional seat number + PIC.
+- Manual mode reduces staffing load; plan mode is opt-in from Settings.
+
+### 23.4 Notifications
+
+- Permission is requested from a user gesture (button) on the host board and guest ticket; the browser prompt is never triggered automatically.
+- Service worker notifications are used where available; the Notification API is the fallback.
+- Called guests and newly called host rows notify only when the tab is hidden.
+
+### 23.5 Production data
+
+- Demo rows seed only on first boot unless `DEMO_AUTO_RESET=1`; cleared production queues stay empty across redeploys.
+- `npm run db:clear -- --yes` clears queue/activity/table state; `db:reset` clears everything.

@@ -27,7 +27,7 @@ import {
 import { AppError } from "@/lib/validation";
 
 async function primaryBranchId(): Promise<number> {
-  const found = await getBranchBySlugs("nikumaru", "senopati");
+  const found = await getBranchBySlugs("nikumaru", "blok-m");
   if (!found) throw new Error("Demo branch missing");
   return found.branch.id;
 }
@@ -40,15 +40,17 @@ describe("store integration (PGlite + demo seed)", () => {
   it("seeds two brands, three branches and a believable service", async () => {
     const branchId = await primaryBranchId();
     const snapshot = await getPublicSnapshot(branchId);
-    expect(snapshot.branch.name).toBe("Nikumaru Senopati");
+    expect(snapshot.branch.name).toBe("Nikumaru Blok M");
     expect(snapshot.brand?.name).toBe("Nikumaru");
     expect(snapshot.waiting).toBe(6);
     expect(snapshot.availableTables).toBe(2);
     expect(snapshot.typicalWaitMinutes).toBeGreaterThan(5);
     expect(snapshot.lastCalledCode).toBe("A-005");
 
-    expect(await getBranchBySlugs("nikumaru", "kemang")).not.toBeNull();
-    expect(await getBranchBySlugs("tenka", "senopati")).not.toBeNull();
+    expect(await getBranchBySlugs("nikumaru", "tebet")).not.toBeNull();
+    expect(await getBranchBySlugs("tenka", "kamaja")).not.toBeNull();
+    expect(await getBranchBySlugs("tenka", "aeon-tanjung-barat")).not.toBeNull();
+    expect(await getBranchBySlugs("tenka", "bintaro-xchange")).not.toBeNull();
   });
 
   it("verifies staff PINs and rejects the wrong one", async () => {
@@ -205,6 +207,18 @@ describe("store integration (PGlite + demo seed)", () => {
     await setWaitlistStatus(branchId, "open", null, "Rani");
     const joined = await joinQueue(branchId, { guestName: "Allowed Guest", partySize: 2 });
     expect(joined.token).toBeTruthy();
+  });
+
+  it("seats manually without a table or seat number", async () => {
+    const branchId = await primaryBranchId();
+    const joined = await joinQueue(branchId, { guestName: "Manual Guest", partySize: 2 });
+    const view = await getTicketView(joined.token);
+    const seated = await seatEntry(branchId, view!.entry.id, null, "Ayu", 2, null);
+    expect(seated.ok).toBe(true);
+    const after = await getTicketView(joined.token);
+    expect(after?.entry.status).toBe("seated");
+    expect(after?.entry.tableId).toBeNull();
+    expect(after?.entry.seatNumber).toBeNull();
   });
 
   it("releases a seated table and records the cashier who freed it", async () => {

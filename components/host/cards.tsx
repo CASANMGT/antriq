@@ -57,6 +57,7 @@ export function QueueCard({
   onOpenSeat,
   onNoShow,
   onUndo,
+  manualMode = false,
 }: {
   entry: QueueEntry;
   position: number;
@@ -67,6 +68,7 @@ export function QueueCard({
   onOpenSeat: () => void;
   onNoShow: () => void;
   onUndo: () => void;
+  manualMode?: boolean;
 }) {
   const { t } = useLang();
   const called = entry.status === "called";
@@ -152,9 +154,11 @@ export function QueueCard({
             <button type="button" className="btn btn-outline btn-sm" onClick={onSeat} disabled={busy}>
               <Utensils className="size-3.5" /> {t.host.seat}
             </button>
-            <button type="button" className="btn btn-ghost btn-sm text-muted" onClick={onOpenSeat} disabled={busy}>
-              <Sparkles className="size-3.5" /> {t.host.openSeat}
-            </button>
+            {!manualMode && (
+              <button type="button" className="btn btn-ghost btn-sm text-muted" onClick={onOpenSeat} disabled={busy}>
+                <Sparkles className="size-3.5" /> {t.host.openSeat}
+              </button>
+            )}
           </>
         )}
         {called && (
@@ -162,9 +166,11 @@ export function QueueCard({
             <button type="button" className="btn btn-sage btn-sm" onClick={onSeat} disabled={busy}>
               <Utensils className="size-3.5" /> {t.host.seat}
             </button>
-            <button type="button" className="btn btn-soft btn-sm" onClick={onOpenSeat} disabled={busy}>
-              <Sparkles className="size-3.5" /> {t.host.openSeat}
-            </button>
+            {!manualMode && (
+              <button type="button" className="btn btn-soft btn-sm" onClick={onOpenSeat} disabled={busy}>
+                <Sparkles className="size-3.5" /> {t.host.openSeat}
+              </button>
+            )}
             <button type="button" className="btn btn-ghost btn-sm text-muted" onClick={onNoShow} disabled={busy}>
               {t.host.noShow}
             </button>
@@ -263,6 +269,49 @@ export function TableCard({
         )}
       </div>
     </div>
+  );
+}
+
+export function SeatedCard({
+  entry,
+  busy,
+  onRelease,
+}: {
+  entry: QueueEntry;
+  busy: boolean;
+  onRelease: () => void;
+}) {
+  const { t } = useLang();
+  return (
+    <article className="rounded-2xl border-2 border-ink bg-leaf-soft/60 p-3.5 shadow-[3px_3px_0_#262321]">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="num rounded-md border-2 border-ink bg-ink px-1.5 py-0.5 text-[0.6875rem] font-extrabold tracking-wide text-paper">
+              {entry.code}
+            </span>
+            <span className="pill status-seated">{t.ticket.seated}</span>
+          </div>
+          <h3 className="mt-2 truncate font-display text-[1.4rem] leading-tight tracking-tight">{entry.guestName}</h3>
+          <p className="mt-0.5 text-xs font-semibold text-muted">
+            {entry.partySize} {t.guest.guestUnit}
+            {entry.tableLabel
+              ? ` · ${entry.tableLabel}${entry.seatNumber !== null ? ` / ${format(t.host.seatValue, { seat: entry.seatNumber })}` : ""}`
+              : ` · ${t.host.manualSeat}`}
+          </p>
+          {entry.openedBy && (
+            <p className="mt-1 text-[0.6875rem] font-bold text-leaf-dark">
+              {format(t.host.openedBy, { name: entry.openedBy })}
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="mt-3 border-t-2 border-dashed border-ink/15 pt-2.5">
+        <button type="button" className="btn btn-soft btn-sm w-full" onClick={onRelease} disabled={busy}>
+          <RotateCcw className="size-3.5" /> {t.host.releaseSeat}
+        </button>
+      </div>
+    </article>
   );
 }
 

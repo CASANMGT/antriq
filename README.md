@@ -19,7 +19,7 @@ A bold, warm restaurant queue for guests, hosts, cashiers and owners — built f
 | --- | --- | --- |
 | **App / restaurant picker** | https://antriq1.vercel.app | Live database |
 | **Demo shortcut** | https://antriq1.vercel.app/demo | Redirects to the primary branch; queue starts empty after a production clear |
-| **Demo branch** | https://antriq1.vercel.app/b/nikumaru/senopati | Primary branch (empty after the production clear) |
+| **Demo branch** | https://antriq1.vercel.app/b/nikumaru/blok-m | Primary branch (empty after the production clear) |
 | **Brand page** | https://antriq1.vercel.app/b/nikumaru | Brand assets + branch list |
 
 For a true production/demo split, deploy the same repo twice with different databases:
@@ -64,19 +64,21 @@ A fictional **ramen & izakaya** group with two brands and three branches:
 
 | Brand | Branch | Public URL |
 | --- | --- | --- |
-| Nikumaru | Senopati | `/b/nikumaru/senopati` |
-| Nikumaru | Kemang | `/b/nikumaru/kemang` |
-| Tenka | Senopati | `/b/tenka/senopati` |
+| Nikumaru — Japanese beef hamburg & niku rice | Blok M | `/b/nikumaru/blok-m` |
+| Nikumaru — Japanese beef hamburg & niku rice | Tebet | `/b/nikumaru/tebet` |
+| Tenka — tempura & katsu | AEON Mall Tanjung Barat | `/b/tenka/aeon-tanjung-barat` |
+| Tenka — tempura & katsu | Bintaro Xchange Mall 2 | `/b/tenka/bintaro-xchange` |
+| Tenka — tempura & katsu | KAMAJA Social Space | `/b/tenka/kamaja` |
 
 | Role | Name | Scope | PIN |
 | --- | --- | --- | --- |
 | Platform owner | Rani Wijaya | All brands & branches | `2468` |
-| Greeter | Ayu Lestari | Nikumaru Senopati | `1357` |
-| Greeter | Bima Pratama | Nikumaru Senopati | `1122` |
-| Cashier | Sari Kasir | Nikumaru Senopati | `4321` |
-| Greeter | Dewi Larasati | Nikumaru Kemang | `2244` |
+| Greeter | Ayu Lestari | Nikumaru Blok M | `1357` |
+| Greeter | Bima Pratama | Nikumaru Blok M | `1122` |
+| Cashier | Sari Kasir | Nikumaru Blok M | `4321` |
+| Greeter | Dewi Larasati | Nikumaru Tebet | `2244` |
 | Brand owner | Kenji Sato | Tenka | `8765` |
-| Cashier | Akira Tanaka | Tenka Senopati | `3344` |
+| Cashier | Akira Tanaka | Tenka KAMAJA | `3344` |
 
 Open `/login`. With `DEMO_MODE=1`, the login page also shows one-click demo shortcuts.
 
@@ -120,6 +122,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Queue positions on every card, not waiting-time guesses.
 - **Call next** selects the first party a free table can physically seat; suggests the smallest fitting table.
 - Seat from waiting or called at a specific table and optional **seat number**, or use **Open seat** to skip the number entirely.
+- **Manual seating mode** (default): tap **Seat** once, no table or seat number, then release from the **Seated** list.
 - Called cards show the live call countdown; it pauses when the guest confirms they are on the way.
 - Browser notification prompt, plus a hidden-tab notification when a guest is called from another device.
 - **Release seat** after payment or when a visit ends; records the staff member who released it.
@@ -138,7 +141,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Team management: owner/greeter/cashier, brand + branch assignment, reset PIN, pause access, last-owner protection.
 - **Brands:** name, slug, Instagram, accent, logo upload, menu PDF upload.
 - **Branches:** create/edit name, slug, address, phone, timezone, hours, announcement.
-- Settings: identity, accent, timezone, hours, max party, queue cap, auto no-show, announcement.
+- Settings: identity, accent, timezone, hours, max party, queue cap, auto no-show, announcement, **seating mode** (manual or table plan).
 - Printable A4 QR poster whose QR points at the branch URL.
 
 ## Stack
@@ -186,7 +189,7 @@ Open:
 - Guest — http://localhost:3000 is the restaurant/branch picker
 - Demo shortcut — http://localhost:3000/demo
 - Brand — http://localhost:3000/b/nikumaru
-- Branch — http://localhost:3000/b/nikumaru/senopati or `/b/nikumaru/kemang`, `/b/tenka/senopati`
+- Branch — http://localhost:3000/b/nikumaru/blok-m or `/b/nikumaru/tebet`, `/b/tenka/kamaja`
 - Staff login — http://localhost:3000/login
 - Owner — http://localhost:3000/dashboard
 - Health — http://localhost:3000/api/health
@@ -204,7 +207,7 @@ npm run dev       # development
 npm run build     # production build
 npm start         # production server
 npm run lint      # ESLint (Next 16 + React 19 rules)
-npm test          # 22 domain + integration tests
+npm test          # 23 domain + integration tests
 ```
 
 ## Deploy to Vercel

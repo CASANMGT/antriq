@@ -58,9 +58,9 @@ curl -s https://your-app.example/api/health
 
 Open:
 
-- `/b/nikumaru/senopati` — primary demo branch
-- `/b/nikumaru/kemang` — second Nikumaru branch
-- `/b/tenka/senopati` — Tenka branch
+- `/b/nikumaru/blok-m` — primary demo branch
+- `/b/nikumaru/tebet` — second Nikumaru branch
+- `/b/tenka/aeon-tanjung-barat`, `/b/tenka/bintaro-xchange`, `/b/tenka/kamaja` — Tenka branches
 - `/login` — platform owner Rani / `2468`
 
 ## 5. Production and staging

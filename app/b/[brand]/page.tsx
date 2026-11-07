@@ -38,6 +38,9 @@ export default async function BrandPage({ params }: { params: Params }) {
       <header className="mx-auto flex max-w-5xl items-center justify-between gap-3">
         <Logo />
         <div className="flex items-center gap-2">
+          <Link href="/" className="btn btn-ghost btn-sm hidden sm:inline-flex text-muted">
+            <Store className="size-3.5" /> {t.picker.kicker}
+          </Link>
           <LanguageToggle />
           <Link href="/login" className="btn btn-outline btn-sm">
             {t.guest.staff}

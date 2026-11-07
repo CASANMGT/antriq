@@ -9,6 +9,7 @@ import {
   extendHold,
   joinQueue,
   markNoShow,
+  releaseEntry,
   seatEntry,
   setTableStatus,
   setWaitlistStatus,
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
           await seatEntry(
             branchId,
             Number(body.entryId),
-            Number(body.tableId),
+            body.tableId === null || body.tableId === undefined || body.tableId === "" ? null : Number(body.tableId),
             session.name,
             session.staffId,
             body.seatNumber === null || body.seatNumber === undefined ? null : Number(body.seatNumber),
@@ -91,6 +92,16 @@ export async function POST(request: Request) {
           await clearTable(
             branchId,
             Number(body.tableId),
+            session.name,
+            session.staffId,
+            body.reason ? String(body.reason) : null,
+          ),
+        );
+      case "releaseEntry":
+        return json(
+          await releaseEntry(
+            branchId,
+            Number(body.entryId),
             session.name,
             session.staffId,
             body.reason ? String(body.reason) : null,

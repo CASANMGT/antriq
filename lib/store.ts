@@ -32,6 +32,7 @@ import type {
   QueueEntry,
   QueueSource,
   Role,
+  SeatingMode,
   TableStatus,
   TicketView,
   WaitlistStatus,
@@ -113,6 +114,7 @@ function mapBranch(row: Row): Branch {
     announcement: row.announcement ?? null,
     waitlistStatus: (row.waitlist_status ?? "open") as WaitlistStatus,
     pauseReason: row.pause_reason ?? null,
+    seatingMode: (row.seating_mode ?? "manual") as SeatingMode,
     avgTurnMinutes: toNumber(row.avg_turn_minutes, 55),
     holdMinutes: toNumber(row.hold_minutes, 8),
     maxPartySize: toNumber(row.max_party_size, 12),
@@ -418,7 +420,7 @@ export async function listBranches(brandId?: number): Promise<BranchSummary[]> {
   const rows = await q<Row>(
     `select br.id, br.name, br.slug, br.brand_id, b.name as brand_name, b.slug as brand_slug,
             br.tagline, br.address, br.phone, br.timezone, br.open_time, br.close_time,
-            coalesce(br.accent, b.accent) as accent, br.announcement, br.waitlist_status
+            coalesce(br.accent, b.accent) as accent, br.announcement, br.waitlist_status, br.seating_mode
      from branches br join brands b on b.id = br.brand_id
      ${brandId ? "where br.brand_id = $1" : ""}
      order by b.name asc, br.name asc`,
@@ -440,6 +442,7 @@ export async function listBranches(brandId?: number): Promise<BranchSummary[]> {
     accent: String(row.accent ?? "#F24B3F"),
     announcement: row.announcement ?? null,
     waitlistStatus: (row.waitlist_status ?? "open") as WaitlistStatus,
+    seatingMode: (row.seating_mode ?? "manual") as SeatingMode,
   }));
 }
 
@@ -501,6 +504,7 @@ export interface BranchPatch {
   closeTime?: string;
   accent?: string | null;
   announcement?: string | null;
+  seatingMode?: SeatingMode;
   avgTurnMinutes?: number;
   holdMinutes?: number;
   maxPartySize?: number;
@@ -524,8 +528,8 @@ export async function createBranch(brandId: number, input: BranchPatch, actor: s
     const rows = await q<Row>(
       `insert into branches
         (brand_id, name, slug, tagline, address, phone, timezone, open_time, close_time, accent, announcement,
-         avg_turn_minutes, hold_minutes, max_party_size, max_queue_size, auto_no_show)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+         seating_mode, avg_turn_minutes, hold_minutes, max_party_size, max_queue_size, auto_no_show)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
        returning *`,
       [
         brandId,
@@ -539,6 +543,7 @@ export async function createBranch(brandId: number, input: BranchPatch, actor: s
         input.closeTime ? validateTime(input.closeTime, "Closing time") : "23:30",
         input.accent ? validateAccent(input.accent) : null,
         input.announcement ? cleanText(input.announcement, 300) : null,
+        input.seatingMode === "plan" ? "plan" : "manual",
         clampInt(input.avgTurnMinutes ?? 55, 10, 240, 55),
         clampInt(input.holdMinutes ?? 3, 2, 30, 3),
         clampInt(input.maxPartySize ?? 12, 1, 40, 12),
@@ -572,6 +577,7 @@ export async function updateBranch(
     accent: patch.accent !== undefined ? (patch.accent ? validateAccent(patch.accent) : null) : current.accent,
     announcement:
       patch.announcement !== undefined ? cleanText(patch.announcement, 300) || null : current.announcement,
+    seatingMode: patch.seatingMode === "plan" ? "plan" : patch.seatingMode === "manual" ? "manual" : current.seatingMode,
     avgTurnMinutes: clampInt(patch.avgTurnMinutes ?? current.avgTurnMinutes, 10, 240, current.avgTurnMinutes),
     holdMinutes: clampInt(patch.holdMinutes ?? current.holdMinutes, 2, 30, current.holdMinutes),
     maxPartySize: clampInt(patch.maxPartySize ?? current.maxPartySize, 1, 40, current.maxPartySize),
@@ -590,8 +596,8 @@ export async function updateBranch(
   try {
     await q<Row>(
       `update branches set name=$2, slug=$3, tagline=$4, address=$5, phone=$6, timezone=$7,
-        open_time=$8, close_time=$9, accent=$10, announcement=$11, avg_turn_minutes=$12,
-        hold_minutes=$13, max_party_size=$14, max_queue_size=$15, auto_no_show=$16, updated_at=now()
+        open_time=$8, close_time=$9, accent=$10, announcement=$11, seating_mode=$12, avg_turn_minutes=$13,
+        hold_minutes=$14, max_party_size=$15, max_queue_size=$16, auto_no_show=$17, updated_at=now()
        where id=$1 returning *`,
       [
         branchId,
@@ -605,6 +611,7 @@ export async function updateBranch(
         next.closeTime,
         next.accent,
         next.announcement,
+        next.seatingMode,
         next.avgTurnMinutes,
         next.holdMinutes,
         next.maxPartySize,
@@ -1214,7 +1221,7 @@ export async function callNext(
     const entries = await entriesForDay(branchId, today, db);
     const waiting = orderWaiting(entries.filter((entry) => entry.status === "waiting"));
     const tables = await listTables(branchId, db);
-    const pick = pickNext(waiting, tables, force);
+    const pick = pickNext(waiting, tables, force || branch.seatingMode === "manual");
     if (!pick.ok) return { ok: false, message: pick.message };
 
     const hold = new Date(Date.now() + branch.holdMinutes * 60_000).toISOString();
@@ -1248,7 +1255,7 @@ export async function callNext(
 export async function seatEntry(
   branchId: number,
   entryId: number,
-  tableId: number,
+  tableId: number | null,
   actor: string,
   staffId: number | null,
   seatNumber: number | null = null,
@@ -1263,6 +1270,29 @@ export async function seatEntry(
     if (!["waiting", "called"].includes(String(entry.status))) {
       return { ok: false, message: "That guest is not waiting for a table." };
     }
+
+    if (tableId === null) {
+      const branchRows = await db.query<Row>("select seating_mode from branches where id = $1", [branchId]);
+      if (branchRows[0]?.seating_mode !== "manual") {
+        return { ok: false, message: "Choose a table from the seating plan." };
+      }
+      await db.query(
+        `update queue_entries
+         set status='seated', seated_at=now(), table_id=null, seat_number=null, opened_by=$3,
+             opened_by_staff_id=$4, hold_expires_at=null
+         where id=$1 and branch_id=$2`,
+        [entryId, branchId, actor, staffId],
+      );
+      await logActivity(db, branchId, "seat", actor, {
+        entryId,
+        code: String(entry.code),
+        name: String(entry.guest_name),
+        partySize: toNumber(entry.party_size),
+        note: "Seated manually (no table assigned)",
+      });
+      return { ok: true, message: `${entry.code} seated.` };
+    }
+
     const tableRows = await db.query<Row>(
       "select id, label, capacity, status from dining_tables where id = $1 and branch_id = $2 for update",
       [tableId, branchId],
@@ -1405,6 +1435,46 @@ export async function clearTable(
       note: "Table needs resetting",
     });
     return { ok: true, message: `${table.label} released. Mark it ready once reset.` };
+  });
+}
+
+export async function releaseEntry(
+  branchId: number,
+  entryId: number,
+  actor: string,
+  staffId: number | null = null,
+  reason: string | null = null,
+): Promise<ActionResult> {
+  return tx(async (db) => {
+    const rows = await db.query<Row>(
+      `select id, code, guest_name, party_size, table_id, seat_number
+       from queue_entries where id = $1 and branch_id = $2 and status = 'seated' for update`,
+      [entryId, branchId],
+    );
+    const entry = rows[0];
+    if (!entry) return { ok: false, message: "That guest is not currently seated." };
+    await db.query(
+      `update queue_entries
+       set status='completed', closed_at=now(), released_by=$3, released_by_staff_id=$4
+       where id=$1 and branch_id=$2`,
+      [entryId, branchId, actor, staffId],
+    );
+    if (entry.table_id) {
+      await db.query(
+        "update dining_tables set status='dirty', status_changed_at=now() where id=$1 and branch_id=$2",
+        [toNumber(entry.table_id), branchId],
+      );
+    }
+    await logActivity(db, branchId, "release", actor, {
+      entryId,
+      tableId: entry.table_id ? toNumber(entry.table_id) : null,
+      code: String(entry.code),
+      name: String(entry.guest_name),
+      partySize: toNumber(entry.party_size),
+      seatNumber: entry.seat_number ? toNumber(entry.seat_number) : null,
+      note: reason ? `Seat released · ${reason}` : "Seat released",
+    });
+    return { ok: true, message: `${entry.code} released.` };
   });
 }
 

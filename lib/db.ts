@@ -139,6 +139,98 @@ async function runDataMigrations(db: Queryable) {
       "update queue_entries set acknowledged = true where status = 'called' and hold_expires_at is null",
     );
   }
+
+  const brandStructure = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('brand_structure_v2', 'done')
+     on conflict (key) do nothing returning key`,
+  );
+  if (brandStructure.length > 0) {
+    await db.query(
+      `update brands set name = 'Nikumaru', instagram = '@nikumaru.id',
+         description = 'Japanese beef hamburg & niku rice. No pork, no lard, no mirin. Blok M and Tebet, Jakarta.'
+       where slug = 'nikumaru'`,
+    );
+    await db.query(
+      `update brands set name = 'Tenka', instagram = '@tenka.idn',
+         description = 'Halal-certified tempura & katsu house. AEON Mall Tanjung Barat, Bintaro Xchange Mall 2, and KAMAJA Social Space.'
+       where slug = 'tenka'`,
+    );
+
+    const updates = [
+      {
+        brand: "nikumaru",
+        oldSlug: "senopati",
+        name: "Nikumaru Blok M",
+        slug: "blok-m",
+        tagline: "Japanese Hamburg & Niku Rice · Blok M",
+        address:
+          "Jl. Sunan Kalijaga No. 1, RT.1/RW.1, Melawai, Kebayoran Baru, Jakarta Selatan 12160 (seberang Taman Literasi, samping M Bloc Space)",
+        openTime: "10:00",
+        closeTime: "22:00",
+      },
+      {
+        brand: "nikumaru",
+        oldSlug: "kemang",
+        name: "Nikumaru Tebet",
+        slug: "tebet",
+        tagline: "Japanese Hamburg & Niku Rice · Tebet",
+        address: "Jl. Tebet Raya, Tebet Barat, Tebet, Jakarta Selatan 12810",
+        openTime: "11:00",
+        closeTime: "22:00",
+      },
+      {
+        brand: "tenka",
+        oldSlug: "senopati",
+        name: "Tenka KAMAJA",
+        slug: "kamaja",
+        tagline: "Tempura & Katsu · KAMAJA Social Space",
+        address:
+          "KAMAJA Social Space, Jl. Kyai Maja No. 70, Kramat Pela, Kebayoran Baru, Jakarta Selatan 12120",
+        openTime: "10:00",
+        closeTime: "22:00",
+      },
+    ];
+    for (const update of updates) {
+      await db.query(
+        `update branches set name=$1, slug=$2, tagline=$3, address=$4, open_time=$5, close_time=$6, updated_at=now()
+         where brand_id = (select id from brands where slug=$7) and slug=$8
+           and not exists (
+             select 1 from branches existing
+             where existing.brand_id = branches.brand_id and existing.slug = $2
+           )`,
+        [update.name, update.slug, update.tagline, update.address, update.openTime, update.closeTime, update.brand, update.oldSlug],
+      );
+    }
+
+    const newBranches = [
+      {
+        name: "Tenka AEON Tanjung Barat",
+        slug: "aeon-tanjung-barat",
+        tagline: "Tempura & Katsu · AEON Mall Tanjung Barat",
+        address:
+          "AEON Mall Tanjung Barat, Jl. Lenteng Agung Raya No. 163, RT.1/RW.1, Tanjung Barat, Jagakarsa, Jakarta Selatan 12530",
+        phone: "+62 811 9000 414",
+      },
+      {
+        name: "Tenka Bintaro Xchange",
+        slug: "bintaro-xchange",
+        tagline: "Tempura & Katsu · Bintaro Xchange Mall 2",
+        address:
+          "Bintaro Jaya Xchange Mall 2, Lantai FF Unit FF-F-09, Jl. Boulevard Bintaro Jaya No. 2, Pondok Jaya, Pondok Aren, Tangerang Selatan 15227",
+        phone: "+62 811 9000 515",
+      },
+    ];
+    for (const branch of newBranches) {
+      await db.query(
+        `insert into branches
+          (brand_id, name, slug, tagline, address, phone, timezone, open_time, close_time, accent, seating_mode)
+         select id, $1, $2, $3, $4, $5, 'Asia/Jakarta', '10:00', '22:00', '#E3A02D', 'manual'
+         from brands where slug = 'tenka'
+         on conflict (brand_id, slug) do nothing`,
+        [branch.name, branch.slug, branch.tagline, branch.address, branch.phone],
+      );
+    }
+  }
 }
 
 const LEGACY_TABLES = [

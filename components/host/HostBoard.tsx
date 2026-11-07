@@ -23,7 +23,7 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 import { Modal } from "@/components/Modal";
 import { Notice, type NoticeState } from "@/components/Notice";
 import { NotificationPrompt } from "@/components/Notifications";
-import { EmptyBoard, QueueCard, StatsStrip, TableCard } from "@/components/host/cards";
+import { EmptyBoard, QueueCard, SeatedCard, StatsStrip, TableCard } from "@/components/host/cards";
 import { useLang } from "@/components/LanguageProvider";
 import { logoutAction } from "@/app/actions/auth";
 import { postJson } from "@/lib/client-api";
@@ -33,7 +33,7 @@ import { format } from "@/lib/i18n";
 import { zoneLabel } from "@/lib/labels";
 import type { ActionResult, BranchSummary, DiningTable, HostState, QueueEntry, Role } from "@/lib/types";
 
-type Tab = "queue" | "called" | "tables";
+type Tab = "queue" | "called" | "tables" | "seated";
 
 export function HostBoard({
   initial,
@@ -62,11 +62,13 @@ export function HostBoard({
   const [seatNumber, setSeatNumber] = useState<number | null>(null);
   const [noShowTarget, setNoShowTarget] = useState<QueueEntry | null>(null);
   const [releaseTarget, setReleaseTarget] = useState<DiningTable | null>(null);
+  const [releaseEntryTarget, setReleaseEntryTarget] = useState<QueueEntry | null>(null);
   const [query, setQuery] = useState("");
   const [muted, setMuted] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const { branch, brand, stats } = state;
+  const manual = branch.seatingMode === "manual";
 
   const hostAction = useCallback(
     (type: string, extra: Record<string, unknown> = {}) =>
@@ -245,6 +247,16 @@ export function HostBoard({
       setWalkInParty(2);
       await refresh();
     });
+  }
+
+  function chooseSeat(entry: QueueEntry) {
+    if (manual) {
+      run(() => hostAction("seat", { entryId: entry.id, tableId: null, seatNumber: null }));
+      return;
+    }
+    setSeatTarget(entry);
+    setSeatTableId(null);
+    setSeatNumber(null);
   }
 
   function openSeat(entry: QueueEntry) {
@@ -476,14 +488,11 @@ export function HostBoard({
                     next={index === 0 && !query}
                     busy={pending}
                     onCall={() => run(() => hostAction("callEntry", { entryId: entry.id }))}
-                    onSeat={() => {
-                      setSeatTarget(entry);
-                      setSeatTableId(null);
-                      setSeatNumber(null);
-                    }}
+                    onSeat={() => chooseSeat(entry)}
                     onOpenSeat={() => openSeat(entry)}
                     onNoShow={() => setNoShowTarget(entry)}
                     onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
+                    manualMode={manual}
                   />
                 ))
               )}
@@ -514,14 +523,11 @@ export function HostBoard({
                     next={false}
                     busy={pending}
                     onCall={() => run(() => hostAction("callEntry", { entryId: entry.id }))}
-                    onSeat={() => {
-                      setSeatTarget(entry);
-                      setSeatTableId(null);
-                      setSeatNumber(null);
-                    }}
+                    onSeat={() => chooseSeat(entry)}
                     onOpenSeat={() => openSeat(entry)}
                     onNoShow={() => setNoShowTarget(entry)}
                     onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
+                    manualMode={manual}
                   />
                 ))
               )}
@@ -539,7 +545,38 @@ export function HostBoard({
             </div>
           </section>
 
+          {/* Seated (manual seating) */}
+          {manual && (
+            <section className={tab === "seated" ? "block" : "hidden lg:block"}>
+              <div className="mb-2.5 flex items-start justify-between gap-2">
+                <div>
+                  <h2 className="font-display text-[1.7rem] font-semibold leading-tight">{t.host.seatedTitle}</h2>
+                  <p className="text-xs font-semibold text-muted">
+                    {format(t.host.seatedSummary, { count: state.seated.length })}
+                  </p>
+                </div>
+                <span className="pill status-seated">{state.seated.length}</span>
+              </div>
+
+              <div className="space-y-2.5">
+                {state.seated.length === 0 ? (
+                  <EmptyBoard title={t.host.seatedEmpty} note={t.host.seatedEmptyNote} />
+                ) : (
+                  state.seated.map((entry) => (
+                    <SeatedCard
+                      key={entry.id}
+                      entry={entry}
+                      busy={pending}
+                      onRelease={() => setReleaseEntryTarget(entry)}
+                    />
+                  ))
+                )}
+              </div>
+            </section>
+          )}
+
           {/* Tables */}
+          {!manual && (
           <section className={tab === "tables" ? "block" : "hidden lg:block"}>
             <div className="mb-2.5 flex items-start justify-between gap-2">
               <div>
@@ -583,6 +620,7 @@ export function HostBoard({
               ))}
             </div>
           </section>
+          )}
         </div>
       </main>
 
@@ -593,7 +631,9 @@ export function HostBoard({
             [
               { id: "queue" as const, label: t.host.waitlistTitle, count: state.waiting.length },
               { id: "called" as const, label: t.host.atDoorTitle, count: state.called.length },
-              { id: "tables" as const, label: t.host.floorTitle, count: stats.availableTables },
+              manual
+                ? { id: "seated" as const, label: t.host.seatedTitle, count: state.seated.length }
+                : { id: "tables" as const, label: t.host.floorTitle, count: stats.availableTables },
             ]
           ).map((item) => (
             <button
@@ -793,6 +833,51 @@ export function HostBoard({
                 {seatedByTable.get(releaseTarget.id)!.code} · {seatedByTable.get(releaseTarget.id)!.guestName}
               </p>
             )}
+            <p className="text-xs font-semibold leading-relaxed text-muted">
+              {staff.role === "cashier" ? t.host.cashierReleaseNote : t.host.hostReleaseNote}
+            </p>
+          </div>
+        )}
+      </Modal>
+
+      {/* Release manual seat confirm */}
+      <Modal
+        open={Boolean(releaseEntryTarget)}
+        onClose={() => setReleaseEntryTarget(null)}
+        title={t.host.releaseSeatTitle}
+        description={t.host.releaseSeatDesc}
+        footer={
+          <>
+            <button type="button" className="btn btn-ghost" onClick={() => setReleaseEntryTarget(null)}>
+              {t.common.cancel}
+            </button>
+            <button
+              type="button"
+              className="btn btn-sage"
+              disabled={pending}
+              onClick={() => {
+                const entry = releaseEntryTarget;
+                setReleaseEntryTarget(null);
+                if (entry) {
+                  run(() =>
+                    hostAction("releaseEntry", {
+                      entryId: entry.id,
+                      reason: staff.role === "cashier" ? t.host.paymentSettled : t.host.releasedByHost,
+                    }),
+                  );
+                }
+              }}
+            >
+              {pending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+              {t.host.releaseSeatConfirm}
+            </button>
+          </>
+        }
+      >
+        {releaseEntryTarget && (
+          <div className="space-y-2 rounded-xl border-2 border-ink bg-cream px-4 py-3">
+            <p className="font-display text-lg font-semibold">{releaseEntryTarget.code}</p>
+            <p className="text-sm font-bold">{releaseEntryTarget.guestName}</p>
             <p className="text-xs font-semibold leading-relaxed text-muted">
               {staff.role === "cashier" ? t.host.cashierReleaseNote : t.host.hostReleaseNote}
             </p>

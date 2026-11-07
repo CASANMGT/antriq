@@ -100,6 +100,7 @@ export async function POST(request: Request) {
             maxPartySize: Number(body.maxPartySize),
             maxQueueSize: Number(body.maxQueueSize),
             autoNoShow: Boolean(body.autoNoShow),
+            seatingMode: body.seatingMode === "plan" ? "plan" : "manual",
           },
           actor,
         );

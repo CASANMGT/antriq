@@ -7,14 +7,16 @@ export const DEMO_BRANDS = [
     name: "Nikumaru",
     slug: "nikumaru",
     instagram: "@nikumaru.id",
-    description: "Ramen, izakaya plates, and late evenings in Senopati.",
+    description:
+      "Japanese beef hamburg & niku rice. No pork, no lard, no mirin. Blok M and Tebet, Jakarta.",
     accent: "#F24B3F",
   },
   {
     name: "Tenka",
     slug: "tenka",
-    instagram: "@tenka.id",
-    description: "A quiet izakaya counter for skewers, sake, and conversation.",
+    instagram: "@tenka.idn",
+    description:
+      "Halal-certified tempura & katsu house. AEON Mall Tanjung Barat, Bintaro Xchange Mall 2, and KAMAJA Social Space.",
     accent: "#E3A02D",
   },
 ];
@@ -22,50 +24,82 @@ export const DEMO_BRANDS = [
 export const DEMO_BRANCHES = [
   {
     brandSlug: "nikumaru",
-    name: "Nikumaru Senopati",
-    slug: "senopati",
-    tagline: "Ramen & Izakaya · Senopati",
-    address: "Jl. Senopati No. 21, Kebayoran Baru, Jakarta",
+    name: "Nikumaru Blok M",
+    slug: "blok-m",
+    tagline: "Japanese Hamburg & Niku Rice · Blok M",
+    address:
+      "Jl. Sunan Kalijaga No. 1, RT.1/RW.1, Melawai, Kebayoran Baru, Jakarta Selatan 12160 (seberang Taman Literasi, samping M Bloc Space)",
     phone: "+62 811 9000 212",
     timezone: "Asia/Jakarta",
-    openTime: "11:00",
-    closeTime: "23:30",
+    openTime: "10:00",
+    closeTime: "22:00",
     accent: "#F24B3F",
     announcement:
-      "Selamat datang di Nikumaru Senopati. Ambil nomor antrean dari ponselmu — kami panggil saat meja siap.",
+      "Selamat datang di Nikumaru Blok M. Ambil nomor antrean dari ponselmu — kami panggil saat meja siap.",
   },
   {
     brandSlug: "nikumaru",
-    name: "Nikumaru Kemang",
-    slug: "kemang",
-    tagline: "Ramen & Izakaya · Kemang",
-    address: "Jl. Kemang Raya No. 8, Bangka, Jakarta Selatan",
+    name: "Nikumaru Tebet",
+    slug: "tebet",
+    tagline: "Japanese Hamburg & Niku Rice · Tebet",
+    address: "Jl. Tebet Raya, Tebet Barat, Tebet, Jakarta Selatan 12810",
     phone: "+62 811 9000 313",
     timezone: "Asia/Jakarta",
     openTime: "11:00",
-    closeTime: "23:00",
+    closeTime: "22:00",
     accent: "#F24B3F",
     announcement:
-      "Nikumaru Kemang menerima walk-in dan reservasi hari ini. Ambil antrean dan tunggu panggilan host.",
+      "Nikumaru Tebet menerima walk-in dan reservasi hari ini. Ambil antrean dan tunggu panggilan host.",
   },
   {
     brandSlug: "tenka",
-    name: "Tenka Senopati",
-    slug: "senopati",
-    tagline: "Izakaya & Sake Bar · Senopati",
-    address: "Jl. Senopati No. 45, Kebayoran Baru, Jakarta",
+    name: "Tenka AEON Tanjung Barat",
+    slug: "aeon-tanjung-barat",
+    tagline: "Tempura & Katsu · AEON Mall Tanjung Barat",
+    address:
+      "AEON Mall Tanjung Barat, Jl. Lenteng Agung Raya No. 163, RT.1/RW.1, Tanjung Barat, Jagakarsa, Jakarta Selatan 12530",
     phone: "+62 811 9000 414",
     timezone: "Asia/Jakarta",
-    openTime: "17:00",
-    closeTime: "01:00",
+    openTime: "10:00",
+    closeTime: "22:00",
     accent: "#E3A02D",
     announcement:
-      "Tenka buka dari sore. Ambil antrean, nikmati minuman di lounge, dan kami panggil saat kursi bar siap.",
+      "Tenka AEON Tanjung Barat buka setiap hari. Ambil antrean dan kami panggil saat meja siap.",
+  },
+  {
+    brandSlug: "tenka",
+    name: "Tenka Bintaro Xchange",
+    slug: "bintaro-xchange",
+    tagline: "Tempura & Katsu · Bintaro Xchange Mall 2",
+    address:
+      "Bintaro Jaya Xchange Mall 2, Lantai FF Unit FF-F-09, Jl. Boulevard Bintaro Jaya No. 2, Pondok Jaya, Pondok Aren, Tangerang Selatan 15227",
+    phone: "+62 811 9000 515",
+    timezone: "Asia/Jakarta",
+    openTime: "10:00",
+    closeTime: "22:00",
+    accent: "#E3A02D",
+    announcement:
+      "Tenka Bintaro Xchange menerima walk-in. Ambil antrean dari ponsel dan tunggu panggilan host.",
+  },
+  {
+    brandSlug: "tenka",
+    name: "Tenka KAMAJA",
+    slug: "kamaja",
+    tagline: "Tempura & Katsu · KAMAJA Social Space",
+    address:
+      "KAMAJA Social Space, Jl. Kyai Maja No. 70, Kramat Pela, Kebayoran Baru, Jakarta Selatan 12120",
+    phone: "+62 811 9000 616",
+    timezone: "Asia/Jakarta",
+    openTime: "10:00",
+    closeTime: "22:00",
+    accent: "#E3A02D",
+    announcement:
+      "Tenka KAMAJA buka di Kebayoran Baru. Ambil antrean, nikmati tempura & katsu, dan kami panggil saat meja siap.",
   },
 ];
 
 const TABLES_BY_BRANCH: Record<string, { label: string; capacity: number; zone: string }[]> = {
-  "nikumaru/senopati": [
+  "nikumaru/blok-m": [
     { label: "T1", capacity: 2, zone: "Main dining" },
     { label: "T2", capacity: 2, zone: "Main dining" },
     { label: "T3", capacity: 4, zone: "Main dining" },
@@ -81,7 +115,7 @@ const TABLES_BY_BRANCH: Record<string, { label: string; capacity: number; zone: 
     { label: "C1", capacity: 1, zone: "Counter" },
     { label: "C2", capacity: 1, zone: "Counter" },
   ],
-  "nikumaru/kemang": [
+  "nikumaru/tebet": [
     { label: "T1", capacity: 2, zone: "Main dining" },
     { label: "T2", capacity: 2, zone: "Main dining" },
     { label: "T3", capacity: 4, zone: "Main dining" },
@@ -93,7 +127,7 @@ const TABLES_BY_BRANCH: Record<string, { label: string; capacity: number; zone: 
     { label: "P2", capacity: 6, zone: "Teras" },
     { label: "B1", capacity: 2, zone: "Bar" },
   ],
-  "tenka/senopati": [
+  "tenka/kamaja": [
     { label: "T1", capacity: 2, zone: "Ruang utama" },
     { label: "T2", capacity: 2, zone: "Ruang utama" },
     { label: "T3", capacity: 4, zone: "Ruang utama" },
@@ -103,16 +137,34 @@ const TABLES_BY_BRANCH: Record<string, { label: string; capacity: number; zone: 
     { label: "B1", capacity: 1, zone: "Bar" },
     { label: "B2", capacity: 1, zone: "Bar" },
   ],
+  "tenka/aeon-tanjung-barat": [
+    { label: "T1", capacity: 2, zone: "Dining" },
+    { label: "T2", capacity: 2, zone: "Dining" },
+    { label: "T3", capacity: 4, zone: "Dining" },
+    { label: "T4", capacity: 4, zone: "Dining" },
+    { label: "T5", capacity: 6, zone: "Dining" },
+    { label: "T6", capacity: 6, zone: "Dining" },
+    { label: "T7", capacity: 8, zone: "Dining" },
+  ],
+  "tenka/bintaro-xchange": [
+    { label: "T1", capacity: 2, zone: "Dining" },
+    { label: "T2", capacity: 2, zone: "Dining" },
+    { label: "T3", capacity: 4, zone: "Dining" },
+    { label: "T4", capacity: 4, zone: "Dining" },
+    { label: "T5", capacity: 6, zone: "Dining" },
+    { label: "T6", capacity: 6, zone: "Dining" },
+    { label: "T7", capacity: 8, zone: "Dining" },
+  ],
 };
 
 const STAFF_SEED = [
   { name: "Rani Wijaya", role: "owner", pin: "2468", initials: "RW", brand: null, branch: null },
-  { name: "Ayu Lestari", role: "greeter", pin: "1357", initials: "AL", brand: "nikumaru", branch: "nikumaru/senopati" },
-  { name: "Bima Pratama", role: "greeter", pin: "1122", initials: "BP", brand: "nikumaru", branch: "nikumaru/senopati" },
-  { name: "Sari Kasir", role: "cashier", pin: "4321", initials: "SK", brand: "nikumaru", branch: "nikumaru/senopati" },
-  { name: "Dewi Larasati", role: "greeter", pin: "2244", initials: "DL", brand: "nikumaru", branch: "nikumaru/kemang" },
+  { name: "Ayu Lestari", role: "greeter", pin: "1357", initials: "AL", brand: "nikumaru", branch: "nikumaru/blok-m" },
+  { name: "Bima Pratama", role: "greeter", pin: "1122", initials: "BP", brand: "nikumaru", branch: "nikumaru/blok-m" },
+  { name: "Sari Kasir", role: "cashier", pin: "4321", initials: "SK", brand: "nikumaru", branch: "nikumaru/blok-m" },
+  { name: "Dewi Larasati", role: "greeter", pin: "2244", initials: "DL", brand: "nikumaru", branch: "nikumaru/tebet" },
   { name: "Kenji Sato", role: "owner", pin: "8765", initials: "KS", brand: "tenka", branch: null },
-  { name: "Akira Tanaka", role: "cashier", pin: "3344", initials: "AT", brand: "tenka", branch: "tenka/senopati" },
+  { name: "Akira Tanaka", role: "cashier", pin: "3344", initials: "AT", brand: "tenka", branch: "tenka/kamaja" },
 ];
 
 interface DemoEntry {
@@ -134,7 +186,7 @@ interface DemoEntry {
 }
 
 const DEMO_ENTRIES: Record<string, DemoEntry[]> = {
-  "nikumaru/senopati": [
+  "nikumaru/blok-m": [
     { seq: 1, code: "A-001", name: "Joaquin Reyes", party: 2, phone: "+62 812 1111 0101", source: "qr", status: "waiting", joined: 34, notes: "Dekat jendela kalau bisa" },
     { seq: 2, code: "A-002", name: "Mira Santoso", party: 4, phone: "+62 812 1111 0102", source: "online", status: "waiting", joined: 27 },
     { seq: 3, code: "A-003", name: "Daniel Park", party: 2, phone: "+62 812 1111 0103", source: "qr", status: "waiting", joined: 19 },
@@ -161,7 +213,7 @@ const DEMO_ENTRIES: Record<string, DemoEntry[]> = {
     { seq: 24, code: "A-024", name: "Ravi Menon", party: 4, phone: "+62 812 1111 0124", source: "online", status: "completed", joined: 200, seated: 165, closed: 125, table: "T5", seat: 3, openedBy: "Ayu Lestari" },
     { seq: 25, code: "A-025", name: "Elena Rossi", party: 6, phone: "+62 812 1111 0125", source: "qr", status: "completed", joined: 210, seated: 175, closed: 130, table: "P4", seat: 4, openedBy: "Sari Kasir" },
   ],
-  "nikumaru/kemang": [
+  "nikumaru/tebet": [
     { seq: 1, code: "A-001", name: "Adrian Tan", party: 2, phone: "+62 813 2222 0101", source: "qr", status: "waiting", joined: 18 },
     { seq: 2, code: "A-002", name: "Maya Kusuma", party: 4, phone: "+62 813 2222 0102", source: "online", status: "waiting", joined: 12, notes: "Meja dekat jendela" },
     { seq: 3, code: "A-003", name: "Rafi Putra", party: 2, phone: "+62 813 2222 0103", source: "qr", status: "called", joined: 22, called: 1 },
@@ -173,7 +225,7 @@ const DEMO_ENTRIES: Record<string, DemoEntry[]> = {
     { seq: 9, code: "A-009", name: "Sinta Dewi", party: 3, phone: "+62 813 2222 0109", source: "qr", status: "waiting", joined: 6 },
     { seq: 10, code: "A-010", name: "Kevin Halim", party: 2, phone: "+62 813 2222 0110", source: "qr", status: "cancelled", joined: 100, closed: 90 },
   ],
-  "tenka/senopati": [
+  "tenka/kamaja": [
     { seq: 1, code: "A-001", name: "Haruto Mori", party: 2, phone: "+62 815 3333 0101", source: "qr", status: "waiting", joined: 20 },
     { seq: 2, code: "A-002", name: "Ayu & Raka", party: 4, phone: "+62 815 3333 0102", source: "online", status: "waiting", joined: 14, notes: "Bar kalau bisa" },
     { seq: 3, code: "A-003", name: "Kenji Watanabe", party: 2, phone: "+62 815 3333 0103", source: "qr", status: "called", joined: 24, called: 2 },
@@ -224,6 +276,9 @@ function isoMinutesAgo(minutes: number): string {
 }
 
 export async function seedDatabase(db: Queryable): Promise<void> {
+  const existingBrands = await db.query<{ count: string }>("select count(*)::text as count from brands");
+  const firstBoot = Number(existingBrands[0]?.count ?? 0) === 0;
+
   // Brands
   for (const brand of DEMO_BRANDS) {
     await db.query(
@@ -315,7 +370,11 @@ export async function seedDatabase(db: Queryable): Promise<void> {
 
   if (!isDemoMode()) return;
 
-  const primaryBranchId = branchKey("nikumaru", "senopati");
+  // Only seed the lived-in demo on first boot, or when daily reset is enabled.
+  // This keeps a cleared production database empty across redeploys/cold starts.
+  if (!firstBoot && !isDemoAutoReset()) return;
+
+  const primaryBranchId = branchKey("nikumaru", "blok-m");
   if (!primaryBranchId) return;
   const primaryRow = await db.query<{ timezone: string }>(
     "select timezone from branches where id = $1",

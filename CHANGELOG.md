@@ -10,6 +10,26 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.3.3] — 2026-11-07
+
+The **brand correction + manual seating** release.
+
+### Changed
+- **Nikumaru** is now defined as Japanese beef hamburg & niku rice with **Blok M** and **Tebet** branches.
+- **Tenka** is now defined as halal tempura & katsu with **AEON Mall Tanjung Barat**, **Bintaro Xchange Mall 2**, and **KAMAJA Social Space**.
+- Corrected addresses and Instagram handles (`@nikumaru.id`, `@tenka.idn`).
+- Existing demo branches migrate automatically: `senopati → blok-m`, `kemang → tebet`, `tenka/senopati → kamaja`; AEON and Bintaro branches are added.
+- Legacy branch URLs redirect to the new slugs.
+- Guest branch/brand headers now link back to the **all-restaurant picker** at `/`.
+- Demo rows only seed on first boot unless `DEMO_AUTO_RESET=1`, so cleared production data stays empty across redeploys.
+
+### Added
+- **Seating mode** per branch:
+  - **Manual** (default): one tap **Dudukkan**, no table or seat number; a **Sedang duduk** list with **Lepas kursi**.
+  - **Table plan**: the existing table + optional seat-number flow.
+- Settings control for seating mode with staffing guidance.
+- Notification prompt on the waiting ticket, so permission can be enabled before the call.
+
 ## [0.3.2] — 2026-11-07
 
 The **customer picker, modal input fix and floor integrity** release.

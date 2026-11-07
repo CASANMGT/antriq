@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   ArrowUpRight,
   AtSign,
@@ -11,6 +11,7 @@ import {
   MapPin,
   Phone,
   Smartphone,
+  Store,
   Ticket,
   Users,
   UtensilsCrossed,
@@ -30,8 +31,15 @@ export const dynamic = "force-dynamic";
 
 type Params = Promise<{ brand: string; branch: string }>;
 
+const LEGACY_BRANCHES: Record<string, Record<string, string>> = {
+  nikumaru: { senopati: "blok-m", kemang: "tebet" },
+  tenka: { senopati: "kamaja" },
+};
+
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { brand, branch } = await params;
+  const legacy = LEGACY_BRANCHES[brand]?.[branch];
+  if (legacy) return { title: "Redirecting…" };
   const [found, lang] = await Promise.all([getBranchBySlugs(brand, branch), getLang()]);
   if (!found) return { title: "Not found" };
   const t = getDict(lang);
@@ -43,6 +51,8 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 export default async function BranchGuestPage({ params }: { params: Params }) {
   const { brand: brandSlug, branch: branchSlug } = await params;
+  const legacy = LEGACY_BRANCHES[brandSlug]?.[branchSlug];
+  if (legacy) redirect(`/b/${brandSlug}/${legacy}`);
   const found = await getBranchBySlugs(brandSlug, branchSlug);
   if (!found) notFound();
 
@@ -83,6 +93,9 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
             {statusTone === "status-seated" && <span className="live-dot" />}
             {statusLabel}
           </span>
+          <Link href="/" className="btn btn-ghost btn-sm hidden sm:inline-flex text-muted">
+            <Store className="size-3.5" /> {t.picker.kicker}
+          </Link>
           <LanguageToggle />
           <Link href="/login" className="btn btn-outline btn-sm">
             {t.guest.staff}

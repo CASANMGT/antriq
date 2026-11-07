@@ -253,6 +253,11 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                   <span>{t.ticket.queueKeepOpen}</span>
                 </div>
 
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-muted">{t.ticket.notifyHint}</span>
+                  <NotificationPrompt />
+                </div>
+
                 <div className="mt-5 flex items-center justify-between gap-3">
                   <button
                     type="button"

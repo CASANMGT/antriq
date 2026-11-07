@@ -36,6 +36,7 @@ export const SCHEMA_STATEMENTS: string[] = [
     announcement text,
     waitlist_status text not null default 'open' check (waitlist_status in ('open','paused','closed')),
     pause_reason text,
+    seating_mode text not null default 'manual' check (seating_mode in ('manual','plan')),
     avg_turn_minutes integer not null default 55 check (avg_turn_minutes between 10 and 240),
     hold_minutes integer not null default 3 check (hold_minutes between 2 and 30),
     max_party_size integer not null default 12 check (max_party_size between 1 and 40),
@@ -127,6 +128,7 @@ export const SCHEMA_STATEMENTS: string[] = [
 
   /* v0.3.1 — seat release audit + 3-minute call countdown default. */
   `alter table branches alter column hold_minutes set default 3`,
+  `alter table branches add column if not exists seating_mode text not null default 'manual'`,
   `alter table queue_entries add column if not exists released_by text`,
   `alter table queue_entries add column if not exists released_by_staff_id integer references staff(id) on delete set null`,
 

@@ -8,7 +8,7 @@ npm test         # 21 domain + integration tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **7 Nov 2026** — lint clean, 22/22 tests passing, production build green (v0.3.1 countdown + notifications).
+Last run: **7 Nov 2026** — lint clean, 23/23 tests passing, production build green (v0.3.3 manual seating).
 
 ### Deployment verification
 
@@ -24,7 +24,7 @@ Last run: **7 Nov 2026** — lint clean, 22/22 tests passing, production build g
 - [x] `/` is the customer restaurant picker; `/demo` redirects to the primary branch
 - [x] `/dashboard/customers` lists guests with contact, table/seat, opener/releaser PIC
 - [x] Modals accept typing; focus is not stolen after opening
-- [x] Production `/b/nikumaru`, `/b/nikumaru/kemang`, `/b/tenka/senopati` → 200
+- [x] Production `/b/nikumaru`, `/b/nikumaru/blok-m`, `/b/nikumaru/tebet`, `/b/tenka/aeon-tanjung-barat`, `/b/tenka/bintaro-xchange`, `/b/tenka/kamaja` → 200
 - [x] Production brand logo route → 200 `image/svg+xml`
 - [x] `X-Vercel-Id` confirms `sin1` (Singapore)
 
@@ -43,8 +43,11 @@ Last run: **7 Nov 2026** — lint clean, 22/22 tests passing, production build g
 - [x] `/demo` redirects to the primary seeded branch
 - [x] Modals accept typing; focus is not stolen after opening
 - [x] Floor reconciliation heals table/entry status drift
-- [x] Brand page `/b/nikumaru` lists Senopati + Kemang with logo/menu/IG
-- [x] `/b/tenka/senopati` renders the Tenka branch and its own queue
+- [x] Brand page `/b/nikumaru` lists Blok M + Tebet with logo/menu/IG
+- [x] `/b/tenka/kamaja` renders the Tenka branch and its own queue
+- [x] Legacy `/b/nikumaru/senopati`, `/b/nikumaru/kemang`, `/b/tenka/senopati` redirect
+- [x] Manual seating mode: one-tap seat, no table required, Seated list + release
+- [x] Table-plan mode still supports table + seat number
 - [x] Unknown brand/branch returns 404
 - [x] Platform owner sees all branches; brand owner only Tenka; branch owner only their branch
 - [x] Host board switcher changes branch and all actions carry `branchId`
