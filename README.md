@@ -52,7 +52,7 @@ AntriQ is a multi-brand, multi-branch queue system with three connected surfaces
 
 Brands own identity and assets (logo, menu PDF, Instagram); branches own hours, tables, staff, the queue and their own public URL. A platform owner manages every brand, a brand owner manages every branch in their brand, and a branch owner manages only their branch.
 
-**Queue-first by design:** guests see a queue number, position, parties ahead and the code being called. There are **no wait-time estimates**. After a call, a **3-minute call countdown** starts; it pauses when the guest taps "I'm on my way". The operational hold still drives auto no-show behind the scenes. Guest joins are only accepted during the branch’s opening hours; outside hours the page shows the service window and next opening time.
+**Queue-first by design:** guests see a queue number, position, parties ahead and the code being called. There are **no wait-time estimates**. After a call, a **3-minute call countdown** starts; the operational hold still drives auto no-show behind the scenes. Guest joins are only accepted during the branch's opening hours; outside hours the page shows the service window and next opening time.
 
 **Bahasa Indonesia is the default; English is one tap away.** The language toggle stores a cookie and refreshes both server and client surfaces.
 
@@ -120,13 +120,13 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - **In-app version + changelog:** `/changelog`, linked from the guest footer, ticket, owner sidebar, mobile nav and host header.
 - **One active ticket per guest:** duplicate protection by device cookie and phone; the join form becomes an existing-ticket panel until the ticket is released or completed.
 - **Mobile-first join card comes first**: name, party size and “Ambil nomor antrean” before the long brand/queue details.
-- **“Saya hadir”** acknowledges the call; the owner chooses whether it stops the countdown or adds minutes.
+- **“Saya hadir”** is optional per branch and off by default. When enabled, the owner chooses whether it stops the countdown or adds minutes.
 - Notification opt-in includes Firefox guidance (lock icon → Permissions → Notifications).
 - Staff link is only a subtle footer link; the guest top nav has no staff entry.
 - Queue-only mode is the default: parties are seated openly without a table or seat number.
 - Take a number in about 20 seconds: party size, name, optional phone/note.
 - Ticket with a human code (`A-024`), queue position, parties ahead, now-serving code.
-- Called state: **“Meja siap!”** with a **3-minute call countdown**, “Saya hadir” (stops or extends the countdown), directions and release.
+- Called state: **“Meja siap!”** with a **3-minute call countdown**, optional “Saya hadir” (stops or extends the countdown), directions and release.
 - Browser notification permission prompt on the ticket, plus a notification when the call changes while the tab is hidden.
 - Seated state shows the open-seat confirmation, or the assigned table/seat when the branch uses the table plan. Host name and directions are hidden once seated.
 - Host queue cards show the live waiting time; seated cards show the wait until the call.
@@ -162,7 +162,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Team management: owner/greeter/cashier, brand + branch assignment, reset PIN, pause access, last-owner protection.
 - **Brands:** name, slug, Instagram, accent, logo upload, menu PDF upload.
 - **Branches:** create/edit name, slug, address, phone, timezone, hours, announcement.
-- Settings: identity, accent, timezone, hours, max party, queue cap, auto no-show, announcement, **queue groups** (1 group by default, or split A/B), **seating mode** (queue-only, manual, or table plan), **call countdown**, and **what "Saya hadir" does** (stop or add minutes).
+- Settings: identity, accent, timezone, hours, max party, queue cap, auto no-show, announcement, **queue groups** (1 group by default, or split A/B), **seating mode** (queue-only, manual, or table plan), **call countdown**, **optional “Saya hadir” button**, and **what it does** (stop or add minutes).
 - Printable A4 QR poster whose QR points at the branch URL.
 
 ## Stack

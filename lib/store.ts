@@ -127,6 +127,7 @@ function mapBranch(row: Row): Branch {
     holdMinutes: toNumber(row.hold_minutes, 3),
     acknowledgeAction: (row.acknowledge_action === "extend" ? "extend" : "pause") as AcknowledgeAction,
     acknowledgeMinutes: toNumber(row.acknowledge_minutes, 3),
+    acknowledgeEnabled: Boolean(row.acknowledge_enabled),
     maxPartySize: toNumber(row.max_party_size, 12),
     maxQueueSize: toNumber(row.max_queue_size, 40),
     autoNoShow: Boolean(row.auto_no_show),
@@ -433,7 +434,7 @@ export async function listBranches(brandId?: number): Promise<BranchSummary[]> {
             br.tagline, br.address, br.phone, br.timezone, br.open_time, br.close_time,
             coalesce(br.accent, b.accent) as accent, br.announcement, br.waitlist_status, br.seating_mode,
             br.queue_mode, br.hold_minutes, br.acknowledge_action, br.acknowledge_minutes,
-            br.latitude, br.longitude
+            br.acknowledge_enabled, br.latitude, br.longitude
      from branches br join brands b on b.id = br.brand_id
      ${brandId ? "where br.brand_id = $1" : ""}
      order by b.name asc, br.name asc`,
@@ -460,6 +461,7 @@ export async function listBranches(brandId?: number): Promise<BranchSummary[]> {
     holdMinutes: toNumber(row.hold_minutes, 3),
     acknowledgeAction: (row.acknowledge_action === "extend" ? "extend" : "pause") as AcknowledgeAction,
     acknowledgeMinutes: toNumber(row.acknowledge_minutes, 3),
+    acknowledgeEnabled: Boolean(row.acknowledge_enabled),
     latitude: row.latitude === null || row.latitude === undefined ? null : Number(row.latitude),
     longitude: row.longitude === null || row.longitude === undefined ? null : Number(row.longitude),
   }));
@@ -535,6 +537,7 @@ export interface BranchPatch {
   holdMinutes?: number;
   acknowledgeAction?: AcknowledgeAction;
   acknowledgeMinutes?: number;
+  acknowledgeEnabled?: boolean;
   maxPartySize?: number;
   maxQueueSize?: number;
   autoNoShow?: boolean;
@@ -564,9 +567,9 @@ export async function createBranch(brandId: number, input: BranchPatch, actor: s
     const rows = await q<Row>(
       `insert into branches
         (brand_id, name, slug, tagline, address, phone, latitude, longitude, timezone, open_time, close_time, accent, announcement,
-         seating_mode, queue_mode, avg_turn_minutes, hold_minutes, acknowledge_action, acknowledge_minutes,
+         seating_mode, queue_mode, avg_turn_minutes, hold_minutes, acknowledge_action, acknowledge_minutes, acknowledge_enabled,
          max_party_size, max_queue_size, auto_no_show)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
        returning *`,
       [
         brandId,
@@ -588,6 +591,7 @@ export async function createBranch(brandId: number, input: BranchPatch, actor: s
         clampInt(input.holdMinutes ?? 3, 2, 30, 3),
         input.acknowledgeAction === "extend" ? "extend" : "pause",
         clampInt(input.acknowledgeMinutes ?? 3, 1, 30, 3),
+        input.acknowledgeEnabled ?? false,
         clampInt(input.maxPartySize ?? 12, 1, 40, 12),
         clampInt(input.maxQueueSize ?? 40, 1, 500, 40),
         input.autoNoShow ?? true,
@@ -661,6 +665,7 @@ export async function updateBranch(
       30,
       current.acknowledgeMinutes,
     ),
+    acknowledgeEnabled: patch.acknowledgeEnabled ?? current.acknowledgeEnabled,
     maxPartySize: clampInt(patch.maxPartySize ?? current.maxPartySize, 1, 40, current.maxPartySize),
     maxQueueSize: clampInt(patch.maxQueueSize ?? current.maxQueueSize, 1, 500, current.maxQueueSize),
     autoNoShow: patch.autoNoShow ?? current.autoNoShow,
@@ -680,7 +685,7 @@ export async function updateBranch(
         open_time=$8, close_time=$9, accent=$10, announcement=$11, seating_mode=$12, avg_turn_minutes=$13,
         hold_minutes=$14, acknowledge_action=$15, acknowledge_minutes=$16,
         max_party_size=$17, max_queue_size=$18, auto_no_show=$19, queue_mode=$20,
-        latitude=$21, longitude=$22, updated_at=now()
+        latitude=$21, longitude=$22, acknowledge_enabled=$23, updated_at=now()
        where id=$1 returning *`,
       [
         branchId,
@@ -705,6 +710,7 @@ export async function updateBranch(
         next.queueMode,
         next.latitude,
         next.longitude,
+        next.acknowledgeEnabled,
       ],
     );
     await logActivity(null, branchId, "settings", actor, { note: "Branch settings updated" });
@@ -1285,9 +1291,12 @@ export async function acknowledgeTicket(token: string): Promise<ActionResult> {
 
   const branchId = toNumber(target[0].branch_id);
   const config = await q<Row>(
-    "select acknowledge_action, acknowledge_minutes from branches where id = $1",
+    "select acknowledge_action, acknowledge_minutes, acknowledge_enabled from branches where id = $1",
     [branchId],
   );
+  if (!config[0]?.acknowledge_enabled) {
+    return { ok: false, message: "The “Saya hadir” button is not enabled for this branch." };
+  }
   const extend = config[0]?.acknowledge_action === "extend";
   const minutes = clampInt(config[0]?.acknowledge_minutes ?? 3, 1, 30, 3);
 

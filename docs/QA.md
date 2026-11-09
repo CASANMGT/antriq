@@ -4,11 +4,11 @@
 
 ```bash
 npm run lint     # ESLint, Next 16 + React 19 rules
-npm test         # 38 domain + integration + version tests on PGlite
+npm test         # 39 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **9 Nov 2026** — lint clean, 38/38 tests passing, production build green (v0.9.0 host wait times).
+Last run: **9 Nov 2026** — lint clean, 39/39 tests passing, production build green (v0.10.0 optional Saya hadir).
 
 ### Notification delivery QA
 
@@ -73,6 +73,13 @@ Last run: **9 Nov 2026** — lint clean, 38/38 tests passing, production build g
 - Ticket displays the guest’s entered **name** and **phone number**.
 - Long names wrap; long phone numbers remain fully visible.
 - Both are checked at 390 and 320 px with no overflow.
+
+### Optional Saya hadir
+
+- Branch setting “Aktifkan tombol Saya hadir di tiket” is off by default.
+- Disabled: no button, countdown asks the guest to show the code to the host, acknowledge API rejects.
+- Enabled: button appears; pause/extend settings apply.
+- Settings hides the acknowledge action/minutes fields until the toggle is on.
 
 ### Host wait times + seated ticket
 

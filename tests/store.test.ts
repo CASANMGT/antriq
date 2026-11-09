@@ -55,6 +55,7 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(snapshot.brand?.name).toBe("Nikumaru");
     expect(snapshot.waiting).toBe(6);
     expect(snapshot.branch.queueMode).toBe("single");
+    expect(snapshot.branch.acknowledgeEnabled).toBe(false);
     expect(snapshot.waitingA).toBe(6);
     expect(snapshot.waitingB).toBe(0);
     expect(snapshot.availableTables).toBe(2);
@@ -259,6 +260,7 @@ describe("store integration (PGlite + demo seed)", () => {
 
   it("acknowledges a called guest once and pauses the countdown", async () => {
     const branchId = await primaryBranchId();
+    await q("update branches set acknowledge_enabled = true where id = $1", [branchId]);
     const joined = await joinQueue(branchId, { guestName: "Ack Guest", partySize: 2 });
     const view = await getTicketView(joined.token);
     const called = await callEntry(branchId, view!.entry.id, "Wuri");
@@ -275,6 +277,22 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(second.ok).toBe(true);
     const afterSecond = await getTicketView(joined.token);
     expect(afterSecond?.entry.countdownPaused).toBe(true);
+  });
+
+  it("keeps the Saya hadir button off until the branch enables it", async () => {
+    const branchId = await primaryBranchId();
+    const joined = await joinQueue(branchId, { guestName: "Optional Ack", partySize: 2 });
+    const view = await getTicketView(joined.token);
+    const called = await callEntry(branchId, view!.entry.id, "Wuri");
+    expect(called.ok).toBe(true);
+
+    const disabled = await acknowledgeTicket(joined.token);
+    expect(disabled.ok).toBe(false);
+    expect(disabled.message).toContain("not enabled");
+
+    await q("update branches set acknowledge_enabled = true where id = $1", [branchId]);
+    const enabled = await acknowledgeTicket(joined.token);
+    expect(enabled.ok).toBe(true);
   });
 
   it("auto-releases a hold that has expired", async () => {
@@ -319,7 +337,7 @@ describe("store integration (PGlite + demo seed)", () => {
 
   it("can extend the countdown instead of pausing when the guest says I'm here", async () => {
     const branchId = await primaryBranchId();
-    await q("update branches set acknowledge_action='extend', acknowledge_minutes=5 where id=$1", [branchId]);
+    await q("update branches set acknowledge_action='extend', acknowledge_minutes=5, acknowledge_enabled=true where id=$1", [branchId]);
     const joined = await joinQueue(branchId, { guestName: "Extend Guest", partySize: 2 });
     const view = await getTicketView(joined.token);
     const called = await callEntry(branchId, view!.entry.id, "Wuri");

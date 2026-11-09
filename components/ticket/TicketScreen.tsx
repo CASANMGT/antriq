@@ -361,7 +361,9 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                         ? t.ticket.countdownPausedBody
                         : entry.acknowledged
                           ? format(t.ticket.countdownExtendedBody, { minutes: branch.acknowledgeMinutes })
-                          : format(t.ticket.countdownBody, { minutes: branch.holdMinutes })}
+                          : branch.acknowledgeEnabled
+                            ? format(t.ticket.countdownBody, { minutes: branch.holdMinutes })
+                            : format(t.ticket.countdownBodyDisabled, { minutes: branch.holdMinutes })}
                     </p>
                   </div>
                 </div>
@@ -377,7 +379,7 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                   </p>
                 </div>
 
-                {!entry.acknowledged && (
+                {!entry.acknowledged && branch.acknowledgeEnabled && (
                   <button type="button" className="btn btn-sage btn-lg mt-4 w-full" onClick={onAcknowledge} disabled={pending}>
                     <Check className="size-4" /> {t.ticket.onMyWay}
                   </button>

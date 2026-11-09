@@ -30,6 +30,7 @@ export function SettingsForm({ branch }: { branch: Branch }) {
   const [state, setState] = useState<{ ok?: boolean; message?: string }>({});
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<NoticeState | null>(null);
+  const [ackEnabled, setAckEnabled] = useState(branch.acknowledgeEnabled);
   const [clearOpen, setClearOpen] = useState(false);
   const [waitlistPending, startTransition] = useTransition();
   const status = branch.waitlistStatus;
@@ -88,8 +89,9 @@ export function SettingsForm({ branch }: { branch: Branch }) {
       timezone: String(form.get("timezone") ?? ""),
       avgTurnMinutes: branch.avgTurnMinutes,
       holdMinutes: Number(form.get("holdMinutes")),
-      acknowledgeAction: String(form.get("acknowledgeAction") ?? "pause"),
-      acknowledgeMinutes: Number(form.get("acknowledgeMinutes")),
+      acknowledgeAction: ackEnabled ? String(form.get("acknowledgeAction") ?? branch.acknowledgeAction) : branch.acknowledgeAction,
+      acknowledgeMinutes: ackEnabled ? Number(form.get("acknowledgeMinutes")) : branch.acknowledgeMinutes,
+      acknowledgeEnabled: ackEnabled,
       maxPartySize: Number(form.get("maxPartySize")),
       maxQueueSize: Number(form.get("maxQueueSize")),
       autoNoShow: form.get("autoNoShow") === "on",
@@ -281,6 +283,22 @@ export function SettingsForm({ branch }: { branch: Branch }) {
             </div>
           </div>
 
+          <label className="mt-4 flex items-start gap-3 rounded-xl border-2 border-ink bg-cream px-3.5 py-3">
+            <input
+              type="checkbox"
+              name="acknowledgeEnabled"
+              checked={ackEnabled}
+              onChange={(event) => setAckEnabled(event.target.checked)}
+              className="mt-0.5 size-4 accent-[#F24B3F]"
+            />
+            <span>
+              <span className="block text-sm font-extrabold">{t.owner.ackEnabled}</span>
+              <span className="mt-0.5 block text-xs font-semibold leading-relaxed text-muted">
+                {t.owner.ackEnabledBody}
+              </span>
+            </span>
+          </label>
+
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
             <div>
               <label className="label" htmlFor="holdMinutes">{t.owner.callCountdown}</label>
@@ -295,31 +313,35 @@ export function SettingsForm({ branch }: { branch: Branch }) {
               />
               <p className="mt-1.5 text-xs font-semibold text-muted">{t.owner.callCountdownHint}</p>
             </div>
-            <div>
-              <label className="label" htmlFor="acknowledgeAction">{t.owner.whenGuestArrives}</label>
-              <select
-                id="acknowledgeAction"
-                name="acknowledgeAction"
-                className="input bg-white"
-                defaultValue={branch.acknowledgeAction}
-              >
-                <option value="pause">{t.owner.ackPause}</option>
-                <option value="extend">{t.owner.ackExtend}</option>
-              </select>
-            </div>
-            <div>
-              <label className="label" htmlFor="acknowledgeMinutes">{t.owner.ackMinutes}</label>
-              <input
-                id="acknowledgeMinutes"
-                name="acknowledgeMinutes"
-                type="number"
-                min={1}
-                max={30}
-                className="input num"
-                defaultValue={branch.acknowledgeMinutes}
-              />
-              <p className="mt-1.5 text-xs font-semibold text-muted">{t.owner.ackMinutesHint}</p>
-            </div>
+            {ackEnabled && (
+              <>
+                <div>
+                  <label className="label" htmlFor="acknowledgeAction">{t.owner.whenGuestArrives}</label>
+                  <select
+                    id="acknowledgeAction"
+                    name="acknowledgeAction"
+                    className="input bg-white"
+                    defaultValue={branch.acknowledgeAction}
+                  >
+                    <option value="pause">{t.owner.ackPause}</option>
+                    <option value="extend">{t.owner.ackExtend}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="label" htmlFor="acknowledgeMinutes">{t.owner.ackMinutes}</label>
+                  <input
+                    id="acknowledgeMinutes"
+                    name="acknowledgeMinutes"
+                    type="number"
+                    min={1}
+                    max={30}
+                    className="input num"
+                    defaultValue={branch.acknowledgeMinutes}
+                  />
+                  <p className="mt-1.5 text-xs font-semibold text-muted">{t.owner.ackMinutesHint}</p>
+                </div>
+              </>
+            )}
           </div>
 
           <label className="mt-4 flex items-start gap-3 rounded-xl border-2 border-ink bg-cream px-3.5 py-3">

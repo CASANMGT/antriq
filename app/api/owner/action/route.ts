@@ -101,6 +101,7 @@ export async function POST(request: Request) {
             holdMinutes: Number(body.holdMinutes),
             acknowledgeAction: body.acknowledgeAction === "extend" ? "extend" : "pause",
             acknowledgeMinutes: Number(body.acknowledgeMinutes),
+            acknowledgeEnabled: Boolean(body.acknowledgeEnabled),
             maxPartySize: Number(body.maxPartySize),
             maxQueueSize: Number(body.maxQueueSize),
             autoNoShow: Boolean(body.autoNoShow),

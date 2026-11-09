@@ -53,6 +53,7 @@ export interface Branch {
   holdMinutes: number;
   acknowledgeAction: AcknowledgeAction;
   acknowledgeMinutes: number;
+  acknowledgeEnabled: boolean;
   maxPartySize: number;
   maxQueueSize: number;
   autoNoShow: boolean;
@@ -253,4 +254,5 @@ export interface BranchSummary {
   holdMinutes: number;
   acknowledgeAction: AcknowledgeAction;
   acknowledgeMinutes: number;
+  acknowledgeEnabled: boolean;
 }

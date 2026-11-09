@@ -10,6 +10,18 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.10.0] — 2026-11-09
+
+The **optional Saya hadir button** release.
+
+### Added
+- Per-branch setting to enable the **“Saya hadir”** button on the ticket.
+- Off by default; the countdown and host flow still work without it.
+
+### Changed
+- When disabled, the ticket countdown asks guests to show their code to the host instead of tapping a button.
+- The acknowledge API rejects the action when the button is disabled.
+
 ## [0.9.0] — 2026-11-09
 
 The **host wait times + cleaner seated ticket** release.

@@ -16,6 +16,27 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.10.0",
+    date: "2026-11-09",
+    title: "Optional Saya hadir button",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "Per-branch setting to enable the “Saya hadir” button on the ticket.",
+          "Off by default; the countdown and host flow still work without it.",
+        ],
+      },
+      {
+        label: "Changed",
+        items: [
+          "When disabled, the ticket countdown asks guests to show their code to the host instead of tapping a button.",
+          "The acknowledge API rejects the action when the button is disabled.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.9.0",
     date: "2026-11-09",
     title: "Host wait times + cleaner seated ticket",
