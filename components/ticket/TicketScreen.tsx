@@ -331,37 +331,39 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                   {format(t.ticket.calledBody, { code: entry.code })}
                 </p>
 
-                <div
-                  className={`mt-4 flex items-center gap-3 rounded-xl border-2 border-ink px-4 py-3 ${
-                    entry.countdownPaused ? "bg-leaf-soft" : "bg-cream"
-                  }`}
-                >
-                  {entry.countdownPaused ? (
-                    <span className="grid size-16 shrink-0 place-items-center rounded-full border-2 border-ink bg-white text-leaf-dark">
-                      <Check className="size-6" />
-                    </span>
-                  ) : (
-                    <HoldRing seconds={entry.holdSecondsLeft} total={Math.max(1, branch.holdMinutes * 60)} />
-                  )}
-                  <div className="min-w-0">
-                    <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/55">
-                      {entry.countdownPaused
-                        ? t.ticket.countdownPausedTitle
-                        : entry.acknowledged
-                          ? t.ticket.countdownExtendedTitle
-                          : t.ticket.countdownTitle}
-                    </p>
-                    <p className="mt-0.5 text-sm font-semibold leading-relaxed text-ink/75">
-                      {entry.countdownPaused
-                        ? t.ticket.countdownPausedBody
-                        : entry.acknowledged
-                          ? format(t.ticket.countdownExtendedBody, { minutes: branch.acknowledgeMinutes })
-                          : branch.acknowledgeEnabled
-                            ? format(t.ticket.countdownBody, { minutes: branch.holdMinutes })
-                            : format(t.ticket.countdownBodyDisabled, { minutes: branch.holdMinutes })}
-                    </p>
+                {branch.holdEnabled && (
+                  <div
+                    className={`mt-4 flex items-center gap-3 rounded-xl border-2 border-ink px-4 py-3 ${
+                      entry.countdownPaused ? "bg-leaf-soft" : "bg-cream"
+                    }`}
+                  >
+                    {entry.countdownPaused ? (
+                      <span className="grid size-16 shrink-0 place-items-center rounded-full border-2 border-ink bg-white text-leaf-dark">
+                        <Check className="size-6" />
+                      </span>
+                    ) : (
+                      <HoldRing seconds={entry.holdSecondsLeft} total={Math.max(1, branch.holdMinutes * 60)} />
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/55">
+                        {entry.countdownPaused
+                          ? t.ticket.countdownPausedTitle
+                          : entry.acknowledged
+                            ? t.ticket.countdownExtendedTitle
+                            : t.ticket.countdownTitle}
+                      </p>
+                      <p className="mt-0.5 text-sm font-semibold leading-relaxed text-ink/75">
+                        {entry.countdownPaused
+                          ? t.ticket.countdownPausedBody
+                          : entry.acknowledged
+                            ? format(t.ticket.countdownExtendedBody, { minutes: branch.acknowledgeMinutes })
+                            : branch.acknowledgeEnabled
+                              ? format(t.ticket.countdownBody, { minutes: branch.holdMinutes })
+                              : format(t.ticket.countdownBodyDisabled, { minutes: branch.holdMinutes })}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <span className="text-xs font-semibold text-muted">{t.ticket.notifyHint}</span>
@@ -374,7 +376,7 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                   </p>
                 </div>
 
-                {!entry.acknowledged && branch.acknowledgeEnabled && (
+                {!entry.acknowledged && branch.holdEnabled && branch.acknowledgeEnabled && (
                   <button type="button" className="btn btn-sage btn-lg mt-4 w-full" onClick={onAcknowledge} disabled={pending}>
                     <Check className="size-4" /> {t.ticket.onMyWay}
                   </button>

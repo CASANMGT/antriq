@@ -41,11 +41,12 @@ export const SCHEMA_STATEMENTS: string[] = [
     seating_mode text not null default 'queue' check (seating_mode in ('queue','manual','plan')),
     queue_mode text not null default 'single' check (queue_mode in ('single','split')),
     avg_turn_minutes integer not null default 55 check (avg_turn_minutes between 10 and 240),
+    hold_enabled boolean not null default false,
     hold_minutes integer not null default 3 check (hold_minutes between 2 and 30),
     acknowledge_action text not null default 'pause' check (acknowledge_action in ('pause','extend')),
     acknowledge_minutes integer not null default 3 check (acknowledge_minutes between 1 and 30),
     acknowledge_enabled boolean not null default false,
-    max_party_size integer not null default 12 check (max_party_size between 1 and 40),
+    max_party_size integer not null default 10 check (max_party_size between 1 and 40),
     max_queue_size integer not null default 40 check (max_queue_size between 1 and 500),
     auto_no_show boolean not null default true,
     created_at timestamptz not null default now(),
@@ -134,7 +135,9 @@ export const SCHEMA_STATEMENTS: string[] = [
   )`,
 
   /* v0.3.1 — seat release audit + 3-minute call countdown default. */
+  `alter table branches add column if not exists hold_enabled boolean not null default false`,
   `alter table branches alter column hold_minutes set default 3`,
+  `alter table branches alter column max_party_size set default 10`,
   `alter table branches add column if not exists acknowledge_action text not null default 'pause'`,
   `alter table branches add column if not exists acknowledge_minutes integer not null default 3`,
   `alter table branches add column if not exists acknowledge_enabled boolean not null default false`,

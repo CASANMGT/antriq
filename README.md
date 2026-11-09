@@ -52,7 +52,7 @@ AntriQ is a multi-brand, multi-branch queue system with three connected surfaces
 
 Brands own identity and assets (logo, menu PDF, Instagram); branches own hours, tables, staff, the queue and their own public URL. A platform owner manages every brand, a brand owner manages every branch in their brand, and a branch owner manages only their branch.
 
-**Queue-first by design:** guests see a queue number, position, parties ahead and the code being called. There are **no wait-time estimates**. After a call, a **3-minute call countdown** starts; the operational hold still drives auto no-show behind the scenes. Guest joins are only accepted during the branch's opening hours; outside hours the page shows the service window and next opening time.
+**Queue-first by design:** guests see a queue number, position, parties ahead and the code being called. There are **no wait-time estimates**. After a call, an **optional 3-minute countdown** can run; it is off by default. When enabled, the operational hold drives auto no-show behind the scenes. Guest joins are only accepted during the branch's opening hours; outside hours the page shows the service window and next opening time.
 
 **Bahasa Indonesia is the default; English is one tap away.** The language toggle stores a cookie and refreshes both server and client surfaces.
 
@@ -126,7 +126,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Queue-only mode is the default: parties are seated openly without a table or seat number.
 - Take a number in about 20 seconds: party size, name, optional phone/note.
 - Ticket with a human code (`A-024`), queue position, parties ahead, now-serving code. The guest ticket does not show a join time or wait duration.
-- Called state: **“Meja siap!”** with a **3-minute call countdown**, optional “Saya hadir” (stops or extends the countdown), directions and release.
+- Called state: **“Meja siap!”** with an optional **3-minute countdown** (off by default), optional “Saya hadir” (stops or extends the countdown), directions and release.
 - Browser notification permission prompt on the ticket, plus a notification when the call changes while the tab is hidden.
 - Seated state shows the open-seat confirmation, or the assigned table/seat when the branch uses the table plan. Host name and directions are hidden once seated.
 - Host queue cards show the live waiting time; seated cards show the wait until the call.
@@ -144,7 +144,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - **Queue-only mode** (default): tap **Seat** once, no table or seat number, then release from the **Seated** list.
 - Manual mode adds a seated list without table numbers; Table plan adds tables + optional seat numbers.
 - Live stats: waiting, called, seated, seated today, no-shows. The table stat is hidden in queue-only mode.
-- Called cards show the live call countdown; it pauses when the guest confirms they are on the way.
+- When the countdown is enabled, called cards show the live countdown; it pauses when the guest confirms they are on the way if the branch enables the button.
 - Browser notification prompt, plus a hidden-tab notification when a guest is called from another device.
 - **Release seat** after payment or when a visit ends; records the staff member who released it.
 - No-show with confirmation, undo call, walk-in add, search.
@@ -162,7 +162,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Team management: owner/greeter/cashier, brand + branch assignment, reset PIN, pause access, last-owner protection.
 - **Brands:** name, slug, Instagram, accent, logo upload, menu PDF upload.
 - **Branches:** create/edit name, slug, address, phone, timezone, hours, announcement.
-- Settings: identity, accent, timezone, hours, max party, queue cap, auto no-show, announcement, **queue groups** (1 group by default, or split A/B), **seating mode** (queue-only, manual, or table plan), **call countdown**, **optional “Saya hadir” button**, and **what it does** (stop or add minutes).
+- Settings: identity, accent, timezone, hours, max party (default 10), queue cap, auto no-show, announcement, **queue groups** (1 group by default, or split A/B), **seating mode** (queue-only, manual, or table plan), **optional “time to table” countdown**, **optional “Saya hadir” button**, and **what it does** (stop or add minutes).
 - Printable A4 QR poster whose QR points at the branch URL.
 
 ## Stack

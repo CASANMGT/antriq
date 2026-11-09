@@ -10,6 +10,18 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.11.0] — 2026-11-09
+
+The **optional time-to-table countdown** release.
+
+### Added
+- Per-branch setting to show the **“time to table”** countdown after a guest is called.
+- Off by default; enable it in Settings to show the countdown on the ticket and host board.
+
+### Changed
+- Default maximum party size is now **10 guests**.
+- When the countdown is off, calls no longer auto-release and the “Saya hadir” option is hidden.
+
 ## [0.10.1] — 2026-11-09
 
 The **guest ticket wait-time privacy** release.

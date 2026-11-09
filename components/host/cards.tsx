@@ -61,6 +61,7 @@ export function QueueCard({
   onUndo,
   manualMode = false,
   showCategory = true,
+  showCountdown = true,
 }: {
   entry: QueueEntry;
   position: number;
@@ -73,6 +74,7 @@ export function QueueCard({
   onUndo: () => void;
   manualMode?: boolean;
   showCategory?: boolean;
+  showCountdown?: boolean;
 }) {
   const { t } = useLang();
   const called = entry.status === "called";
@@ -129,7 +131,7 @@ export function QueueCard({
               </a>
             )}
           </div>
-          {called && (
+          {called && showCountdown && (
             <div
               className={`mt-2 flex items-center justify-between gap-2 rounded-lg border-2 px-2.5 py-1.5 text-xs font-bold ${
                 entry.countdownPaused

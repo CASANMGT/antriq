@@ -525,6 +525,7 @@ export function HostBoard({
                     onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
                     manualMode={manual}
                     showCategory={state.branch.queueMode === "split"}
+                    showCountdown={state.branch.holdEnabled}
                   />
                 ))
               )}
@@ -561,6 +562,7 @@ export function HostBoard({
                     onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
                     manualMode={manual}
                     showCategory={state.branch.queueMode === "split"}
+                    showCountdown={state.branch.holdEnabled}
                   />
                 ))
               )}

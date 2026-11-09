@@ -124,11 +124,12 @@ function mapBranch(row: Row): Branch {
     seatingMode: (row.seating_mode ?? "queue") as SeatingMode,
     queueMode: (row.queue_mode === "split" ? "split" : "single") as QueueMode,
     avgTurnMinutes: toNumber(row.avg_turn_minutes, 55),
+    holdEnabled: Boolean(row.hold_enabled),
     holdMinutes: toNumber(row.hold_minutes, 3),
     acknowledgeAction: (row.acknowledge_action === "extend" ? "extend" : "pause") as AcknowledgeAction,
     acknowledgeMinutes: toNumber(row.acknowledge_minutes, 3),
     acknowledgeEnabled: Boolean(row.acknowledge_enabled),
-    maxPartySize: toNumber(row.max_party_size, 12),
+    maxPartySize: toNumber(row.max_party_size, 10),
     maxQueueSize: toNumber(row.max_queue_size, 40),
     autoNoShow: Boolean(row.auto_no_show),
     updatedAt: toIso(row.updated_at) ?? new Date().toISOString(),
@@ -433,7 +434,7 @@ export async function listBranches(brandId?: number): Promise<BranchSummary[]> {
     `select br.id, br.name, br.slug, br.brand_id, b.name as brand_name, b.slug as brand_slug,
             br.tagline, br.address, br.phone, br.timezone, br.open_time, br.close_time,
             coalesce(br.accent, b.accent) as accent, br.announcement, br.waitlist_status, br.seating_mode,
-            br.queue_mode, br.hold_minutes, br.acknowledge_action, br.acknowledge_minutes,
+            br.queue_mode, br.hold_enabled, br.hold_minutes, br.acknowledge_action, br.acknowledge_minutes,
             br.acknowledge_enabled, br.latitude, br.longitude
      from branches br join brands b on b.id = br.brand_id
      ${brandId ? "where br.brand_id = $1" : ""}
@@ -458,6 +459,7 @@ export async function listBranches(brandId?: number): Promise<BranchSummary[]> {
     waitlistStatus: (row.waitlist_status ?? "open") as WaitlistStatus,
     seatingMode: (row.seating_mode ?? "queue") as SeatingMode,
     queueMode: (row.queue_mode === "split" ? "split" : "single") as QueueMode,
+    holdEnabled: Boolean(row.hold_enabled),
     holdMinutes: toNumber(row.hold_minutes, 3),
     acknowledgeAction: (row.acknowledge_action === "extend" ? "extend" : "pause") as AcknowledgeAction,
     acknowledgeMinutes: toNumber(row.acknowledge_minutes, 3),
@@ -534,6 +536,7 @@ export interface BranchPatch {
   avgTurnMinutes?: number;
   latitude?: number | null;
   longitude?: number | null;
+  holdEnabled?: boolean;
   holdMinutes?: number;
   acknowledgeAction?: AcknowledgeAction;
   acknowledgeMinutes?: number;
@@ -567,9 +570,9 @@ export async function createBranch(brandId: number, input: BranchPatch, actor: s
     const rows = await q<Row>(
       `insert into branches
         (brand_id, name, slug, tagline, address, phone, latitude, longitude, timezone, open_time, close_time, accent, announcement,
-         seating_mode, queue_mode, avg_turn_minutes, hold_minutes, acknowledge_action, acknowledge_minutes, acknowledge_enabled,
+         seating_mode, queue_mode, avg_turn_minutes, hold_enabled, hold_minutes, acknowledge_action, acknowledge_minutes, acknowledge_enabled,
          max_party_size, max_queue_size, auto_no_show)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
        returning *`,
       [
         brandId,
@@ -588,11 +591,12 @@ export async function createBranch(brandId: number, input: BranchPatch, actor: s
         input.seatingMode === "plan" ? "plan" : input.seatingMode === "manual" ? "manual" : "queue",
         input.queueMode === "split" ? "split" : "single",
         clampInt(input.avgTurnMinutes ?? 55, 10, 240, 55),
+        input.holdEnabled ?? false,
         clampInt(input.holdMinutes ?? 3, 2, 30, 3),
         input.acknowledgeAction === "extend" ? "extend" : "pause",
         clampInt(input.acknowledgeMinutes ?? 3, 1, 30, 3),
         input.acknowledgeEnabled ?? false,
-        clampInt(input.maxPartySize ?? 12, 1, 40, 12),
+        clampInt(input.maxPartySize ?? 10, 1, 40, 10),
         clampInt(input.maxQueueSize ?? 40, 1, 500, 40),
         input.autoNoShow ?? true,
       ],
@@ -652,6 +656,7 @@ export async function updateBranch(
     queueMode:
       patch.queueMode === "split" ? "split" : patch.queueMode === "single" ? "single" : current.queueMode,
     avgTurnMinutes: clampInt(patch.avgTurnMinutes ?? current.avgTurnMinutes, 10, 240, current.avgTurnMinutes),
+    holdEnabled: patch.holdEnabled ?? current.holdEnabled,
     holdMinutes: clampInt(patch.holdMinutes ?? current.holdMinutes, 2, 30, current.holdMinutes),
     acknowledgeAction:
       patch.acknowledgeAction === "extend"
@@ -683,9 +688,9 @@ export async function updateBranch(
     await q<Row>(
       `update branches set name=$2, slug=$3, tagline=$4, address=$5, phone=$6, timezone=$7,
         open_time=$8, close_time=$9, accent=$10, announcement=$11, seating_mode=$12, avg_turn_minutes=$13,
-        hold_minutes=$14, acknowledge_action=$15, acknowledge_minutes=$16,
-        max_party_size=$17, max_queue_size=$18, auto_no_show=$19, queue_mode=$20,
-        latitude=$21, longitude=$22, acknowledge_enabled=$23, updated_at=now()
+        hold_enabled=$14, hold_minutes=$15, acknowledge_action=$16, acknowledge_minutes=$17,
+        max_party_size=$18, max_queue_size=$19, auto_no_show=$20, queue_mode=$21,
+        latitude=$22, longitude=$23, acknowledge_enabled=$24, updated_at=now()
        where id=$1 returning *`,
       [
         branchId,
@@ -701,6 +706,7 @@ export async function updateBranch(
         next.announcement,
         next.seatingMode,
         next.avgTurnMinutes,
+        next.holdEnabled,
         next.holdMinutes,
         next.acknowledgeAction,
         next.acknowledgeMinutes,
@@ -982,6 +988,8 @@ async function entryByToken(token: string): Promise<QueueEntry | null> {
 }
 
 async function expireHolds(branchId: number): Promise<void> {
+  const config = await q<Row>("select hold_enabled from branches where id = $1", [branchId]);
+  if (!config[0]?.hold_enabled) return;
   const rows = await q<Row>(
     `update queue_entries
      set status = 'no_show', closed_at = now(), hold_expires_at = null
@@ -1291,10 +1299,10 @@ export async function acknowledgeTicket(token: string): Promise<ActionResult> {
 
   const branchId = toNumber(target[0].branch_id);
   const config = await q<Row>(
-    "select acknowledge_action, acknowledge_minutes, acknowledge_enabled from branches where id = $1",
+    "select acknowledge_action, acknowledge_minutes, acknowledge_enabled, hold_enabled from branches where id = $1",
     [branchId],
   );
-  if (!config[0]?.acknowledge_enabled) {
+  if (!config[0]?.acknowledge_enabled || !config[0]?.hold_enabled) {
     return { ok: false, message: "The “Saya hadir” button is not enabled for this branch." };
   }
   const extend = config[0]?.acknowledge_action === "extend";
@@ -1376,11 +1384,11 @@ export async function callEntry(
     const rows = await db.query<Row>(
       `update queue_entries
        set status = 'called', called_at = now(),
-           hold_expires_at = now() + ($3 || ' minutes')::interval,
+           hold_expires_at = case when $4::boolean then now() + ($3 || ' minutes')::interval else null end,
            called_count = called_count + 1, acknowledged = false
        where id = $1 and branch_id = $2 and status = 'waiting'
        returning id, code, guest_name, party_size`,
-      [entryId, branchId, branch.holdMinutes],
+      [entryId, branchId, branch.holdMinutes, branch.holdEnabled],
     );
     if (!rows[0]) return { ok: false, message: "That guest was already handled." };
     await logActivity(db, branchId, "call", actor, {
@@ -1408,7 +1416,9 @@ export async function callNext(
     const pick = pickNext(waiting, tables, force || branch.seatingMode !== "plan");
     if (!pick.ok) return { ok: false, message: pick.message };
 
-    const hold = new Date(Date.now() + branch.holdMinutes * 60_000).toISOString();
+    const hold = branch.holdEnabled
+      ? new Date(Date.now() + branch.holdMinutes * 60_000).toISOString()
+      : null;
     const updated = await db.query<Row>(
       `update queue_entries
        set status = 'called', called_at = now(), hold_expires_at = $3,

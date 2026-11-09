@@ -4,11 +4,11 @@
 
 ```bash
 npm run lint     # ESLint, Next 16 + React 19 rules
-npm test         # 39 domain + integration + version tests on PGlite
+npm test         # 40 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **9 Nov 2026** — lint clean, 39/39 tests passing, production build green (v0.10.1 guest ticket wait-time privacy).
+Last run: **9 Nov 2026** — lint clean, 40/40 tests passing, production build green (v0.11.0 optional countdown + max party 10).
 
 ### Notification delivery QA
 
@@ -80,9 +80,17 @@ Last run: **9 Nov 2026** — lint clean, 39/39 tests passing, production build g
 - Host queue cards still show the live waiting time.
 - Seated ticket details remain name/phone/table/seat only.
 
+### Optional time-to-table countdown
+
+- Branch setting “Tampilkan hitungan waktu menuju meja” is off by default.
+- Disabled: no countdown on the guest ticket or host cards, calls do not auto-release, and the “Saya hadir” option is hidden.
+- Enabled: countdown appears on both; hold expiry and auto no-show run again.
+- Default maximum party size is 10 guests.
+
 ### Optional Saya hadir
 
 - Branch setting “Aktifkan tombol Saya hadir di tiket” is off by default.
+- The toggle only appears when the countdown is enabled.
 - Disabled: no button, countdown asks the guest to show the code to the host, acknowledge API rejects.
 - Enabled: button appears; pause/extend settings apply.
 - Settings hides the acknowledge action/minutes fields until the toggle is on.
@@ -143,7 +151,7 @@ Last run: **9 Nov 2026** — lint clean, 39/39 tests passing, production build g
 
 - [x] Editing a brand owner no longer shows the role as Host (old-session `undefined` branch fix)
 - [x] Owner/Greeter/Cashier roles are all selectable where allowed
-- [x] Call starts a 3-minute countdown on host and guest ticket
+- [x] Call starts an optional 3-minute countdown on host and guest ticket (off by default)
 - [x] “Saya hadir” pauses or extends the countdown per Settings; host card shows paused/on-the-way
 - [x] Browser notification permission prompt appears when permission is `default`; denied state is explained
 - [x] Hidden tab receives a browser notification when a call is added
@@ -171,7 +179,8 @@ Last run: **9 Nov 2026** — lint clean, 39/39 tests passing, production build g
 - [x] Guest top nav has no Staff link; footer Staff link is subtle
 - [x] Firefox blocked-notification instructions render
 - [x] “Saya hadir” can stop or extend the countdown per Settings
-- [x] Countdown duration is configurable in Settings
+- [x] Countdown is optional per branch, off by default, and its duration is configurable in Settings
+- [x] Default max party size is 10 guests
 - [x] Unknown brand/branch returns 404
 - [x] Platform owner sees all branches; brand owner only Tenka; branch owner only their branch
 - [x] Host board switcher changes branch and all actions carry `branchId`

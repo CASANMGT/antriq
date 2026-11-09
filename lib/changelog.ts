@@ -16,6 +16,27 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.11.0",
+    date: "2026-11-09",
+    title: "Optional time-to-table countdown",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "Per-branch setting to show the “time to table” countdown after a guest is called.",
+          "Off by default; enable it in Settings to show the countdown on the ticket and host board.",
+        ],
+      },
+      {
+        label: "Changed",
+        items: [
+          "Default maximum party size is now 10 guests.",
+          "When the countdown is off, calls no longer auto-release and the “Saya hadir” option is hidden.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.10.1",
     date: "2026-11-09",
     title: "Guest ticket hides join time",

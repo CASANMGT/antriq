@@ -50,6 +50,7 @@ export interface Branch {
   seatingMode: SeatingMode;
   queueMode: QueueMode;
   avgTurnMinutes: number;
+  holdEnabled: boolean;
   holdMinutes: number;
   acknowledgeAction: AcknowledgeAction;
   acknowledgeMinutes: number;
@@ -251,6 +252,7 @@ export interface BranchSummary {
   waitlistStatus: WaitlistStatus;
   seatingMode: SeatingMode;
   queueMode: QueueMode;
+  holdEnabled: boolean;
   holdMinutes: number;
   acknowledgeAction: AcknowledgeAction;
   acknowledgeMinutes: number;

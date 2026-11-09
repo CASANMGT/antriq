@@ -324,6 +324,15 @@ async function runDataMigrations(db: Queryable) {
       );
     }
   }
+
+  const maxParty = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('max_party_size_10_v1', 'done')
+     on conflict (key) do nothing returning key`,
+  );
+  if (maxParty.length > 0) {
+    // Product default is now 10 guests per party; migrate the old default of 12.
+    await db.query("update branches set max_party_size = 10 where max_party_size = 12");
+  }
 }
 
 const LEGACY_TABLES = [
