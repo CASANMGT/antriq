@@ -34,19 +34,22 @@ export function Mascot({
       {/* shadow */}
       <ellipse cx="120" cy="226" rx="62" ry="10" fill="#262321" opacity="0.12" />
 
-      {/* bread body */}
+      {/* ticket-stub body */}
       <path
-        d="M56 86C56 55 73 37 101 35C111 24 129 23 140 35C170 36 188 55 188 86V186C188 199 178 209 165 209H78C65 209 56 199 56 186V86Z"
+        d="M70 46H170Q186 46 186 62V154A12 12 0 0 0 186 178V192Q186 208 170 208H70Q54 208 54 192V178A12 12 0 0 0 54 154V62Q54 46 70 46Z"
         fill="#FFF1CA"
         stroke="#262321"
         strokeWidth="7"
         strokeLinejoin="round"
       />
+      {/* perforation between the ticket and its tear-off stub */}
       <path
-        d="M74 87C74 64 85 51 105 49C113 41 127 41 136 49C157 50 169 64 169 87"
-        stroke="#F6DFAE"
-        strokeWidth="6"
+        d="M70 166H170"
+        stroke="#262321"
+        strokeWidth="3.5"
         strokeLinecap="round"
+        strokeDasharray="6 7"
+        opacity="0.5"
       />
 
       {/* face */}

@@ -8,7 +8,7 @@ npm test         # 41 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **9 Nov 2026** — lint clean, 41/41 tests passing, production build green (v0.12.1 Selesai Antrian + Tebet hours).
+Last run: **10 Nov 2026** — lint clean, 41/41 tests passing, production build green (v0.12.2 ticket-stub mascot).
 
 ### Notification delivery QA
 

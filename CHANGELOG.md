@@ -10,6 +10,14 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.12.2] — 2026-11-10
+
+The **ticket-stub mascot** release.
+
+### Changed
+- The mascot now reads as a ticket stub: a clean rectangular body, side notches and a perforated tear line.
+- Colours, face, arms, shoes and moods are unchanged.
+
 ## [0.12.1] — 2026-11-09
 
 The **Selesai Antrian + Tebet hours** release.

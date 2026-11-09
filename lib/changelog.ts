@@ -16,6 +16,20 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.12.2",
+    date: "2026-11-10",
+    title: "Ticket-stub mascot",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "The mascot now reads as a ticket stub: a clean rectangular body, side notches and a perforated tear line.",
+          "Colours, face, arms, shoes and moods are unchanged.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.12.1",
     date: "2026-11-09",
     title: "Selesai Antrian + Tebet hours",
