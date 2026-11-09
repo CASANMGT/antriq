@@ -16,6 +16,26 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.12.0",
+    date: "2026-11-09",
+    title: "Queue again from a seated ticket",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "Seated guests get a “Order at another restaurant” button that closes the ticket and clears this device’s ticket history.",
+          "The action clears the device cookie and local ticket link so the same phone can join a new queue.",
+        ],
+      },
+      {
+        label: "Changed",
+        items: [
+          "Closing a seated ticket from the guest side marks the table as needing a reset.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.11.0",
     date: "2026-11-09",
     title: "Optional time-to-table countdown",

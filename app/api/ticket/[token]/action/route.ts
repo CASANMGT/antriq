@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { actionError, rateLimit } from "@/lib/action";
-import { acknowledgeTicket, cancelTicket } from "@/lib/store";
+import { GUEST_TICKET_COOKIE } from "@/lib/guest";
+import { acknowledgeTicket, cancelTicket, resetGuestDevice } from "@/lib/store";
 import type { ActionResult } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +30,18 @@ export async function POST(
       return NextResponse.json(await acknowledgeTicket(token), {
         headers: { "Cache-Control": "no-store" },
       });
+    }
+    if (action === "resetDevice") {
+      const result = await resetGuestDevice(token);
+      const response = NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
+      response.cookies.set(GUEST_TICKET_COOKIE, "", {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 0,
+      });
+      return response;
     }
     return NextResponse.json<ActionResult>({ ok: false, message: "Unknown action." }, { status: 400 });
   } catch (error) {

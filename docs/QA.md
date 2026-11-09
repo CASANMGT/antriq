@@ -4,11 +4,11 @@
 
 ```bash
 npm run lint     # ESLint, Next 16 + React 19 rules
-npm test         # 40 domain + integration + version tests on PGlite
+npm test         # 41 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **9 Nov 2026** — lint clean, 40/40 tests passing, production build green (v0.11.0 optional countdown + max party 10).
+Last run: **9 Nov 2026** — lint clean, 41/41 tests passing, production build green (v0.12.0 seated-ticket reset).
 
 ### Notification delivery QA
 
@@ -79,6 +79,13 @@ Last run: **9 Nov 2026** — lint clean, 40/40 tests passing, production build g
 - Guest ticket hides the joined time; no wait duration is shown.
 - Host queue cards still show the live waiting time.
 - Seated ticket details remain name/phone/table/seat only.
+
+### Seated-ticket device reset
+
+- Seated ticket shows **“Pesan di restoran lain”**.
+- Confirming closes the ticket, marks the table dirty, clears the device cookie and local ticket link.
+- The same phone can then join another queue immediately.
+- Waiting/called tickets still use the normal cancel action.
 
 ### Optional time-to-table countdown
 

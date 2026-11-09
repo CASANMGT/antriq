@@ -1,14 +1,15 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { actionError, actionStatus, rateLimit } from "@/lib/action";
+import { GUEST_TICKET_COOKIE, GUEST_TICKET_MAX_AGE } from "@/lib/guest";
 import { joinQueue } from "@/lib/store";
 import { cleanText } from "@/lib/validation";
 import type { ActionResult } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-const COOKIE_NAME = "antriq_active_ticket";
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+const COOKIE_NAME = GUEST_TICKET_COOKIE;
+const COOKIE_MAX_AGE = GUEST_TICKET_MAX_AGE;
 
 export async function POST(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for");

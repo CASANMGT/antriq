@@ -1284,6 +1284,38 @@ export async function cancelTicket(token: string): Promise<ActionResult> {
   });
 }
 
+export async function resetGuestDevice(token: string): Promise<ActionResult> {
+  return tx(async (db) => {
+    const rows = await db.query<Row>(
+      `update queue_entries
+       set status = 'completed', closed_at = now(), released_by = 'Guest'
+       where token = $1 and status = 'seated'
+       returning id, branch_id, code, guest_name, party_size, table_id`,
+      [token],
+    );
+    if (!rows[0]) {
+      return { ok: true, message: "This device is reset. You can join another queue." };
+    }
+    const row = rows[0];
+    const branchId = toNumber(row.branch_id);
+    if (row.table_id !== null && row.table_id !== undefined) {
+      await db.query(
+        "update dining_tables set status = 'dirty', status_changed_at = now() where id = $1 and branch_id = $2",
+        [toNumber(row.table_id), branchId],
+      );
+    }
+    await logActivity(db, branchId, "release", "Guest", {
+      entryId: toNumber(row.id),
+      tableId: row.table_id === null || row.table_id === undefined ? null : toNumber(row.table_id),
+      code: String(row.code),
+      name: String(row.guest_name),
+      partySize: toNumber(row.party_size),
+      note: "Guest finished and reset their device",
+    });
+    return { ok: true, message: "Your ticket is closed and this device is reset." };
+  });
+}
+
 export async function acknowledgeTicket(token: string): Promise<ActionResult> {
   const target = await q<Row>(
     "select branch_id from queue_entries where token = $1 and status = 'called' and acknowledged = false",

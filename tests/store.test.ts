@@ -27,6 +27,7 @@ import {
   listBranchesForStaff,
   listStaff,
   markNoShow,
+  resetGuestDevice,
   seatEntry,
   setBrandAsset,
   setWaitlistStatus,
@@ -341,6 +342,27 @@ describe("store integration (PGlite + demo seed)", () => {
     await setWaitlistStatus(branchId, "open", null, "Iwanna");
     const joined = await joinQueue(branchId, { guestName: "Allowed Guest", partySize: 2 });
     expect(joined.token).toBeTruthy();
+  });
+
+  it("lets a seated guest reset the device and join again", async () => {
+    const branchId = await primaryBranchId();
+    const phone = "081299990050";
+    const first = await joinQueue(branchId, { guestName: "Seated Reset", partySize: 2, phone });
+    const view = await getTicketView(first.token);
+    const seated = await seatEntry(branchId, view!.entry.id, null, "Wuri", 2, null);
+    expect(seated.ok).toBe(true);
+
+    await expect(
+      joinQueue(branchId, { guestName: "Still Seated", partySize: 2, phone }),
+    ).rejects.toBeInstanceOf(AppError);
+
+    const reset = await resetGuestDevice(first.token);
+    expect(reset.ok).toBe(true);
+    const after = await getTicketView(first.token);
+    expect(after?.entry.status).toBe("completed");
+
+    const next = await joinQueue(branchId, { guestName: "New Queue", partySize: 2, phone });
+    expect(next.token).toBeTruthy();
   });
 
   it("seats manually without a table or seat number", async () => {

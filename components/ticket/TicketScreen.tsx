@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import {
   ArrowLeft,
@@ -29,11 +30,13 @@ import type { TicketView } from "@/lib/types";
 const FINAL_STATUSES = new Set(["completed", "no_show", "cancelled"]);
 
 export function TicketScreen({ token, initial }: { token: string; initial: TicketView }) {
+  const router = useRouter();
   const { lang, t } = useLang();
   const [view, setView] = useState(initial);
   const [gone, setGone] = useState(false);
   const [notice, setNotice] = useState<NoticeState | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const previousStatus = useRef(initial.entry.status);
 
@@ -122,6 +125,23 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
       const result = await postJson(`/api/ticket/${token}/action`, { action: "acknowledge" });
       show(result.ok ? t.ticket.toastAck : t.ticket.toastAckError, result.ok ? "success" : "error");
       await refresh();
+    });
+  }
+
+  function onResetDevice() {
+    setResetOpen(false);
+    startTransition(async () => {
+      const result = await postJson(`/api/ticket/${token}/action`, { action: "resetDevice" });
+      if (!result.ok) {
+        show(t.ticket.resetDeviceError, "error");
+        return;
+      }
+      try {
+        window.localStorage.removeItem("antriq:ticket");
+      } catch {
+        // Ignore storage failures.
+      }
+      router.push("/");
     });
   }
 
@@ -418,6 +438,9 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                 <p className="mx-auto mt-3 max-w-xs text-sm font-medium leading-relaxed text-muted">
                   {t.ticket.seatedBody}
                 </p>
+                <button type="button" className="btn btn-outline mt-5" onClick={() => setResetOpen(true)} disabled={pending}>
+                  {t.ticket.resetDevice} <ArrowRight className="size-4" />
+                </button>
               </div>
             )}
 
@@ -498,6 +521,30 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
             </button>
             <button type="button" className="btn btn-danger" onClick={onCancel} disabled={pending}>
               {pending ? t.ticket.releasing : t.ticket.releaseConfirm}
+            </button>
+          </>
+        }
+      >
+        <div className="rounded-xl border-2 border-ink bg-cream px-4 py-3">
+          <p className="text-xs font-bold text-muted">{t.ticket.ticketLabel}</p>
+          <p className="num mt-0.5 text-lg font-extrabold">
+            {entry.code} · {entry.partySize} {t.guest.guestUnit}
+          </p>
+        </div>
+      </Modal>
+
+      <Modal
+        open={resetOpen}
+        onClose={() => setResetOpen(false)}
+        title={t.ticket.resetDeviceTitle}
+        description={t.ticket.resetDeviceBody}
+        footer={
+          <>
+            <button type="button" className="btn btn-ghost" onClick={() => setResetOpen(false)}>
+              {t.ticket.keepTicket}
+            </button>
+            <button type="button" className="btn btn-danger" onClick={onResetDevice} disabled={pending}>
+              {pending ? t.ticket.releasing : t.ticket.resetDeviceConfirm}
             </button>
           </>
         }

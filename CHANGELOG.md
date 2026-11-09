@@ -10,6 +10,17 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.12.0] — 2026-11-09
+
+The **queue again from a seated ticket** release.
+
+### Added
+- Seated guests get a **“Order at another restaurant”** button that closes the ticket and clears this device’s ticket history.
+- The action clears the device cookie and local ticket link so the same phone can join a new queue.
+
+### Changed
+- Closing a seated ticket from the guest side marks the table as needing a reset.
+
 ## [0.11.0] — 2026-11-09
 
 The **optional time-to-table countdown** release.
