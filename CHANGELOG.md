@@ -10,6 +10,14 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.12.1] — 2026-11-09
+
+The **Selesai Antrian + Tebet hours** release.
+
+### Changed
+- The seated-ticket reset button is now labelled **“Selesai Antrian”**.
+- Nikumaru Tebet now defaults to **10:00–22:00**.
+
 ## [0.12.0] — 2026-11-09
 
 The **queue again from a seated ticket** release.

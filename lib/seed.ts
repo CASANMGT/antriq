@@ -50,7 +50,7 @@ export const DEMO_BRANCHES = [
     latitude: -6.2301344,
     longitude: 106.8522128,
     timezone: "Asia/Jakarta",
-    openTime: "11:00",
+    openTime: "10:00",
     closeTime: "22:00",
     accent: "#F24B3F",
     announcement:

@@ -175,7 +175,7 @@ async function runDataMigrations(db: Queryable) {
         slug: "tebet",
         tagline: "Japanese Hamburg & Niku Rice · Tebet",
         address: "Jl. Tebet Raya, Tebet Barat, Tebet, Jakarta Selatan 12810",
-        openTime: "11:00",
+        openTime: "10:00",
         closeTime: "22:00",
       },
       {
@@ -332,6 +332,14 @@ async function runDataMigrations(db: Queryable) {
   if (maxParty.length > 0) {
     // Product default is now 10 guests per party; migrate the old default of 12.
     await db.query("update branches set max_party_size = 10 where max_party_size = 12");
+  }
+
+  const tebetHours = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('tebet_hours_10_22_v1', 'done')
+     on conflict (key) do nothing returning key`,
+  );
+  if (tebetHours.length > 0) {
+    await db.query("update branches set open_time = '10:00', close_time = '22:00' where slug = 'tebet'");
   }
 }
 

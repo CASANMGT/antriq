@@ -16,6 +16,20 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.12.1",
+    date: "2026-11-09",
+    title: "Selesai Antrian + Tebet hours",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "The seated-ticket reset button is now labelled “Selesai Antrian”.",
+          "Nikumaru Tebet now defaults to 10:00–22:00.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.12.0",
     date: "2026-11-09",
     title: "Queue again from a seated ticket",
