@@ -16,7 +16,7 @@ The **host wait times + cleaner seated ticket** release.
 
 ### Added
 - Host queue and seated cards show how long the guest has waited.
-- Waiting time is calculated from scan/join to now or to seating.
+- Waiting time is calculated from scan/join to now or to the call.
 
 ### Changed
 - Seat release is renamed to **“Selesai”** with a check icon.

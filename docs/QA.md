@@ -77,7 +77,7 @@ Last run: **9 Nov 2026** — lint clean, 38/38 tests passing, production build g
 ### Host wait times + seated ticket
 
 - Host queue cards show “Menunggu X mnt” from join/scan.
-- Seated cards show the total wait until seating.
+- Seated cards show the total wait until the call.
 - Seat release label is **“Selesai”** with a check icon.
 - Seated guest ticket hides the host name and directions.
 - Guest name and phone remain visible on the ticket.

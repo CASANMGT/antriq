@@ -154,7 +154,7 @@ function mapEntry(row: Row, tablesById: Map<number, string>, now = new Date()): 
   const closedAt = toIso(row.closed_at);
   const holdExpiresAt = toIso(row.hold_expires_at);
   const tableId = row.table_id === null || row.table_id === undefined ? null : toNumber(row.table_id);
-  const waitUntil = seatedAt ?? closedAt ?? now.toISOString();
+  const waitUntil = calledAt ?? seatedAt ?? closedAt ?? now.toISOString();
 
   return {
     id: toNumber(row.id),

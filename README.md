@@ -129,7 +129,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Called state: **“Meja siap!”** with a **3-minute call countdown**, “Saya hadir” (stops or extends the countdown), directions and release.
 - Browser notification permission prompt on the ticket, plus a notification when the call changes while the tab is hidden.
 - Seated state shows the open-seat confirmation, or the assigned table/seat when the branch uses the table plan. Host name and directions are hidden once seated.
-- Host queue cards show the live waiting time; seated cards show the total wait.
+- Host queue cards show the live waiting time; seated cards show the wait until the call.
 - Completed, no-show and cancelled end states.
 - Capability URL + local ticket memory; no account.
 - Mobile-first, installable, reduced-motion aware, Indonesian/English.

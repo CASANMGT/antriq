@@ -24,7 +24,7 @@ export const RELEASES: Release[] = [
         label: "Added",
         items: [
           "Host queue and seated cards show how long the guest has waited.",
-          "Waiting time is calculated from scan/join to now or to seating.",
+          "Waiting time is calculated from scan/join to now or to the call.",
         ],
       },
       {
