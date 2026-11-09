@@ -16,6 +16,27 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.9.0",
+    date: "2026-11-09",
+    title: "Host wait times + cleaner seated ticket",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "Host queue and seated cards show how long the guest has waited.",
+          "Waiting time is calculated from scan/join to now or to seating.",
+        ],
+      },
+      {
+        label: "Changed",
+        items: [
+          "Seat release is renamed to “Selesai” with a check icon.",
+          "Seated guest tickets no longer show the host name or directions.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.8.0",
     date: "2026-11-07",
     title: "Nearest restaurants + distances",

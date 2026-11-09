@@ -8,7 +8,7 @@ npm test         # 38 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **7 Nov 2026** — lint clean, 38/38 tests passing, production build green (v0.8.0 nearest restaurants).
+Last run: **9 Nov 2026** — lint clean, 38/38 tests passing, production build green (v0.9.0 host wait times).
 
 ### Notification delivery QA
 
@@ -73,6 +73,14 @@ Last run: **7 Nov 2026** — lint clean, 38/38 tests passing, production build g
 - Ticket displays the guest’s entered **name** and **phone number**.
 - Long names wrap; long phone numbers remain fully visible.
 - Both are checked at 390 and 320 px with no overflow.
+
+### Host wait times + seated ticket
+
+- Host queue cards show “Menunggu X mnt” from join/scan.
+- Seated cards show the total wait until seating.
+- Seat release label is **“Selesai”** with a check icon.
+- Seated guest ticket hides the host name and directions.
+- Guest name and phone remain visible on the ticket.
 
 ### Nearest restaurants
 

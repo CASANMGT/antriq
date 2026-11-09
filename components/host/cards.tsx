@@ -5,9 +5,9 @@ import {
   Check,
   ChevronRight,
   ClipboardList,
+  Clock3,
   CornerUpLeft,
   Phone,
-  RotateCcw,
   Sparkles,
   UserRound,
   Utensils,
@@ -117,6 +117,10 @@ export function QueueCard({
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 pl-9 text-xs font-semibold text-muted">
             <span className="text-ink/75">
               {entry.partySize} {t.guest.guestUnit}
+            </span>
+            <span className="inline-flex items-center gap-1 text-ink/70">
+              <Clock3 className="size-3" />
+              {format(t.host.waitingFor, { minutes: Math.max(1, entry.waitMinutes) })}
             </span>
             {entry.phone && (
               <a href={`tel:${entry.phone}`} className="inline-flex items-center gap-1 hover:text-ink">
@@ -258,7 +262,7 @@ export function TableCard({
       <div className="mt-2 flex gap-1">
         {table.status === "seated" && (
           <button type="button" className="btn btn-soft btn-sm h-7 flex-1 px-2 text-[0.6875rem]" onClick={onClear} disabled={busy}>
-            <RotateCcw className="size-3" /> {t.host.releaseSeat}
+            <Check className="size-3" /> {t.host.releaseSeat}
           </button>
         )}
         {table.status === "dirty" && (
@@ -315,6 +319,10 @@ export function SeatedCard({
               ? ` · ${entry.tableLabel}${entry.seatNumber !== null ? ` / ${format(t.host.seatValue, { seat: entry.seatNumber })}` : ""}`
               : ` · ${t.host.manualSeat}`}
           </p>
+          <p className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-muted">
+            <Clock3 className="size-3" />
+            {format(t.host.waitingFor, { minutes: Math.max(1, entry.waitMinutes) })}
+          </p>
           {entry.openedBy && (
             <p className="mt-1 text-[0.6875rem] font-bold text-leaf-dark">
               {format(t.host.openedBy, { name: entry.openedBy })}
@@ -324,7 +332,7 @@ export function SeatedCard({
       </div>
       <div className="mt-3 border-t-2 border-dashed border-ink/15 pt-2.5">
         <button type="button" className="btn btn-soft btn-sm w-full" onClick={onRelease} disabled={busy}>
-          <RotateCcw className="size-3.5" /> {t.host.releaseSeat}
+          <Check className="size-3.5" /> {t.host.releaseSeat}
         </button>
       </div>
     </article>

@@ -419,16 +419,6 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                 <p className="mx-auto mt-3 max-w-xs text-sm font-medium leading-relaxed text-muted">
                   {t.ticket.seatedBody}
                 </p>
-                {entry.openedBy && (
-                  <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-white px-3 py-1 text-xs font-bold">
-                    {format(t.ticket.openedBy, { name: entry.openedBy })}
-                  </p>
-                )}
-                {mapsHref && (
-                  <a href={mapsHref} target="_blank" rel="noreferrer" className="btn btn-soft mt-5">
-                    <MapPin className="size-4" /> {t.ticket.directions}
-                  </a>
-                )}
               </div>
             )}
 

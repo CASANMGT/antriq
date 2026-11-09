@@ -45,8 +45,8 @@ AntriQ is a multi-brand, multi-branch queue system with three connected surfaces
 
 | Surface | Who | What they can do |
 | --- | --- | --- |
-| **Guest** | Diner, no account | Open a brand or branch URL, see the live queue, take a number, watch position and now-serving, get called, see the assigned table/seat and the host who opened it |
-| **Host stand** | Greeter, cashier, manager or owner (PIN) | Work the line, call the next party, seat openly (no table required), release the seat, mark no-shows, add walk-ins, pause the queue |
+| **Guest** | Diner, no account | Open a brand or branch URL, see the live queue, take a number, watch position and now-serving, get called, see the assigned table/seat |
+| **Host stand** | Greeter, cashier, manager or owner (PIN) | Work the line with live wait times, call the next party, seat openly (no table required), finish the visit with **Selesai**, mark no-shows, add walk-ins, pause the queue |
 | **Owner dashboard** | Owner (PIN, scoped by brand/branch) | Live queue counts, service pulse, floor map, activity, reports, CSV, tables, team, brand assets, branches, settings, QR poster |
 | **Manager dashboard** | Manager (PIN, scoped by brand/branch or all) | Monitor every branch they cover: live queue, reports, customers and QR posters. Can operate the host floor, but cannot manage staff accounts, settings, brands, branches or tables |
 
@@ -126,9 +126,10 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Queue-only mode is the default: parties are seated openly without a table or seat number.
 - Take a number in about 20 seconds: party size, name, optional phone/note.
 - Ticket with a human code (`A-024`), queue position, parties ahead, now-serving code.
-- Called state: **“Meja siap!”** with a **3-minute call countdown**, “Saya menuju host” (pauses the countdown), directions and release.
+- Called state: **“Meja siap!”** with a **3-minute call countdown**, “Saya hadir” (stops or extends the countdown), directions and release.
 - Browser notification permission prompt on the ticket, plus a notification when the call changes while the tab is hidden.
-- Seated state shows the open-seat confirmation, or the assigned table/seat when the branch uses the table plan.
+- Seated state shows the open-seat confirmation, or the assigned table/seat when the branch uses the table plan. Host name and directions are hidden once seated.
+- Host queue cards show the live waiting time; seated cards show the total wait.
 - Completed, no-show and cancelled end states.
 - Capability URL + local ticket memory; no account.
 - Mobile-first, installable, reduced-motion aware, Indonesian/English.

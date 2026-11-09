@@ -10,6 +10,18 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.9.0] — 2026-11-09
+
+The **host wait times + cleaner seated ticket** release.
+
+### Added
+- Host queue and seated cards show how long the guest has waited.
+- Waiting time is calculated from scan/join to now or to seating.
+
+### Changed
+- Seat release is renamed to **“Selesai”** with a check icon.
+- Seated guest tickets no longer show the host name or directions.
+
 ## [0.8.0] — 2026-11-07
 
 The **nearest restaurants + distances** release.
