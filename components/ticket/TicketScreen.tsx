@@ -22,9 +22,8 @@ import { Modal } from "@/components/Modal";
 import { useLang } from "@/components/LanguageProvider";
 import { postJson } from "@/lib/client-api";
 import { notify } from "@/lib/notify";
-import { clockInTz, formatDayLong } from "@/lib/time";
-import { format } from "@/lib/i18n";
-import { APP_VERSION } from "@/lib/version";
+import { formatDayLong } from "@/lib/time";
+import { format } from "@/lib/i18n";import { APP_VERSION } from "@/lib/version";
 import type { TicketView } from "@/lib/types";
 
 const FINAL_STATUSES = new Set(["completed", "no_show", "cancelled"]);
@@ -146,7 +145,6 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
   const homeHref = brand ? `/b/${brand.slug}/${branch.slug}` : "/";
   const meta = headerMeta(entry.status, t);
   const locale = lang === "id" ? "id-ID" : "en-GB";
-  const joined = clockInTz(entry.joinedAt, branch.timezone);
   const mapsHref = branch.address
     ? `https://maps.google.com/?q=${encodeURIComponent(branch.address)}`
     : null;
@@ -205,9 +203,6 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                   {entry.partySize} {t.guest.guestUnit}
                 </p>
                 <p>{formatDayLong(entry.day, locale)}</p>
-                <p>
-                  {t.ticket.joined} {joined}
-                </p>
               </div>
             </div>
           </div>

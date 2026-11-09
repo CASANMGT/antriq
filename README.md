@@ -125,7 +125,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Staff link is only a subtle footer link; the guest top nav has no staff entry.
 - Queue-only mode is the default: parties are seated openly without a table or seat number.
 - Take a number in about 20 seconds: party size, name, optional phone/note.
-- Ticket with a human code (`A-024`), queue position, parties ahead, now-serving code.
+- Ticket with a human code (`A-024`), queue position, parties ahead, now-serving code. The guest ticket does not show a join time or wait duration.
 - Called state: **“Meja siap!”** with a **3-minute call countdown**, optional “Saya hadir” (stops or extends the countdown), directions and release.
 - Browser notification permission prompt on the ticket, plus a notification when the call changes while the tab is hidden.
 - Seated state shows the open-seat confirmation, or the assigned table/seat when the branch uses the table plan. Host name and directions are hidden once seated.

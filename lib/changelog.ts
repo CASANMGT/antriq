@@ -16,6 +16,20 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.10.1",
+    date: "2026-11-09",
+    title: "Guest ticket hides join time",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "The guest ticket no longer shows the time the guest joined.",
+          "Host cards still show the live waiting time.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.10.0",
     date: "2026-11-09",
     title: "Optional Saya hadir button",

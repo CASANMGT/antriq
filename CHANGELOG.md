@@ -10,6 +10,14 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.10.1] — 2026-11-09
+
+The **guest ticket wait-time privacy** release.
+
+### Changed
+- The guest ticket no longer shows the time the guest joined.
+- Host cards still show the live waiting time.
+
 ## [0.10.0] — 2026-11-09
 
 The **optional Saya hadir button** release.

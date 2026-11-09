@@ -8,7 +8,7 @@ npm test         # 39 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **9 Nov 2026** — lint clean, 39/39 tests passing, production build green (v0.10.0 optional Saya hadir).
+Last run: **9 Nov 2026** — lint clean, 39/39 tests passing, production build green (v0.10.1 guest ticket wait-time privacy).
 
 ### Notification delivery QA
 
@@ -73,6 +73,12 @@ Last run: **9 Nov 2026** — lint clean, 39/39 tests passing, production build g
 - Ticket displays the guest’s entered **name** and **phone number**.
 - Long names wrap; long phone numbers remain fully visible.
 - Both are checked at 390 and 320 px with no overflow.
+
+### Guest ticket wait-time privacy
+
+- Guest ticket hides the joined time; no wait duration is shown.
+- Host queue cards still show the live waiting time.
+- Seated ticket details remain name/phone/table/seat only.
 
 ### Optional Saya hadir
 
