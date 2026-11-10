@@ -10,6 +10,24 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.14.0] — 2026-11-10
+
+The **A/B queue, Hadir list and ratings** release.
+
+### Added
+- Queue groups are **A/B by default**, and the host queue is split into **Antrean A** and **Antrean B**.
+- Called guests can be **called again** with a fresh push notification and a **WhatsApp** link when a phone number exists.
+- The **Hadir** list shows the check-in time and sorts the newest check-ins first.
+- A **Tidak Hadir** column lets the host put a no-show guest back into the queue with a new code.
+- Guests can **rate their queue experience 1–5** on the ticket; owners see the average, distribution and latest ratings by restaurant.
+
+### Changed
+- “Duduk” is now **“Hadir”** across the host board and guest ticket.
+- Ratings and notes are included in the reports CSV.
+
+### Fixed
+- Owner dashboard relative times no longer cause a hydration mismatch.
+
 ## [0.13.0] — 2026-11-10
 
 The **Owner & Host roles** release.

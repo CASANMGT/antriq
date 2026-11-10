@@ -97,6 +97,9 @@ export interface QueueEntry {
   releasedByStaffId: number | null;
   calledCount: number;
   acknowledged: boolean;
+  rating: number | null;
+  ratingNote: string | null;
+  ratedAt: string | null;
   joinedAt: string;
   calledAt: string | null;
   holdExpiresAt: string | null;
@@ -142,6 +145,7 @@ export interface HostState {
   waiting: QueueEntry[];
   called: QueueEntry[];
   seated: QueueEntry[];
+  noShow: QueueEntry[];
   recent: QueueEntry[];
   stats: HostStats;
   serverNow: string;
@@ -203,6 +207,27 @@ export interface HourPoint {
   seated: number;
 }
 
+export interface RatingItem {
+  code: string;
+  guestName: string;
+  rating: number;
+  note: string | null;
+  ratedAt: string;
+}
+
+export interface RatingSummary {
+  average: number;
+  count: number;
+  /** Index 0 = 1 star, index 4 = 5 stars. */
+  distribution: number[];
+  recent: RatingItem[];
+}
+
+export interface BranchRatingSummary extends RatingSummary {
+  branchId: number;
+  branchName: string;
+}
+
 export interface OwnerOverview {
   branch: Branch;
   brand: Brand | null;
@@ -219,6 +244,7 @@ export interface OwnerOverview {
   };
   hourly: HourPoint[];
   week: DayPoint[];
+  ratings: RatingSummary;
   activity: ActivityItem[];
   tables: DiningTable[];
   waiting: QueueEntry[];

@@ -126,6 +126,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Take a number in about 20 seconds: party size, name, optional phone/note.
 - Ticket with a human code (`A-024`), queue position, parties ahead, now-serving code. The guest ticket does not show a join time or wait duration.
 - Called state: **“Meja siap!”** with an optional **3-minute countdown** (off by default), optional “Saya hadir” (stops or extends the countdown), directions and release.
+- Seated/Hadir ticket includes a **1–5 queue rating** with an optional short note; the rating is saved to the ticket and analysed by restaurant.
 - Browser notification permission prompt on the ticket, plus a notification when the call changes while the tab is hidden.
 - Seated state shows the open-seat confirmation, or the assigned table/seat when the branch uses the table plan. Host name and directions are hidden once seated.
 - Host queue cards show the live waiting time; seated cards show the wait until the call.
@@ -135,33 +136,38 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 
 ### Host stand
 - PIN login, 12-hour signed session, branch-scoped access.
-- Three-column board: **Antrean / Dipanggil / Lantai** — tabs on phones.
+- Four-column board: **Antrean (A/B) / Dipanggil / Hadir / Tidak Hadir** — tabs on phones.
+- Queue groups are **A/B by default**: Antrean A for 1–2 guests, Antrean B for 3+; hosts see each group separately with its own positions and counts.
 - Branch switcher for owners and brand owners.
 - Queue positions on every card, not waiting-time guesses.
 - **Call next** selects the first party a free table can physically seat; suggests the smallest fitting table.
-- Seat from waiting or called at a specific table and optional **seat number**, or use **Open seat** to skip the number entirely.
-- **Queue-only mode** (default): tap **Seat** once, no table or seat number, then release from the **Seated** list.
-- Manual mode adds a seated list without table numbers; Table plan adds tables + optional seat numbers.
-- Live stats: waiting, called, seated, seated today, no-shows. The table stat is hidden in queue-only mode.
+- **Panggil lagi** recalls a called guest and sends another ticket notification; when a phone number exists, cards also offer a **WhatsApp** shortcut.
+- Mark a guest **Hadir** from waiting or called at a specific table with an optional seat number, or use **Hadir cepat** to skip the number entirely.
+- **Hadir** list shows the check-in time (`Hadir HH:MM`) and sorts the newest check-ins first.
+- **Tidak Hadir** column lists today's no-shows; **Masukkan lagi** puts the guest back into the queue at the end with a new code while keeping the same ticket link.
+- **Queue-only mode** (default): tap **Hadir** once, no table or seat number, then release from the **Hadir** list.
+- Manual mode adds a Hadir list without table numbers; Table plan adds tables + optional seat numbers.
+- Live stats: waiting, called, here, here today, no-shows. The table stat is hidden in queue-only mode.
 - When the countdown is enabled, called cards show the live countdown; it pauses when the guest confirms they are on the way if the branch enables the button.
 - Browser notification prompt, plus a hidden-tab notification when a guest is called from another device.
-- **Release seat** after payment or when a visit ends; records the staff member who released it.
+- **Selesai** after payment or when a visit ends; records the staff member who released it.
 - No-show with confirmation, undo call, walk-in add, search.
-- Table lifecycle: seated → dirty → ready, plus blocked. Seated cards show seat and PIC.
-- Pause / close / reopen queue, optional call chime, shortcuts (`N`, `W`, `P`).
+- Table lifecycle: here → dirty → ready, plus blocked. Hadir cards show seat and PIC.
+- Pause / close / reopen queue (owners only), optional call chime, shortcuts (`N`, `W`, `P`).
 - Live stats: waiting, called, seated, tables open, seated today, no-shows.
 
 ### Owner
 - Brand → branch switcher; every view, report and QR link is branch-scoped.
 - Queue-focused KPIs: waiting, called, seated today, tables open.
 - Hourly service pulse (joined vs seated), floor map by zone, live queue, activity feed.
+- **Guest ratings** card: average, 1–5 distribution and latest comments, plus a per-restaurant rating table in Reports.
 - 7/30/90-day reports: joined, seated, attendance, no-shows, cancellations, CSV (incl. table, seat, PIC). Owners can switch to **all branches**; the view and CSV stay scoped to the branches they manage.
 - **Customers** page: contact, party, status, table/seat, opener/releaser PIC, join time, 1/7/30-day ranges.
 - Tables CRUD with capacity/zone and seated-table protection.
 - Team management: owner/host roles, generic display names, brand + branch assignment, reset PIN (default `1234`), pause access, last-owner protection.
 - **Brands:** name, slug, Instagram, accent, logo upload, menu PDF upload.
 - **Branches:** create/edit name, slug, address, phone, timezone, hours, announcement.
-- Settings: identity, accent, timezone, hours, max party (default 10), queue cap, auto no-show, announcement, **queue groups** (1 group by default, or split A/B), **seating mode** (queue-only, manual, or table plan), **optional “time to table” countdown**, **optional “Saya hadir” button**, and **what it does** (stop or add minutes).
+- Settings: identity, accent, timezone, hours, max party (default 10), queue cap, auto no-show, announcement, **queue groups** (A/B by default; one group optional), **seating mode** (queue-only, manual, or table plan), **optional “time to table” countdown**, **optional “Saya hadir” button**, and **what it does** (stop or add minutes).
 - Printable A4 QR poster whose QR points at the branch URL.
 
 ## Stack

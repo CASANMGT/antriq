@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Download, TrendingUp } from "lucide-react";
+import { ArrowLeft, Download, Star, TrendingUp } from "lucide-react";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { WeekBars } from "@/components/owner/charts";
 import { Mascot } from "@/components/Mascot";
-import { getOwnerOverview, getOwnerWeekForBranches } from "@/lib/store";
+import { getOwnerOverview, getOwnerWeekForBranches, getRatingAnalysis } from "@/lib/store";
 import { resolveOwnerScope } from "@/lib/scope";
 import { formatDayLong } from "@/lib/time";
 import { getLang } from "@/lib/lang";
@@ -31,10 +31,11 @@ export default async function ReportsPage({
   const { branches, active } = await resolveOwnerScope(params.branch === "all" ? undefined : params.branch);
   const canSeeAll = branches.length > 1;
   const showAll = canSeeAll && params.branch === "all";
-  const [week, lang] = await Promise.all([
+  const [week, ratings, lang] = await Promise.all([
     showAll
       ? getOwnerWeekForBranches(branches.map((branch) => branch.id), days)
       : getOwnerOverview(active.id, days).then((overview) => overview.week),
+    getRatingAnalysis(showAll ? branches.map((branch) => branch.id) : [active.id], days),
     getLang(),
   ]);
   const t = getDict(lang);
@@ -155,6 +156,53 @@ export default async function ReportsPage({
           </div>
         </section>
       </div>
+
+      <section className="card p-4 sm:p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="font-display text-[1.6rem] font-semibold leading-tight">{t.owner.ratingByBranch}</h2>
+            <p className="mt-0.5 text-xs font-semibold text-muted">{t.owner.ratingByBranchSub}</p>
+          </div>
+          <span className="pill status-muted">{days}d</span>
+        </div>
+        {ratings.every((item) => item.count === 0) ? (
+          <p className="mt-4 rounded-xl border-2 border-dashed border-ink/20 bg-cream/60 px-4 py-6 text-center text-xs font-semibold text-muted">
+            {t.owner.ratingNoRatings}
+          </p>
+        ) : (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {ratings.map((item) => (
+              <div key={item.branchId} className="rounded-2xl border-2 border-ink bg-cream/50 p-3.5">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="min-w-0 truncate text-sm font-extrabold">{item.branchName}</p>
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border-2 border-ink bg-white px-2 py-0.5 text-xs font-extrabold">
+                    <Star className="size-3 text-gold" fill="currentColor" />
+                    {item.count ? item.average.toFixed(1) : "—"}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-[0.625rem] font-semibold text-muted">
+                  {format(t.owner.ratingCount, { count: item.count })}
+                </p>
+                <div className="mt-2 space-y-1">
+                  {[5, 4, 3, 2, 1].map((star) => {
+                    const count = item.distribution[star - 1] ?? 0;
+                    const pct = item.count ? Math.round((count / item.count) * 100) : 0;
+                    return (
+                      <div key={star} className="flex items-center gap-1.5 text-[0.625rem] font-bold">
+                        <span className="w-4 text-right text-muted">{star}</span>
+                        <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white">
+                          <span className="block h-1.5 rounded-full bg-gold" style={{ width: `${pct}%` }} />
+                        </span>
+                        <span className="num w-5 text-right text-muted">{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section className="card overflow-hidden">
         <div className="flex items-center justify-between gap-3 border-b-2 border-ink px-4 py-3 sm:px-5">

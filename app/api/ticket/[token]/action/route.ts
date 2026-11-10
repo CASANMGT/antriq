@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { actionError, rateLimit } from "@/lib/action";
 import { GUEST_TICKET_COOKIE } from "@/lib/guest";
-import { acknowledgeTicket, cancelTicket, resetGuestDevice } from "@/lib/store";
+import { acknowledgeTicket, cancelTicket, rateTicket, resetGuestDevice } from "@/lib/store";
 import type { ActionResult } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -21,13 +21,22 @@ export async function POST(
   }
 
   try {
-    const body = (await request.json().catch(() => ({}))) as { action?: string };
+    const body = (await request.json().catch(() => ({}))) as {
+      action?: string;
+      rating?: number;
+      note?: string;
+    };
     const action = String(body.action ?? "");
     if (action === "cancel") {
       return NextResponse.json(await cancelTicket(token), { headers: { "Cache-Control": "no-store" } });
     }
     if (action === "acknowledge") {
       return NextResponse.json(await acknowledgeTicket(token), {
+        headers: { "Cache-Control": "no-store" },
+      });
+    }
+    if (action === "rate") {
+      return NextResponse.json(await rateTicket(token, Number(body.rating), body.note ? String(body.note) : undefined), {
         headers: { "Cache-Control": "no-store" },
       });
     }

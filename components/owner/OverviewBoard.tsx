@@ -13,8 +13,10 @@ import {
   Loader2,
   PauseCircle,
   PlayCircle,
+  RotateCcw,
   Settings2,
   Sparkles,
+  Star,
   UserPlus,
   UserX,
   Users,
@@ -58,10 +60,11 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
     return () => window.clearInterval(timer);
   }, [branchId, router]);
 
-  const { branch, brand, stats, today, week, hourly, activity, tables, waiting } = data;
+  const { branch, brand, stats, today, week, hourly, activity, tables, waiting, ratings } = data;
   const status = branch.waitlistStatus;
   const locale = lang === "id" ? "id-ID" : "en-GB";
-  const todayLabel = formatDayLong(dayInTz(new Date(), branch.timezone), locale);
+  const now = new Date(data.serverNow);
+  const todayLabel = formatDayLong(dayInTz(now, branch.timezone), locale);
   const peak = [...hourly].sort((a, b) => b.joined - a.joined)[0];
   const weekTotals = week.reduce(
     (sum, day) => ({
@@ -345,7 +348,7 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
                     <p className="text-xs font-semibold leading-snug text-ink/85">{activityText(item, t)}</p>
                     <p className="mt-0.5 text-[0.625rem] font-semibold text-muted">
                       {item.actor === "System" ? t.owner.system : item.actor === "Guest" ? t.owner.guest : item.actor ?? t.owner.system} ·{" "}
-                      {relativeTime(item.createdAt, new Date(), lang)}
+                      {relativeTime(item.createdAt, now, lang)}
                     </p>
                   </div>
                 </div>
@@ -384,6 +387,69 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
           </div>
         </section>
       </div>
+
+      <section className="card p-4 sm:p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="font-display text-[1.5rem] font-semibold leading-tight">{t.owner.ratingTitle}</h2>
+            <p className="mt-0.5 text-xs font-semibold text-muted">{t.owner.ratingSub}</p>
+          </div>
+          <div className="text-right">
+            <p className="num font-display text-3xl font-semibold leading-none">
+              {ratings.count ? ratings.average.toFixed(1) : "—"}
+            </p>
+            <p className="mt-1 text-[0.625rem] font-extrabold uppercase tracking-[0.1em] text-muted">
+              {format(t.owner.ratingCount, { count: ratings.count })}
+            </p>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            {[5, 4, 3, 2, 1].map((star) => {
+              const count = ratings.distribution[star - 1] ?? 0;
+              const pct = ratings.count ? Math.round((count / ratings.count) * 100) : 0;
+              return (
+                <div key={star} className="flex items-center gap-2 text-xs font-bold">
+                  <span className="inline-flex w-9 shrink-0 items-center gap-0.5">
+                    <Star className="size-3 text-gold" fill="currentColor" /> {star}
+                  </span>
+                  <span className="h-2 flex-1 overflow-hidden rounded-full bg-cream">
+                    <span className="block h-2 rounded-full bg-gold" style={{ width: `${pct}%` }} />
+                  </span>
+                  <span className="num w-7 text-right text-muted">{count}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div>
+            <p className="eyebrow text-ink/45">{t.owner.ratingRecent}</p>
+            <div className="mt-2 space-y-2">
+              {ratings.recent.length === 0 ? (
+                <p className="text-xs font-semibold text-muted">{t.owner.ratingNone}</p>
+              ) : (
+                ratings.recent.map((item) => (
+                  <div key={`${item.code}-${item.ratedAt}`} className="rounded-xl border-2 border-ink/10 bg-cream/50 px-3 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-xs font-extrabold">
+                        {item.code} · {item.guestName}
+                      </p>
+                      <span className="inline-flex shrink-0 items-center gap-0.5 text-gold">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star key={star} className="size-3" fill={star <= item.rating ? "currentColor" : "none"} />
+                        ))}
+                      </span>
+                    </div>
+                    {item.note && <p className="mt-0.5 text-[0.6875rem] font-medium text-ink/65">{item.note}</p>}
+                    <p className="mt-0.5 text-[0.625rem] font-semibold text-muted">
+                      {relativeTime(item.ratedAt, now, lang)}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
 
       <Notice notice={notice} onClose={() => setNotice(null)} />
     </div>
@@ -442,9 +508,9 @@ function Legend({ className, label }: { className: string; label: string }) {
 }
 
 function activityTone(type: string): string {
-  if (type === "join" || type === "walkin") return "bg-butter text-gold";
-  if (type === "call" || type === "extend" || type === "acknowledge") return "bg-pink text-tomato-dark";
-  if (type === "seat" || type === "complete" || type === "release" || type === "ready") return "bg-leaf-soft text-leaf-dark";
+  if (type === "join" || type === "walkin" || type === "requeue") return "bg-butter text-gold";
+  if (type === "call" || type === "extend" || type === "acknowledge" || type === "recall") return "bg-pink text-tomato-dark";
+  if (type === "seat" || type === "complete" || type === "release" || type === "ready" || type === "rating") return "bg-leaf-soft text-leaf-dark";
   if (type === "no_show") return "bg-pink text-tomato-dark";
   if (type === "clear") return "bg-cream text-ink/70";
   return "bg-cream text-ink/60";
@@ -457,7 +523,12 @@ function activityIcon(type: string) {
     case "walkin":
       return <UserPlus className={className} />;
     case "call":
+    case "recall":
       return <BellRing className={className} />;
+    case "requeue":
+      return <RotateCcw className={className} />;
+    case "rating":
+      return <Star className={className} />;
     case "seat":
       return <UtensilsCrossed className={className} />;
     case "complete":

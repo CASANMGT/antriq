@@ -16,6 +16,36 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.14.0",
+    date: "2026-11-10",
+    title: "A/B queue, Hadir list, ratings",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "Queue groups are A/B by default, and the host queue is split into Antrean A and Antrean B.",
+          "Called guests can be called again with a fresh push notification and a WhatsApp link when a phone number exists.",
+          "The Hadir list shows the check-in time and sorts the newest check-ins first.",
+          "A Tidak Hadir column lets the host put a no-show guest back into the queue with a new code.",
+          "Guests can rate their queue experience 1–5 on the ticket; owners see the average, distribution and latest ratings by restaurant.",
+        ],
+      },
+      {
+        label: "Changed",
+        items: [
+          "“Duduk” is now “Hadir” across the host board and guest ticket.",
+          "Ratings and notes are included in the reports CSV.",
+        ],
+      },
+      {
+        label: "Fixed",
+        items: [
+          "Owner dashboard relative times no longer cause a hydration mismatch.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.13.0",
     date: "2026-11-10",
     title: "Owner & Host roles",

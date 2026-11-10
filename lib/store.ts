@@ -22,6 +22,7 @@ import type {
   ActivityItem,
   Brand,
   Branch,
+  BranchRatingSummary,
   BranchSummary,
   DayPoint,
   DiningTable,
@@ -34,6 +35,7 @@ import type {
   QueueEntry,
   QueueMode,
   QueueSource,
+  RatingSummary,
   Role,
   SeatingMode,
   TableStatus,
@@ -63,7 +65,8 @@ const ENTRY_COLUMNS = `
   qe.category, qe.guest_name, qe.phone, qe.party_size, qe.notes, qe.source, qe.status,
   qe.table_id, qe.seat_number, qe.opened_by, qe.opened_by_staff_id,
   qe.released_by, qe.released_by_staff_id,
-  qe.called_count, qe.acknowledged, qe.joined_at, qe.called_at,
+  qe.called_count, qe.acknowledged, qe.rating, qe.rating_note, qe.rated_at,
+  qe.joined_at, qe.called_at,
   qe.hold_expires_at, qe.seated_at, qe.closed_at, qe.cancelled_by,
   t.label as table_label
 `;
@@ -180,6 +183,9 @@ function mapEntry(row: Row, tablesById: Map<number, string>, now = new Date()): 
     releasedByStaffId: row.released_by_staff_id ? toNumber(row.released_by_staff_id) : null,
     calledCount: toNumber(row.called_count),
     acknowledged: Boolean(row.acknowledged),
+    rating: row.rating === null || row.rating === undefined ? null : toNumber(row.rating),
+    ratingNote: row.rating_note ?? null,
+    ratedAt: toIso(row.rated_at),
     joinedAt,
     calledAt,
     holdExpiresAt,
@@ -589,7 +595,7 @@ export async function createBranch(brandId: number, input: BranchPatch, actor: s
         input.accent ? validateAccent(input.accent) : null,
         input.announcement ? cleanText(input.announcement, 300) : null,
         input.seatingMode === "plan" ? "plan" : input.seatingMode === "manual" ? "manual" : "queue",
-        input.queueMode === "split" ? "split" : "single",
+        input.queueMode === "single" ? "single" : "split",
         clampInt(input.avgTurnMinutes ?? 55, 10, 240, 55),
         input.holdEnabled ?? false,
         clampInt(input.holdMinutes ?? 3, 2, 30, 3),
@@ -1006,7 +1012,12 @@ export async function getHostState(branchId: number): Promise<HostState> {
   const called = entries
     .filter((entry) => entry.status === "called")
     .sort((a, b) => new Date(a.calledAt ?? a.joinedAt).getTime() - new Date(b.calledAt ?? b.joinedAt).getTime());
-  const seated = entries.filter((entry) => entry.status === "seated");
+  const seated = entries
+    .filter((entry) => entry.status === "seated")
+    .sort((a, b) => new Date(b.seatedAt ?? 0).getTime() - new Date(a.seatedAt ?? 0).getTime());
+  const noShow = entries
+    .filter((entry) => entry.status === "no_show")
+    .sort((a, b) => new Date(b.closedAt ?? b.joinedAt).getTime() - new Date(a.closedAt ?? a.joinedAt).getTime());
   const recent = entries
     .filter((entry) => ["completed", "no_show", "cancelled"].includes(entry.status))
     .sort((a, b) => new Date(b.closedAt ?? b.joinedAt).getTime() - new Date(a.closedAt ?? a.joinedAt).getTime())
@@ -1020,6 +1031,7 @@ export async function getHostState(branchId: number): Promise<HostState> {
     waiting,
     called,
     seated,
+    noShow,
     recent,
     stats,
     serverNow: now.toISOString(),
@@ -1083,7 +1095,11 @@ export async function getTicketView(token: string): Promise<TicketView | null> {
   const today = dayInTz(now, branch.timezone);
   const tables = await listTables(branch.id);
   const entries = await entriesForDay(branch.id, today);
-  const waiting = orderWaiting(entries.filter((item) => item.status === "waiting"));
+  const allWaiting = orderWaiting(entries.filter((item) => item.status === "waiting"));
+  const waiting =
+    branch.queueMode === "split"
+      ? allWaiting.filter((item) => item.category === entry.category)
+      : allWaiting;
   const waitingEntry = waiting.find((item) => item.id === entry.id) ?? null;
   const position = waitingEntry ? positionOf(waitingEntry.id, waiting) : null;
   const fittable = tables.filter((table) => table.capacity >= entry.partySize);
@@ -1232,7 +1248,11 @@ export async function joinQueue(branchId: number, input: JoinInput, allowPaused 
     });
 
     const all = await entriesForDay(branchId, today, db);
-    const waitingList = orderWaiting(all.filter((entry) => entry.status === "waiting"));
+    const allWaiting = orderWaiting(all.filter((entry) => entry.status === "waiting"));
+    const waitingList =
+      branch.queueMode === "split"
+        ? allWaiting.filter((entry) => entry.category === category)
+        : allWaiting;
     const position = positionOf(entryId, waitingList) ?? waitingList.length;
     const tables = await listTables(branchId, db);
     const fittable = tables.filter((table) => table.capacity >= partySize);
@@ -1265,6 +1285,96 @@ export async function cancelTicket(token: string): Promise<ActionResult> {
       note: "Cancelled from ticket",
     });
     return { ok: true, message: "Your place has been released." };
+  });
+}
+
+export async function recallEntry(branchId: number, entryId: number, actor: string): Promise<ActionResult> {
+  const branch = await getBranch(branchId);
+  return tx(async (db) => {
+    const rows = await db.query<Row>(
+      `update queue_entries
+       set called_at = now(), called_count = called_count + 1, acknowledged = false,
+           hold_expires_at = case when $3::boolean then now() + ($4 || ' minutes')::interval else null end
+       where id = $1 and branch_id = $2 and status = 'called'
+       returning id, code, guest_name, party_size`,
+      [entryId, branchId, branch.holdEnabled, branch.holdMinutes],
+    );
+    if (!rows[0]) return { ok: false, message: "That guest is not at the door right now." };
+    await logActivity(db, branchId, "recall", actor, {
+      entryId: toNumber(rows[0].id),
+      code: String(rows[0].code),
+      name: String(rows[0].guest_name),
+      partySize: toNumber(rows[0].party_size),
+      note: "Called again",
+    });
+    return { ok: true, message: `${rows[0].code} called again.` };
+  });
+}
+
+export async function requeueEntry(branchId: number, entryId: number, actor: string): Promise<ActionResult> {
+  const branch = await getBranch(branchId);
+  return tx(async (db) => {
+    const target = await db.query<Row>(
+      `select id, code, guest_name, party_size, notes, source
+       from queue_entries
+       where id = $1 and branch_id = $2 and status = 'no_show'`,
+      [entryId, branchId],
+    );
+    if (!target[0]) return { ok: false, message: "That guest is not in the Tidak Hadir list." };
+    const today = dayInTz(new Date(), branch.timezone);
+    const seqRows = await db.query<Row>(
+      `insert into queue_sequence (branch_id, day, last_seq) values ($1, $2, 1)
+       on conflict (branch_id, day)
+       do update set last_seq = queue_sequence.last_seq + 1
+       returning last_seq`,
+      [branchId, today],
+    );
+    const seq = toNumber(seqRows[0]?.last_seq, 1);
+    const partySize = toNumber(target[0].party_size);
+    const category: QueueCategory = branch.queueMode === "single" ? "A" : partySize <= 2 ? "A" : "B";
+    const code = codeFor(seq, category);
+    await db.query(
+      `update queue_entries
+       set status = 'waiting', day = $3::date, seq = $4, category = $5, code = $6,
+           joined_at = now(), called_at = null, called_count = 0, acknowledged = false,
+           hold_expires_at = null, seated_at = null, closed_at = null, cancelled_by = null,
+           table_id = null, seat_number = null, opened_by = null, opened_by_staff_id = null,
+           released_by = null, released_by_staff_id = null
+       where id = $1 and branch_id = $2`,
+      [entryId, branchId, today, seq, category, code],
+    );
+    await logActivity(db, branchId, "requeue", actor, {
+      entryId,
+      code,
+      name: String(target[0].guest_name),
+      partySize,
+      note: "Returned to the queue",
+    });
+    return { ok: true, message: `${code} is back in the queue.` };
+  });
+}
+
+export async function rateTicket(token: string, rating: number, note?: string): Promise<ActionResult> {
+  const safeRating = clampInt(rating, 1, 5, 0);
+  if (!safeRating) return { ok: false, message: "Choose a rating from 1 to 5." };
+  const safeNote = note ? cleanText(note, 300) || null : null;
+  return tx(async (db) => {
+    const rows = await db.query<Row>(
+      `update queue_entries
+       set rating = $2, rating_note = $3, rated_at = now()
+       where token = $1 and status in ('seated','completed','cancelled','no_show')
+       returning id, branch_id, code, guest_name, party_size, rating`,
+      [token, safeRating, safeNote],
+    );
+    if (!rows[0]) return { ok: false, message: "You can rate once you are seated or your visit has ended." };
+    await logActivity(db, toNumber(rows[0].branch_id), "rating", "Guest", {
+      entryId: toNumber(rows[0].id),
+      code: String(rows[0].code),
+      name: String(rows[0].guest_name),
+      partySize: toNumber(rows[0].party_size),
+      note: `Rated ${safeRating}/5`,
+    });
+    return { ok: true, message: `Thanks for rating your queue experience ${safeRating}/5.` };
   });
 }
 
@@ -1924,6 +2034,27 @@ export async function getOwnerOverview(branchId: number, days = 7): Promise<Owne
   const avgWaitMinutes = average(seatedToday.map((entry) => minutesBetween(entry.joinedAt, entry.seatedAt as string)));
   const avgTurnMinutes = averageTurn(todayEntries, branch.avgTurnMinutes);
   const utilization = Math.min(100, Math.round((stats.seated / Math.max(1, tables.length)) * 100));
+  const rated = all.filter((entry) => entry.rating !== null);
+  const ratingDistribution = [1, 2, 3, 4, 5].map(
+    (star) => rated.filter((entry) => entry.rating === star).length,
+  );
+  const ratingTotal = rated.reduce((sum, entry) => sum + (entry.rating ?? 0), 0);
+  const ratings: RatingSummary = {
+    average: rated.length ? Math.round((ratingTotal / rated.length) * 10) / 10 : 0,
+    count: rated.length,
+    distribution: ratingDistribution,
+    recent: rated
+      .filter((entry) => entry.ratedAt)
+      .sort((a, b) => new Date(b.ratedAt ?? 0).getTime() - new Date(a.ratedAt ?? 0).getTime())
+      .slice(0, 5)
+      .map((entry) => ({
+        code: entry.code,
+        guestName: entry.guestName,
+        rating: entry.rating ?? 0,
+        note: entry.ratingNote,
+        ratedAt: entry.ratedAt as string,
+      })),
+  };
 
   const week: DayPoint[] = [];
   for (let index = windowDays - 1; index >= 0; index -= 1) {
@@ -1976,6 +2107,7 @@ export async function getOwnerOverview(branchId: number, days = 7): Promise<Owne
     },
     hourly: buildHourly(todayEntries, branch.timezone, branch.openTime, branch.closeTime),
     week,
+    ratings,
     activity,
     tables,
     waiting: orderWaiting(todayEntries.filter((entry) => entry.status === "waiting")),
@@ -1993,8 +2125,51 @@ function safeJson(value: string): Row {
   }
 }
 
-export async function getCustomerList(branchId: number, days = 1): Promise<QueueEntry[]> {
-  const branch = await getBranch(branchId);
+export async function getRatingAnalysis(branchIds: number[], days = 30): Promise<BranchRatingSummary[]> {
+  const wanted = Array.from(new Set(branchIds.filter((id) => Number.isInteger(id) && id > 0)));
+  if (wanted.length === 0) return [];
+  const branchRows = await q<Row>("select id, name from branches where id = any($1::int[])", [wanted]);
+  const first = await getBranch(wanted[0]);
+  const windowDays = Math.min(90, Math.max(1, Math.round(days)));
+  const today = dayInTz(new Date(), first.timezone);
+  const startDay = addDaysToDay(today, -(windowDays - 1));
+  const rows = await q<Row>(
+    `select qe.branch_id, qe.rating, qe.rating_note, qe.code, qe.guest_name, qe.rated_at
+     from queue_entries qe
+     where qe.branch_id = any($1::int[]) and qe.day >= $2::date and qe.rating is not null
+     order by qe.rated_at desc nulls last`,
+    [wanted, startDay],
+  );
+  return branchRows
+    .map((branch) => {
+      const branchId = toNumber(branch.id);
+      const ratings = rows.filter((row) => toNumber(row.branch_id) === branchId);
+      const distribution = [1, 2, 3, 4, 5].map(
+        (star) => ratings.filter((row) => toNumber(row.rating) === star).length,
+      );
+      const total = ratings.reduce((sum, row) => sum + toNumber(row.rating), 0);
+      return {
+        branchId,
+        branchName: String(branch.name),
+        average: ratings.length ? Math.round((total / ratings.length) * 10) / 10 : 0,
+        count: ratings.length,
+        distribution,
+        recent: ratings
+          .filter((row) => row.rated_at)
+          .slice(0, 3)
+          .map((row) => ({
+            code: String(row.code),
+            guestName: String(row.guest_name),
+            rating: toNumber(row.rating),
+            note: row.rating_note ?? null,
+            ratedAt: toIso(row.rated_at) as string,
+          })),
+      };
+    })
+    .sort((a, b) => b.average - a.average || b.count - a.count);
+}
+
+export async function getCustomerList(branchId: number, days = 1): Promise<QueueEntry[]> {  const branch = await getBranch(branchId);
   const windowDays = Math.min(90, Math.max(1, Math.round(days)));
   const today = dayInTz(new Date(), branch.timezone);
   const startDay = addDaysToDay(today, -(windowDays - 1));
@@ -2019,7 +2194,8 @@ export async function getReportCsv(branchId: number, days = 30): Promise<string>
   const rows = await q<Row>(
     `select qe.code, to_char(qe.day, 'YYYY-MM-DD') as day_text, qe.guest_name, qe.phone,
             qe.party_size, qe.source, qe.status, qe.seat_number, qe.opened_by,
-            qe.released_by, qe.joined_at, qe.called_at, qe.seated_at, qe.closed_at, qe.notes, t.label as table_label
+            qe.released_by, qe.joined_at, qe.called_at, qe.seated_at, qe.closed_at, qe.notes,
+            qe.rating, qe.rating_note, t.label as table_label
      from queue_entries qe
      left join dining_tables t on t.id = qe.table_id
      where qe.branch_id = $1 and qe.day >= $2::date
@@ -2030,7 +2206,7 @@ export async function getReportCsv(branchId: number, days = 30): Promise<string>
   const header = [
     "code", "day", "guest", "phone", "party_size", "source", "status",
     "joined_at", "called_at", "seated_at", "closed_at", "table", "seat", "opened_by", "released_by",
-    "wait_min", "turn_min", "notes",
+    "wait_min", "turn_min", "rating", "rating_note", "notes",
   ];
   const lines = [header.join(",")];
   for (const row of rows) {
@@ -2058,6 +2234,8 @@ export async function getReportCsv(branchId: number, days = 30): Promise<string>
         row.released_by ?? "",
         wait,
         turn,
+        row.rating ?? "",
+        row.rating_note ?? "",
         row.notes ?? "",
       ]
         .map((value) => csvCell(value))
@@ -2077,7 +2255,8 @@ export async function getReportCsvForBranches(branchIds: number[], days = 30): P
   const rows = await q<Row>(
     `select qe.code, to_char(qe.day, 'YYYY-MM-DD') as day_text, br.name as branch_name, qe.guest_name, qe.phone,
             qe.party_size, qe.source, qe.status, qe.seat_number, qe.opened_by,
-            qe.released_by, qe.joined_at, qe.called_at, qe.seated_at, qe.closed_at, qe.notes, t.label as table_label
+            qe.released_by, qe.joined_at, qe.called_at, qe.seated_at, qe.closed_at, qe.notes,
+            qe.rating, qe.rating_note, t.label as table_label
      from queue_entries qe
      join branches br on br.id = qe.branch_id
      left join dining_tables t on t.id = qe.table_id
@@ -2089,7 +2268,7 @@ export async function getReportCsvForBranches(branchIds: number[], days = 30): P
   const header = [
     "branch", "code", "day", "guest", "phone", "party_size", "source", "status",
     "joined_at", "called_at", "seated_at", "closed_at", "table", "seat", "opened_by", "released_by",
-    "wait_min", "turn_min", "notes",
+    "wait_min", "turn_min", "rating", "rating_note", "notes",
   ];
   const lines = [header.join(",")];
   for (const row of rows) {
@@ -2118,6 +2297,8 @@ export async function getReportCsvForBranches(branchIds: number[], days = 30): P
         row.released_by ?? "",
         wait,
         turn,
+        row.rating ?? "",
+        row.rating_note ?? "",
         row.notes ?? "",
       ]
         .map((value) => csvCell(value))

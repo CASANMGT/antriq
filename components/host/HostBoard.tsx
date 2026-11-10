@@ -24,7 +24,7 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 import { Modal } from "@/components/Modal";
 import { Notice, type NoticeState } from "@/components/Notice";
 import { NotificationPrompt } from "@/components/Notifications";
-import { EmptyBoard, QueueCard, SeatedCard, StatsStrip, TableCard } from "@/components/host/cards";
+import { EmptyBoard, NoShowCard, QueueCard, SeatedCard, StatsStrip, TableCard } from "@/components/host/cards";
 import { useLang } from "@/components/LanguageProvider";
 import { APP_VERSION } from "@/lib/version";
 import { logoutAction } from "@/app/actions/auth";
@@ -35,7 +35,7 @@ import { format } from "@/lib/i18n";
 import { zoneLabel } from "@/lib/labels";
 import type { ActionResult, BranchSummary, DiningTable, HostState, QueueEntry, Role } from "@/lib/types";
 
-type Tab = "queue" | "called" | "tables" | "seated";
+type Tab = "queue" | "called" | "tables" | "seated" | "noShow";
 
 export function HostBoard({
   initial,
@@ -186,6 +186,26 @@ export function HostBoard({
       [entry.guestName, entry.code, entry.phone ?? ""].some((value) => value.toLowerCase().includes(needle)),
     );
   }, [query, state.called]);
+
+  const filteredNoShow = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return state.noShow;
+    return state.noShow.filter((entry) =>
+      [entry.guestName, entry.code, entry.phone ?? ""].some((value) => value.toLowerCase().includes(needle)),
+    );
+  }, [query, state.noShow]);
+
+  const waitingGroups = useMemo(() => {
+    if (state.branch.queueMode !== "split") {
+      return [{ key: "all", label: t.host.waitlistTitle, entries: filteredWaiting }];
+    }
+    return [
+      { key: "A", label: t.host.groupA, entries: filteredWaiting.filter((entry) => entry.category === "A") },
+      { key: "B", label: t.host.groupB, entries: filteredWaiting.filter((entry) => entry.category === "B") },
+    ];
+  }, [filteredWaiting, state.branch.queueMode, t.host.groupA, t.host.groupB, t.host.waitlistTitle]);
+
+  const nextWaitingId = filteredWaiting[0]?.id ?? null;
 
   const zones = useMemo(() => {
     const map = new Map<string, DiningTable[]>();
@@ -454,7 +474,7 @@ export function HostBoard({
           </div>
         </div>
 
-        <div className="grid min-w-0 gap-4 lg:grid-cols-[1.12fr_0.94fr_1fr]">
+        <div className="grid min-w-0 gap-4 lg:grid-cols-[1.12fr_0.94fr_1fr] xl:grid-cols-[1.08fr_0.92fr_0.92fr_0.88fr]">
           {/* Waiting */}
           <section className={`min-w-0 ${tab === "queue" ? "block" : "hidden lg:block"}`}>
             <div className="mb-2.5 flex items-start justify-between gap-2">
@@ -498,29 +518,50 @@ export function HostBoard({
               />
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-4">
               {filteredWaiting.length === 0 ? (
                 <EmptyBoard
                   title={query ? t.host.noMatch : t.host.emptyLine}
                   note={query ? t.host.noMatchNote : t.host.emptyLineNote}
                 />
               ) : (
-                filteredWaiting.map((entry, index) => (
-                  <QueueCard
-                    key={entry.id}
-                    entry={entry}
-                    position={index + 1}
-                    next={index === 0 && !query}
-                    busy={pending}
-                    onCall={() => run(() => hostAction("callEntry", { entryId: entry.id }))}
-                    onSeat={() => chooseSeat(entry)}
-                    onOpenSeat={() => openSeat(entry)}
-                    onNoShow={() => setNoShowTarget(entry)}
-                    onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
-                    manualMode={manual}
-                    showCategory={state.branch.queueMode === "split"}
-                    showCountdown={state.branch.holdEnabled}
-                  />
+                waitingGroups.map((group) => (
+                  <div key={group.key}>
+                    {state.branch.queueMode === "split" && (
+                      <div className="mb-1.5 flex items-center justify-between">
+                        <h3 className="text-[0.6875rem] font-extrabold uppercase tracking-[0.14em] text-ink/50">
+                          {group.label}
+                        </h3>
+                        <span className="pill status-muted">{group.entries.length}</span>
+                      </div>
+                    )}
+                    <div className="space-y-2.5">
+                      {group.entries.length === 0 ? (
+                        <p className="rounded-xl border-2 border-dashed border-ink/20 bg-white/50 px-3 py-4 text-center text-xs font-semibold text-muted">
+                          {t.host.groupEmpty}
+                        </p>
+                      ) : (
+                        group.entries.map((entry, index) => (
+                          <QueueCard
+                            key={entry.id}
+                            entry={entry}
+                            position={index + 1}
+                            next={entry.id === nextWaitingId && !query}
+                            busy={pending}
+                            onCall={() => run(() => hostAction("callEntry", { entryId: entry.id }))}
+                            onRecall={() => run(() => hostAction("recall", { entryId: entry.id }))}
+                            onSeat={() => chooseSeat(entry)}
+                            onOpenSeat={() => openSeat(entry)}
+                            onNoShow={() => setNoShowTarget(entry)}
+                            onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
+                            manualMode={manual}
+                            showCategory={state.branch.queueMode === "split"}
+                            showCountdown={state.branch.holdEnabled}
+                          />
+                        ))
+                      )}
+                    </div>
+                  </div>
                 ))
               )}
             </div>
@@ -550,6 +591,7 @@ export function HostBoard({
                     next={false}
                     busy={pending}
                     onCall={() => run(() => hostAction("callEntry", { entryId: entry.id }))}
+                    onRecall={() => run(() => hostAction("recall", { entryId: entry.id }))}
                     onSeat={() => chooseSeat(entry)}
                     onOpenSeat={() => openSeat(entry)}
                     onNoShow={() => setNoShowTarget(entry)}
@@ -598,12 +640,41 @@ export function HostBoard({
                       busy={pending}
                       onRelease={() => setReleaseEntryTarget(entry)}
                       showCategory={state.branch.queueMode === "split"}
+                      timezone={state.branch.timezone}
                     />
                   ))
                 )}
               </div>
             </section>
           )}
+
+          {/* Tidak Hadir */}
+          <section className={`min-w-0 ${tab === "noShow" ? "block" : "hidden lg:block"}`}>
+            <div className="mb-2.5 flex items-start justify-between gap-2">
+              <div>
+                <h2 className="font-display text-[1.7rem] font-semibold leading-tight">{t.host.noShowListTitle}</h2>
+                <p className="text-xs font-semibold text-muted">
+                  {format(t.host.noShowListSummary, { count: state.noShow.length })}
+                </p>
+              </div>
+              <span className="pill status-muted">{state.noShow.length}</span>
+            </div>
+            <div className="space-y-2.5">
+              {filteredNoShow.length === 0 ? (
+                <EmptyBoard title={t.host.noShowEmpty} note={t.host.noShowEmptyNote} />
+              ) : (
+                filteredNoShow.map((entry) => (
+                  <NoShowCard
+                    key={entry.id}
+                    entry={entry}
+                    busy={pending}
+                    onRequeue={() => run(() => hostAction("requeue", { entryId: entry.id }))}
+                    timezone={state.branch.timezone}
+                  />
+                ))
+              )}
+            </div>
+          </section>
 
           {/* Tables */}
           {!manual && (
@@ -664,6 +735,7 @@ export function HostBoard({
               manual
                 ? { id: "seated" as const, label: t.host.seated, count: state.seated.length }
                 : { id: "tables" as const, label: t.host.floorTitle, count: stats.availableTables },
+              { id: "noShow" as const, label: t.host.noShowShort, count: state.noShow.length },
             ]
           ).map((item) => (
             <button

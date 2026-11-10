@@ -20,6 +20,7 @@ import {
   getOwnerOverview,
   getOwnerWeekForBranches,
   getPublicSnapshot,
+  getRatingAnalysis,
   getReportCsv,
   getTicketView,
   joinQueue,
@@ -27,6 +28,9 @@ import {
   listBranchesForStaff,
   listStaff,
   markNoShow,
+  rateTicket,
+  recallEntry,
+  requeueEntry,
   resetGuestDevice,
   seatEntry,
   setBrandAsset,
@@ -55,12 +59,13 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(snapshot.branch.name).toBe("Nikumaru Blok M");
     expect(snapshot.brand?.name).toBe("Nikumaru");
     expect(snapshot.waiting).toBe(6);
-    expect(snapshot.branch.queueMode).toBe("single");
+    expect(snapshot.branch.queueMode).toBe("split");
     expect(snapshot.branch.acknowledgeEnabled).toBe(false);
     expect(snapshot.branch.holdEnabled).toBe(false);
     expect(snapshot.branch.maxPartySize).toBe(10);
-    expect(snapshot.waitingA).toBe(6);
-    expect(snapshot.waitingB).toBe(0);
+    expect(snapshot.waitingA).toBeGreaterThan(0);
+    expect(snapshot.waitingB).toBeGreaterThan(0);
+    expect(snapshot.waitingA + snapshot.waitingB).toBe(6);
     expect(snapshot.availableTables).toBe(2);
     expect(snapshot.typicalWaitMinutes).toBeGreaterThan(5);
     expect(snapshot.lastCalledCode).toBe("B-005");
@@ -71,21 +76,21 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(await getBranchBySlugs("tenka", "bintaro-xchange")).not.toBeNull();
   });
 
-  it("uses one queue group by default and splits A/B only when enabled", async () => {
+  it("uses A/B groups by default and can fall back to one queue", async () => {
     const branchId = await primaryBranchId();
-    const single = await joinQueue(branchId, { guestName: "Single Big", partySize: 4 });
-    expect(single.code).toMatch(/^A-\d{3,}$/);
-
-    await q("update branches set queue_mode = 'split' where id = $1", [branchId]);
-    const small = await joinQueue(branchId, { guestName: "Split Small", partySize: 2 });
     const large = await joinQueue(branchId, { guestName: "Split Large", partySize: 4 });
-    expect(small.code).toMatch(/^A-\d{3,}$/);
     expect(large.code).toMatch(/^B-\d{3,}$/);
+    const small = await joinQueue(branchId, { guestName: "Split Small", partySize: 2 });
+    expect(small.code).toMatch(/^A-\d{3,}$/);
 
     const snapshot = await getPublicSnapshot(branchId);
     expect(snapshot.branch.queueMode).toBe("split");
     expect(snapshot.waitingA).toBeGreaterThan(0);
     expect(snapshot.waitingB).toBeGreaterThan(0);
+
+    await q("update branches set queue_mode = 'single' where id = $1", [branchId]);
+    const single = await joinQueue(branchId, { guestName: "Single Big", partySize: 4 });
+    expect(single.code).toMatch(/^A-\d{3,}$/);
   });
 
   it("combines the daily report across all branches", async () => {
@@ -171,12 +176,12 @@ describe("store integration (PGlite + demo seed)", () => {
       phone: "081234567890",
       notes: "Window seat",
     });
-    expect(joined.code).toMatch(/^A-\d{3,}$/);
-    expect(joined.position).toBe(7);
+    expect(joined.code).toMatch(/^B-\d{3,}$/);
+    expect(joined.position).toBe(4);
 
     const view = await getTicketView(joined.token);
     expect(view?.entry.guestName).toBe("Test Guest");
-    expect(view?.peopleAhead).toBe(6);
+    expect(view?.peopleAhead).toBe(3);
 
     const cancelled = await cancelTicket(joined.token);
     expect(cancelled.ok).toBe(true);
@@ -184,8 +189,61 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(after?.entry.status).toBe("cancelled");
   });
 
-  it("calls the next fitting party and starts the hold", async () => {
+  it("recalls a called guest and bumps the call count", async () => {
     const branchId = await primaryBranchId();
+    await q("update branches set hold_enabled = true where id = $1", [branchId]);
+    const joined = await joinQueue(branchId, { guestName: "Recall Guest", partySize: 2 });
+    const view = await getTicketView(joined.token);
+    await callEntry(branchId, view!.entry.id, "Host Blok M");
+    const before = await getTicketView(joined.token);
+    const result = await recallEntry(branchId, view!.entry.id, "Host Blok M");
+    expect(result.ok).toBe(true);
+    const after = await getTicketView(joined.token);
+    expect(after?.entry.calledCount).toBe((before?.entry.calledCount ?? 0) + 1);
+    expect(after?.entry.acknowledged).toBe(false);
+  });
+
+  it("re-enters a no-show guest at the back of the queue", async () => {
+    const branchId = await primaryBranchId();
+    const joined = await joinQueue(branchId, { guestName: "No Show Return", partySize: 3 });
+    const view = await getTicketView(joined.token);
+    await callEntry(branchId, view!.entry.id, "Host Blok M");
+    const noShow = await markNoShow(branchId, view!.entry.id, "Host Blok M");
+    expect(noShow.ok).toBe(true);
+
+    const state = await getHostState(branchId);
+    expect(state.noShow.some((entry) => entry.id === view!.entry.id)).toBe(true);
+
+    const result = await requeueEntry(branchId, view!.entry.id, "Host Blok M");
+    expect(result.ok).toBe(true);
+    const after = await getTicketView(joined.token);
+    expect(after?.entry.status).toBe("waiting");
+    expect(after?.entry.code).not.toBe(view!.entry.code);
+  });
+
+  it("stores a guest rating and exposes it to owner analysis", async () => {
+    const branchId = await primaryBranchId();
+    const joined = await joinQueue(branchId, { guestName: "Rating Guest", partySize: 2 });
+    const view = await getTicketView(joined.token);
+    await callEntry(branchId, view!.entry.id, "Host Blok M");
+    const seated = await seatEntry(branchId, view!.entry.id, null, "Host Blok M", 2, null);
+    expect(seated.ok).toBe(true);
+
+    const rated = await rateTicket(joined.token, 5, "Cepat dan ramah");
+    expect(rated.ok).toBe(true);
+    const after = await getTicketView(joined.token);
+    expect(after?.entry.rating).toBe(5);
+    expect(after?.entry.ratingNote).toBe("Cepat dan ramah");
+
+    const overview = await getOwnerOverview(branchId, 7);
+    expect(overview.ratings.count).toBeGreaterThanOrEqual(1);
+    expect(overview.ratings.distribution[4]).toBeGreaterThanOrEqual(1);
+
+    const analysis = await getRatingAnalysis([branchId], 7);
+    expect(analysis[0]?.count).toBeGreaterThanOrEqual(1);
+  });
+
+  it("calls the next fitting party and starts the hold", async () => {    const branchId = await primaryBranchId();
     await q("update branches set hold_enabled = true where id = $1", [branchId]);
     const before = await getHostState(branchId);
     const result = await callNext(branchId, "Wuri");

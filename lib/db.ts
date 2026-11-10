@@ -342,6 +342,15 @@ async function runDataMigrations(db: Queryable) {
     await db.query("update branches set open_time = '10:00', close_time = '22:00' where slug = 'tebet'");
   }
 
+  const splitDefault = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('queue_split_default_v1', 'done')
+     on conflict (key) do nothing returning key`,
+  );
+  if (splitDefault.length > 0) {
+    // A/B queue groups are now the default; existing single queues join them.
+    await db.query("update branches set queue_mode = 'split' where queue_mode = 'single'");
+  }
+
   const genericStaff = await db.query<{ key: string }>(
     `insert into app_meta (key, value) values ('generic_staff_names_v1', 'done')
      on conflict (key) do nothing returning key`,

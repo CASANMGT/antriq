@@ -107,7 +107,7 @@ export async function POST(request: Request) {
             maxQueueSize: Number(body.maxQueueSize),
             autoNoShow: Boolean(body.autoNoShow),
             seatingMode: body.seatingMode === "plan" ? "plan" : body.seatingMode === "manual" ? "manual" : "queue",
-            queueMode: body.queueMode === "split" ? "split" : "single",
+            queueMode: body.queueMode === "single" ? "single" : "split",
           },
           actor,
         );

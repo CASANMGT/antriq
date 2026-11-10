@@ -9,7 +9,9 @@ import {
   extendHold,
   joinQueue,
   markNoShow,
+  recallEntry,
   releaseEntry,
+  requeueEntry,
   seatEntry,
   setTableStatus,
   setWaitlistStatus,
@@ -49,6 +51,8 @@ export async function POST(request: Request) {
         return json(await callNext(branchId, session.name, Boolean(body.force)));
       case "callEntry":
         return json(await callEntry(branchId, Number(body.entryId), session.name));
+      case "recall":
+        return json(await recallEntry(branchId, Number(body.entryId), session.name));
       case "seat":
         return json(
           await seatEntry(
@@ -62,6 +66,8 @@ export async function POST(request: Request) {
         );
       case "noShow":
         return json(await markNoShow(branchId, Number(body.entryId), session.name));
+      case "requeue":
+        return json(await requeueEntry(branchId, Number(body.entryId), session.name));
       case "undoCall":
         return json(await undoCall(branchId, Number(body.entryId), session.name));
       case "extend":

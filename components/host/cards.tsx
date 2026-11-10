@@ -7,7 +7,9 @@ import {
   ClipboardList,
   Clock3,
   CornerUpLeft,
+  MessageCircle,
   Phone,
+  RotateCcw,
   Sparkles,
   UserRound,
   Utensils,
@@ -16,6 +18,7 @@ import { TablePill } from "@/components/Pills";
 import { Countdown } from "@/components/Countdown";
 import { useLang } from "@/components/LanguageProvider";
 import { format } from "@/lib/i18n";
+import { clockInTz } from "@/lib/time";
 import type { DiningTable, HostStats, QueueEntry } from "@/lib/types";
 
 const sourceLabel: Record<string, string> = {
@@ -23,6 +26,12 @@ const sourceLabel: Record<string, string> = {
   online: "Online",
   walkin: "Walk-in",
 };
+
+export function whatsappHref(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  const normalized = digits.startsWith("0") ? `62${digits.slice(1)}` : digits;
+  return `https://wa.me/${normalized}`;
+}
 
 export function StatsStrip({ stats, showTables = true }: { stats: HostStats; showTables?: boolean }) {
   const { t } = useLang();
@@ -55,6 +64,7 @@ export function QueueCard({
   next,
   busy,
   onCall,
+  onRecall,
   onSeat,
   onOpenSeat,
   onNoShow,
@@ -68,6 +78,7 @@ export function QueueCard({
   next: boolean;
   busy: boolean;
   onCall: () => void;
+  onRecall: () => void;
   onSeat: () => void;
   onOpenSeat: () => void;
   onNoShow: () => void;
@@ -125,10 +136,20 @@ export function QueueCard({
               {format(t.host.waitingFor, { minutes: Math.max(1, entry.waitMinutes) })}
             </span>
             {entry.phone && (
-              <a href={`tel:${entry.phone}`} className="inline-flex items-center gap-1 hover:text-ink">
-                <Phone className="size-3" />
-                {entry.phone}
-              </a>
+              <>
+                <a href={`tel:${entry.phone}`} className="inline-flex items-center gap-1 hover:text-ink">
+                  <Phone className="size-3" />
+                  {entry.phone}
+                </a>
+                <a
+                  href={whatsappHref(entry.phone)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 rounded-full border-2 border-leaf/40 bg-leaf-soft px-2 py-0.5 font-extrabold text-leaf-dark hover:border-leaf"
+                >
+                  <MessageCircle className="size-3" /> WA
+                </a>
+              </>
             )}
           </div>
           {called && showCountdown && (
@@ -178,6 +199,9 @@ export function QueueCard({
         )}
         {called && (
           <>
+            <button type="button" className="btn btn-soft btn-sm" onClick={onRecall} disabled={busy}>
+              <BellRing className="size-3.5" /> {t.host.callAgain}
+            </button>
             <button type="button" className="btn btn-sage btn-sm" onClick={onSeat} disabled={busy}>
               <Utensils className="size-3.5" /> {t.host.seat}
             </button>
@@ -292,11 +316,13 @@ export function SeatedCard({
   busy,
   onRelease,
   showCategory = true,
+  timezone,
 }: {
   entry: QueueEntry;
   busy: boolean;
   onRelease: () => void;
   showCategory?: boolean;
+  timezone: string;
 }) {
   const { t } = useLang();
   return (
@@ -325,6 +351,27 @@ export function SeatedCard({
             <Clock3 className="size-3" />
             {format(t.host.waitingFor, { minutes: Math.max(1, entry.waitMinutes) })}
           </p>
+          {entry.seatedAt && (
+            <p className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-leaf-dark">
+              <Clock3 className="size-3" />
+              {format(t.host.hadirAt, { time: clockInTz(entry.seatedAt, timezone) })}
+            </p>
+          )}
+          {entry.phone && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs font-semibold text-muted">
+              <a href={`tel:${entry.phone}`} className="inline-flex items-center gap-1 hover:text-ink">
+                <Phone className="size-3" /> {entry.phone}
+              </a>
+              <a
+                href={whatsappHref(entry.phone)}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 rounded-full border-2 border-leaf/40 bg-leaf-soft px-2 py-0.5 font-extrabold text-leaf-dark hover:border-leaf"
+              >
+                <MessageCircle className="size-3" /> WA
+              </a>
+            </div>
+          )}
           {entry.openedBy && (
             <p className="mt-1 text-[0.6875rem] font-bold text-leaf-dark">
               {format(t.host.openedBy, { name: entry.openedBy })}
@@ -337,6 +384,60 @@ export function SeatedCard({
           <Check className="size-3.5" /> {t.host.releaseSeat}
         </button>
       </div>
+    </article>
+  );
+}
+
+export function NoShowCard({
+  entry,
+  busy,
+  onRequeue,
+  timezone,
+}: {
+  entry: QueueEntry;
+  busy: boolean;
+  onRequeue: () => void;
+  timezone: string;
+}) {
+  const { t } = useLang();
+  const at = entry.closedAt ?? entry.calledAt ?? entry.joinedAt;
+  return (
+    <article className="min-w-0 rounded-2xl border-2 border-ink bg-cream p-3.5 shadow-[3px_3px_0_#262321]">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="num rounded-md border-2 border-ink bg-ink px-1.5 py-0.5 text-[0.6875rem] font-extrabold tracking-wide text-paper">
+          {entry.code}
+        </span>
+        <span className="pill status-muted">{entry.partySize} {t.guest.guestUnit}</span>
+        <span className="pill status-muted">{t.host.noShow}</span>
+      </div>
+      <h3 className="mt-2 min-w-0 truncate font-display text-[1.4rem] leading-tight tracking-tight">{entry.guestName}</h3>
+      <p className="mt-0.5 inline-flex items-center gap-1 text-xs font-semibold text-muted">
+        <Clock3 className="size-3" />
+        {format(t.host.noShowAt, { time: clockInTz(at, timezone) })}
+      </p>
+      {entry.phone && (
+        <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs font-semibold text-muted">
+          <a href={`tel:${entry.phone}`} className="inline-flex items-center gap-1 hover:text-ink">
+            <Phone className="size-3" /> {entry.phone}
+          </a>
+          <a
+            href={whatsappHref(entry.phone)}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 rounded-full border-2 border-leaf/40 bg-leaf-soft px-2 py-0.5 font-extrabold text-leaf-dark hover:border-leaf"
+          >
+            <MessageCircle className="size-3" /> WA
+          </a>
+        </div>
+      )}
+      {entry.notes && (
+        <p className="mt-2 rounded-lg bg-white/70 px-2 py-1.5 text-xs font-medium leading-relaxed text-ink/70">
+          {entry.notes}
+        </p>
+      )}
+      <button type="button" className="btn btn-primary btn-sm mt-3 w-full" onClick={onRequeue} disabled={busy}>
+        <RotateCcw className="size-3.5" /> {t.host.requeue}
+      </button>
     </article>
   );
 }

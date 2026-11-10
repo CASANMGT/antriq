@@ -11,6 +11,7 @@ import {
   Copy,
   MapPin,
   Phone,
+  Star,
   Ticket,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
@@ -28,6 +29,7 @@ import { format } from "@/lib/i18n";import { APP_VERSION } from "@/lib/version";
 import type { TicketView } from "@/lib/types";
 
 const FINAL_STATUSES = new Set(["completed", "no_show", "cancelled"]);
+const RATEABLE_STATUSES = new Set(["seated", "completed", "cancelled", "no_show"]);
 
 export function TicketScreen({ token, initial }: { token: string; initial: TicketView }) {
   const router = useRouter();
@@ -37,8 +39,11 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
   const [notice, setNotice] = useState<NoticeState | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
+  const [selectedRating, setSelectedRating] = useState(initial.entry.rating ?? 0);
+  const [ratingNote, setRatingNote] = useState(initial.entry.ratingNote ?? "");
   const [pending, startTransition] = useTransition();
   const previousStatus = useRef(initial.entry.status);
+  const previousCallCount = useRef(initial.entry.calledCount);
 
   const show = useCallback((message: string, tone: NoticeState["tone"]) => {
     setNotice({ message, tone });
@@ -73,7 +78,9 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
 
   useEffect(() => {
     const status = view.entry.status;
-    if (status === "called" && previousStatus.current !== "called") {
+    const callCount = view.entry.calledCount;
+    const recalled = status === "called" && callCount > previousCallCount.current;
+    if (status === "called" && (previousStatus.current !== "called" || recalled)) {
       try {
         navigator.vibrate?.([180, 90, 180]);
       } catch {
@@ -85,9 +92,12 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
           format(t.ticket.calledBody, { code: view.entry.code }),
           typeof window !== "undefined" ? window.location.href : "/",
         );
+      } else if (recalled) {
+        show(t.ticket.recalledToast, "info");
       }
     }
     previousStatus.current = status;
+    previousCallCount.current = callCount;
 
     if (FINAL_STATUSES.has(status)) {
       try {
@@ -100,7 +110,11 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
         // Ignore storage failures.
       }
     }
-  }, [t.ticket.calledBody, t.ticket.calledTitle, token, view.entry.code, view.entry.status]);
+  }, [show, t.ticket.calledBody, t.ticket.calledTitle, t.ticket.recalledToast, token, view.entry.calledCount, view.entry.code, view.entry.status]);
+
+  useEffect(() => {
+    if (view.entry.rating && selectedRating === 0) setSelectedRating(view.entry.rating);
+  }, [selectedRating, view.entry.rating]);
 
   function onCancel() {
     setConfirmOpen(false);
@@ -142,6 +156,19 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
         // Ignore storage failures.
       }
       router.push("/");
+    });
+  }
+
+  function onRate() {
+    if (!selectedRating) return;
+    startTransition(async () => {
+      const result = await postJson(`/api/ticket/${token}/action`, {
+        action: "rate",
+        rating: selectedRating,
+        note: ratingNote.trim(),
+      });
+      show(result.ok ? t.ticket.ratingThanks : t.ticket.ratingError, result.ok ? "success" : "error");
+      await refresh();
     });
   }
 
@@ -483,6 +510,51 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                 <Link href={homeHref} className="btn btn-primary mt-5">
                   {t.ticket.rejoin} <ArrowRight className="size-4" />
                 </Link>
+              </div>
+            )}
+
+            {RATEABLE_STATUSES.has(entry.status) && (
+              <div className="mt-5 rounded-xl border-2 border-ink bg-cream px-4 py-4 text-center">
+                <p className="eyebrow text-tomato">{t.ticket.ratingTitle}</p>
+                <p className="mx-auto mt-1 max-w-xs text-xs font-semibold leading-relaxed text-muted">
+                  {entry.rating ? format(t.ticket.ratingAlready, { rating: entry.rating }) : t.ticket.ratingBody}
+                </p>
+                <div className="mt-3 flex items-center justify-center gap-1.5" role="radiogroup" aria-label={t.ticket.ratingTitle}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      role="radio"
+                      aria-checked={selectedRating === star}
+                      aria-label={t.ticket.ratingStars[star - 1]}
+                      onClick={() => setSelectedRating(star)}
+                      className="rounded-lg p-0.5 transition hover:scale-110"
+                    >
+                      <Star
+                        className={`size-7 ${star <= selectedRating ? "text-gold" : "text-ink/25"}`}
+                        fill={star <= selectedRating ? "currentColor" : "none"}
+                      />
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-1 text-[0.6875rem] font-extrabold uppercase tracking-[0.12em] text-ink/55">
+                  {selectedRating ? t.ticket.ratingStars[selectedRating - 1] : " "}
+                </p>
+                <input
+                  className="input mt-3 text-left text-sm"
+                  value={ratingNote}
+                  onChange={(event) => setRatingNote(event.target.value.slice(0, 300))}
+                  placeholder={t.ticket.ratingNotePlaceholder}
+                  maxLength={300}
+                />
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm mt-2 w-full"
+                  onClick={onRate}
+                  disabled={!selectedRating || pending}
+                >
+                  {t.ticket.ratingSubmit}
+                </button>
               </div>
             )}
           </div>

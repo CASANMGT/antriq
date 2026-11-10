@@ -4,11 +4,11 @@
 
 ```bash
 npm run lint     # ESLint, Next 16 + React 19 rules
-npm test         # 41 domain + integration + version tests on PGlite
+npm test         # 44 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **10 Nov 2026** — lint clean, 41/41 tests passing, production build green (v0.13.0 Owner & Host roles).
+Last run: **10 Nov 2026** — lint clean, 44/44 tests passing, production build green (v0.14.0 A/B queue, Hadir list, ratings).
 
 ### Notification delivery QA
 
@@ -86,6 +86,19 @@ Last run: **10 Nov 2026** — lint clean, 41/41 tests passing, production build 
 - Guest ticket hides the joined time; no wait duration is shown.
 - Host queue cards still show the live waiting time.
 - Seated ticket details remain name/phone/table/seat only.
+
+### A/B queue, Hadir list, no-show and ratings
+
+- New branches default to split A/B; existing single queues migrate to split.
+- Host queue shows **Antrean A** and **Antrean B** with per-group positions and counts.
+- Calling a guest again bumps `called_count`; the guest ticket shows a recall notice, vibrates, and sends a browser notification when the tab is hidden.
+- Cards with a phone number show `tel:` and **WA** (`wa.me`) links.
+- **Hadir** cards show `Hadir HH:MM`, sorted newest first.
+- **Tidak Hadir** lists today's no-shows; **Masukkan lagi** returns the guest to the waiting queue with a new code and keeps the same ticket token.
+- Guest ticket shows a 1–5 rating for seated/completed/cancelled/no-show states; the note is optional.
+- Owner dashboard shows the branch average, star distribution and latest ratings; Reports shows a rating card per restaurant for the selected range.
+- Reports CSV includes `rating` and `rating_note` columns.
+- Owner dashboard relative times use `serverNow`, so no hydration mismatch.
 
 ### Seated-ticket device reset
 
