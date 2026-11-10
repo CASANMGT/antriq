@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Download, Star, TrendingUp } from "lucide-react";
+import { ArrowLeft, Download, TrendingUp } from "lucide-react";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { WeekBars } from "@/components/owner/charts";
-import { RatingList } from "@/components/owner/RatingList";
+import { RatingAnalytics } from "@/components/owner/RatingAnalytics";
 import { Mascot } from "@/components/Mascot";
-import { getOwnerOverview, getOwnerWeekForBranches, getRatingAnalysis, getRatingRecords } from "@/lib/store";
+import { getOwnerOverview, getOwnerWeekForBranches, getRatingRecords } from "@/lib/store";
 import { resolveOwnerScope } from "@/lib/scope";
 import { formatDayLong } from "@/lib/time";
 import { getLang } from "@/lib/lang";
@@ -32,11 +32,10 @@ export default async function ReportsPage({
   const { branches, active } = await resolveOwnerScope(params.branch === "all" ? undefined : params.branch);
   const canSeeAll = branches.length > 1;
   const showAll = canSeeAll && params.branch === "all";
-  const [week, ratings, ratingRecords, lang] = await Promise.all([
+  const [week, ratingRecords, lang] = await Promise.all([
     showAll
       ? getOwnerWeekForBranches(branches.map((branch) => branch.id), days)
       : getOwnerOverview(active.id, days).then((overview) => overview.week),
-    getRatingAnalysis(showAll ? branches.map((branch) => branch.id) : [active.id], days),
     getRatingRecords(showAll ? branches.map((branch) => branch.id) : [active.id], days),
     getLang(),
   ]);
@@ -159,91 +158,7 @@ export default async function ReportsPage({
         </section>
       </div>
 
-      <section className="card p-4 sm:p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="font-display text-[1.6rem] font-semibold leading-tight">{t.owner.ratingByBranch}</h2>
-            <p className="mt-0.5 text-xs font-semibold text-muted">{t.owner.ratingByBranchSub}</p>
-          </div>
-          <span className="pill status-muted">{days}d</span>
-        </div>
-        {ratings.every((item) => item.count === 0) ? (
-          <p className="mt-4 rounded-xl border-2 border-dashed border-ink/20 bg-cream/60 px-4 py-6 text-center text-xs font-semibold text-muted">
-            {t.owner.ratingNoRatings}
-          </p>
-        ) : (
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {ratings.map((item) => (
-              <div key={item.branchId} className="rounded-2xl border-2 border-ink bg-cream/50 p-3.5">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="min-w-0 truncate text-sm font-extrabold">{item.branchName}</p>
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border-2 border-ink bg-white px-2 py-0.5 text-xs font-extrabold">
-                    <Star className="size-3 text-gold" fill="currentColor" />
-                    {item.count ? item.average.toFixed(1) : "—"}
-                  </span>
-                </div>
-                <p className="mt-0.5 text-[0.625rem] font-semibold text-muted">
-                  {format(t.owner.ratingCount, { count: item.count })}
-                </p>
-                <div className="mt-2 space-y-1">
-                  {[5, 4, 3, 2, 1].map((star) => {
-                    const count = item.distribution[star - 1] ?? 0;
-                    const pct = item.count ? Math.round((count / item.count) * 100) : 0;
-                    return (
-                      <div key={star} className="flex items-center gap-1.5 text-[0.625rem] font-bold">
-                        <span className="w-4 text-right text-muted">{star}</span>
-                        <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white">
-                          <span className="block h-1.5 rounded-full bg-gold" style={{ width: `${pct}%` }} />
-                        </span>
-                        <span className="num w-5 text-right text-muted">{count}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-                {item.slots.length > 0 && (
-                  <div className="mt-2 border-t-2 border-dashed border-ink/10 pt-2">
-                    <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.12em] text-ink/40">
-                      {t.owner.ratingTimeslots}
-                    </p>
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {item.slots.map((slot) => (
-                        <span
-                          key={slot.hour}
-                          className="rounded-full border-2 border-ink/15 bg-white px-1.5 py-0.5 text-[0.625rem] font-bold"
-                        >
-                          {String(slot.hour).padStart(2, "0")}:00–{String((slot.hour + 1) % 24).padStart(2, "0")}:00 ·{" "}
-                          {slot.average.toFixed(1)} ({slot.count})
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {item.recent.length > 0 && (
-                  <div className="mt-2 border-t-2 border-dashed border-ink/10 pt-2">
-                    <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.12em] text-ink/40">
-                      {t.owner.ratingRecent}
-                    </p>
-                    <div className="mt-1 space-y-1">
-                      {item.recent.map((review) => (
-                        <div key={`${review.code}-${review.ratedAt}`}>
-                          <p className="truncate text-[0.625rem] font-bold text-ink/70">
-                            {review.code} · {review.guestName} · {review.rating}/5
-                          </p>
-                          {review.note && (
-                            <p className="text-[0.625rem] font-medium italic text-muted">“{review.note}”</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <RatingList records={ratingRecords} />
+      <RatingAnalytics records={ratingRecords} branches={showAll ? branches : [active]} />
 
       <section className="card overflow-hidden">
         <div className="flex items-center justify-between gap-3 border-b-2 border-ink px-4 py-3 sm:px-5">

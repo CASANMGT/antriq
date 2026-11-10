@@ -8,7 +8,7 @@ npm test         # 45 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **10 Nov 2026** — lint clean, 45/45 tests passing, production build green (v0.18.0 rating analytics, repeat guests, WA prefill).
+Last run: **10 Nov 2026** — lint clean, 45/45 tests passing, production build green (v0.18.1 combined report analytics, optional rating).
 
 ### Notification delivery QA
 
@@ -95,10 +95,11 @@ Last run: **10 Nov 2026** — lint clean, 45/45 tests passing, production build 
 - Cards with a phone number show `tel:` and **WA** (`wa.me`) links.
 - **Hadir** cards show `Hadir HH:MM`, sorted newest first, and show the guest's rating/review; phone and WhatsApp are not shown on Hadir cards.
 - **Tidak Hadir** lists today's no-shows with start time and wait duration; **Masukkan lagi** returns the guest to the waiting queue with a new code and keeps the same ticket token.
-- Guest ticket shows a 1–5 rating while waiting, called, or Hadir, and after release; each star offers pre-filled review suggestions and the note is optional.
+- Guest ticket shows a 1-5 rating while waiting, called, or Hadir, and after release; each star offers pre-filled review suggestions and the note is optional.
+- The rating prompt has a close control; guests can hide it without rating.
 - After rating, a thank-you landing page shows a summary and a **Tutup** action; release also shows an optional rating hint.
 - Reports has an **All ratings** list with guest, phone, rated-at time, stars and review; clicking 5/4/3/2/1 filters the list.
-- Owner dashboard has a combined **Rating analytics** section: distribution, per-restaurant comparison, daily chart, hourly chart and the paginated All ratings list with date/star filters.
+- Owner dashboard and Reports both use the combined **Rating analytics** section: distribution, per-restaurant comparison, daily chart, hourly chart and the paginated All ratings list with date/star filters.
 - Repeat guests display `Visit 2`, `Visit 3`, etc. on host cards and rating rows.
 - Called cards expose a WhatsApp link with a pre-filled message: queue code, party size, restaurant and “please come to the gate” with thanks for waiting.
 - The **Meja** sidebar item is hidden unless the branch seating mode is table plan.

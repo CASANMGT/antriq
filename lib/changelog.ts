@@ -16,6 +16,26 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.18.1",
+    date: "2026-11-10",
+    title: "Combined report analytics and optional rating",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "Reports now combines rating per restaurant, daily and hourly charts, and all ratings into one analytics section.",
+          "The rating list keeps the date filter and pagination inside the combined analytics.",
+        ],
+      },
+      {
+        label: "Added",
+        items: [
+          "The “How was your queue?” rating prompt can be hidden with the close button; guests are never forced to rate.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.18.0",
     date: "2026-11-10",
     title: "Rating analytics, repeat guests and WA prefill",

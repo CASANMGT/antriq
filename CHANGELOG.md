@@ -10,6 +10,17 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.18.1] — 2026-11-10
+
+The **combined report analytics and optional rating** release.
+
+### Changed
+- Reports now combines rating per restaurant, daily and hourly charts, and all ratings into one analytics section.
+- The rating list keeps the date filter and pagination inside the combined analytics.
+
+### Added
+- The “How was your queue?” rating prompt can be hidden with the close button; guests are never forced to rate.
+
 ## [0.18.0] — 2026-11-10
 
 The **rating analytics, repeat guests and WA prefill** release.

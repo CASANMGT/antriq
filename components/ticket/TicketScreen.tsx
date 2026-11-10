@@ -13,6 +13,7 @@ import {
   Phone,
   Star,
   Ticket,
+  X,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Mascot } from "@/components/Mascot";
@@ -596,7 +597,18 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                   </>
                 ) : (
                   <>
-                    <p className="eyebrow text-tomato">{t.ticket.ratingTitle}</p>
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="eyebrow text-tomato">{t.ticket.ratingTitle}</p>
+                      <button
+                        type="button"
+                        className="rounded-full p-1 text-ink/40 transition hover:bg-white hover:text-ink"
+                        onClick={() => setRatingHidden(true)}
+                        aria-label={t.ticket.hideRating}
+                        title={t.ticket.hideRating}
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    </div>
                     <p className="mx-auto mt-1 max-w-xs text-xs font-semibold leading-relaxed text-muted">
                       {t.ticket.ratingBody}
                     </p>

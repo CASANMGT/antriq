@@ -126,7 +126,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Take a number in about 20 seconds: party size, name, optional phone/note.
 - Ticket with a human code (`A-024`), queue position, parties ahead, now-serving code. The guest ticket does not show a join time or wait duration.
 - Called state: **“Meja siap!”** with an optional **3-minute countdown** (off by default), optional “Saya hadir” (stops or extends the countdown), directions and release.
-- Guest ticket includes a **1–5 queue rating** while waiting, called, or Hadir, with pre-filled review suggestions and an optional note; releasing the queue also offers an optional rating. After rating, a thank-you landing page shows a summary with a **Tutup** button.
+- Guest ticket includes a **1–5 queue rating** while waiting, called, or Hadir, with pre-filled review suggestions and an optional note; releasing the queue also offers an optional rating. After rating, a thank-you landing page shows a summary with a **Tutup** button. The prompt has a close control so guests can opt out without rating.
 - Browser notification permission prompt on the ticket, plus a notification when the call changes while the tab is hidden.
 - Seated state shows the open-seat confirmation, or the assigned table/seat when the branch uses the table plan. Host name and directions are hidden once seated.
 - Host queue cards show the live waiting time; seated cards show the wait until the call.
@@ -161,7 +161,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Brand → branch switcher; every view, report and QR link is branch-scoped.
 - Queue-focused KPIs: waiting, called, seated today, tables open.
 - Hourly service pulse (joined vs seated), floor map by zone, live queue, activity feed.
-- **Rating analytics** on the dashboard: average, distribution, per-restaurant comparison, daily chart, hourly chart, and an **All ratings** list with guest, phone, time, rating and review; filter by 5/4/3/2/1 stars, filter by date, and paginate long lists.
+- **Rating analytics** on the dashboard and Reports: average, distribution, per-restaurant comparison, daily chart, hourly chart, and an **All ratings** list with guest, phone, time, rating and review; filter by 5/4/3/2/1 stars, filter by date, and paginate long lists.
 - The **Meja** sidebar item only appears when the active branch uses the table-plan seating mode.
 - 7/30/90-day reports: joined, seated, attendance, no-shows, cancellations, CSV (incl. table, seat, PIC). Owners can switch to **all branches**; the view and CSV stay scoped to the branches they manage.
 - **Customers** page: contact, party, status, table/seat, opener/releaser PIC, join time, 1/7/30-day ranges.
