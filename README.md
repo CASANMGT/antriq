@@ -7,7 +7,7 @@
 
 A bold, warm restaurant queue for guests, hosts and owners - built for multi-brand, multi-branch hospitality groups like **Nikumaru** and **Tenka**.
 
-[Live demo](https://antriq1.vercel.app) · [GitHub](https://github.com/CASANMGT/antriq) · [PRD](docs/PRD.md) · [Architecture](docs/ARCHITECTURE.md) · [Reverse engineering](docs/REVERSE_ENGINEERING.md) · [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md)
+[Live demo](https://antriq.vercel.app) · [GitHub](https://github.com/CASANMGT/antriq) · [PRD](docs/PRD.md) · [Architecture](docs/ARCHITECTURE.md) · [Reverse engineering](docs/REVERSE_ENGINEERING.md) · [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md)
 
 </div>
 
@@ -17,14 +17,14 @@ A bold, warm restaurant queue for guests, hosts and owners - built for multi-bra
 
 | Environment | URL | Data |
 | --- | --- | --- |
-| **App / restaurant picker** | https://antriq1.vercel.app | Live database |
-| **Demo shortcut** | https://antriq1.vercel.app/demo | Redirects to the primary branch; queue starts empty after a production clear |
-| **Demo branch** | https://antriq1.vercel.app/b/nikumaru/blok-m | Primary branch (empty after the production clear) |
-| **Nikumaru Tebet** | https://antriq1.vercel.app/b/nikumaru/tebet | Branch page |
-| **Tenka AEON Tanjung Barat** | https://antriq1.vercel.app/b/tenka/aeon-tanjung-barat | Branch page |
-| **Tenka Bintaro Xchange** | https://antriq1.vercel.app/b/tenka/bintaro-xchange | Branch page |
-| **Tenka KAMAJA** | https://antriq1.vercel.app/b/tenka/kamaja | Branch page |
-| **Brand page** | https://antriq1.vercel.app/b/nikumaru | Brand assets + branch list |
+| **App / restaurant picker** | https://antriq.vercel.app | Live database |
+| **Demo shortcut** | https://antriq.vercel.app/demo | Redirects to the primary branch; queue starts empty after a production clear |
+| **Demo branch** | https://antriq.vercel.app/b/nikumaru/blok-m | Primary branch (empty after the production clear) |
+| **Nikumaru Tebet** | https://antriq.vercel.app/b/nikumaru/tebet | Branch page |
+| **Tenka AEON Tanjung Barat** | https://antriq.vercel.app/b/tenka/aeon-tanjung-barat | Branch page |
+| **Tenka Bintaro Xchange** | https://antriq.vercel.app/b/tenka/bintaro-xchange | Branch page |
+| **Tenka KAMAJA** | https://antriq.vercel.app/b/tenka/kamaja | Branch page |
+| **Brand page** | https://antriq.vercel.app/b/nikumaru | Brand assets + branch list |
 
 For a true production/demo split, deploy the same repo twice with different databases:
 
@@ -232,7 +232,7 @@ npm test          # 26 domain + integration tests
 
 ## Deploy to Vercel
 
-The current production deployment is **https://antriq1.vercel.app** (Vercel project `antriq1`), backed by a free **Neon Postgres** database in Singapore.
+The current production deployment is **https://antriq.vercel.app** (Vercel project `antriq1`), backed by a free **Neon Postgres** database in Singapore.
 
 1. Push the repo to GitHub.
 2. Create Postgres (Neon / Supabase / Vercel Postgres) and copy the pooled connection string.
@@ -242,7 +242,7 @@ The current production deployment is **https://antriq1.vercel.app** (Vercel proj
 | --- | --- | --- |
 | `DATABASE_URL` | `postgres://…` | **Required.** Pooled URL in Singapore (`sin1`). |
 | `AUTH_SECRET` | 32+ random chars | Required in production. |
-| `NEXT_PUBLIC_APP_URL` | `https://antriq1.vercel.app` | Metadata + QR poster. |
+| `NEXT_PUBLIC_APP_URL` | `https://antriq.vercel.app` | Metadata + QR poster. |
 | `DEMO_MODE` | `1` | Optional; seeds the demo floor on an empty database. |
 | `DEMO_AUTO_RESET` | `0` | Optional; re-seeds the demo floor when a service day is empty. Keep off in production. |
 
@@ -253,7 +253,7 @@ The current production deployment is **https://antriq1.vercel.app** (Vercel proj
 
 ### Staging and production
 
-- **Production:** `antriq1` project + `NEXT_PUBLIC_APP_URL=https://antriq1.vercel.app` + production Neon database.
+- **Production:** `antriq1` project + `NEXT_PUBLIC_APP_URL=https://antriq.vercel.app` + production Neon database.
 - **Staging:** a second Vercel environment (Preview or a separate project) with its own Neon branch, `AUTH_SECRET`, and `NEXT_PUBLIC_APP_URL`.
 - Run `npm run db:reset -- --yes` once against each new database when moving from v0.2, then let the app seed.
 - Never point staging and production at the same database.

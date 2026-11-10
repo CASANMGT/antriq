@@ -37,6 +37,12 @@ Last run: **10 Nov 2026** — lint clean, 41/41 tests passing, production build 
 - Platform owner sees **all branches** in Laporan; a brand owner sees only their brand’s branches; hosts cannot open Laporan.
 - “All branches” CSV includes a `branch` column and only in-scope branches.
 
+### Production domains
+
+- Both `antriq.vercel.app` and `antriq1.vercel.app` serve the working `antriq1` Vercel project.
+- `antriq.vercel.app` is the canonical URL; `NEXT_PUBLIC_APP_URL` points to it.
+- The old `antriq` project has no database env and must not own the domain.
+
 ### Owner and Host roles
 
 - Owner logs in and lands on the dashboard.
@@ -139,7 +145,7 @@ Last run: **10 Nov 2026** — lint clean, 41/41 tests passing, production build 
 
 - [x] Vercel project `antriq1` deployed from `CASANMGT/antriq`
 - [x] Neon Postgres (Singapore, free plan) connected via `DATABASE_URL`
-- [x] `AUTH_SECRET`, `NEXT_PUBLIC_APP_URL=https://antriq1.vercel.app`, `DEMO_MODE=1`
+- [x] `AUTH_SECRET`, `NEXT_PUBLIC_APP_URL=https://antriq.vercel.app`, `DEMO_MODE=1`
 - [x] `GET /api/health` → `200 {"ok":true,"service":"antriq"}`
 - [x] Live guest join → owner call → seat → clear flow
 - [x] Live ticket states (waiting, called, seated, completed)
