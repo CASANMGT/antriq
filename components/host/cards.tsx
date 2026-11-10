@@ -19,7 +19,7 @@ import { TablePill } from "@/components/Pills";
 import { Countdown } from "@/components/Countdown";
 import { useLang } from "@/components/LanguageProvider";
 import { format } from "@/lib/i18n";
-import { clockInTz } from "@/lib/time";
+import { clockInTz, formatFullDateInTz } from "@/lib/time";
 import type { DiningTable, HostStats, QueueEntry } from "@/lib/types";
 
 const sourceLabel: Record<string, string> = {
@@ -68,6 +68,7 @@ export function QueueCard({
   next,
   busy,
   branchName,
+  timezone,
   onCall,
   onRecall,
   onSeat,
@@ -84,6 +85,7 @@ export function QueueCard({
   next: boolean;
   busy: boolean;
   branchName: string;
+  timezone: string;
   onCall: () => void;
   onRecall: () => void;
   onSeat: () => void;
@@ -95,14 +97,18 @@ export function QueueCard({
   showCountdown?: boolean;
   groupTone?: "A" | "B" | null;
 }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const locale = lang === "id" ? "id-ID" : "en-GB";
   const called = entry.status === "called";
   const rating = entry.rating;
+  const readyAt = entry.calledAt ?? new Date().toISOString();
   const waMessage = format(t.host.waCallMessage, {
     name: entry.guestName,
     code: entry.code,
     count: entry.partySize,
     branch: branchName,
+    day: formatFullDateInTz(readyAt, timezone, locale),
+    time: clockInTz(readyAt, timezone),
   });
 
   return (

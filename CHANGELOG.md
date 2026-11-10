@@ -10,6 +10,13 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.18.4] — 2026-11-10
+
+The **WhatsApp date and time** release.
+
+### Added
+- The WhatsApp queue-ready message now includes the **day, date and time** the table became ready, in the restaurant's timezone (for example: “sudah siap pada Senin, 10 November 2026 pukul 23:45”).
+
 ## [0.18.3] — 2026-11-10
 
 The **repeat guests and Meja siap** release.

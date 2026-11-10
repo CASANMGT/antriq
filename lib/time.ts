@@ -2,6 +2,7 @@ import type { Restaurant } from "./types";
 
 const dayFormatters = new Map<string, Intl.DateTimeFormat>();
 const clockFormatters = new Map<string, Intl.DateTimeFormat>();
+const fullDateFormatters = new Map<string, Intl.DateTimeFormat>();
 
 function dayFormatter(tz: string) {
   let f = dayFormatters.get(tz);
@@ -49,6 +50,28 @@ export function minutesInTz(date: Date | string, tz: string): number {
 export function clockInTz(date: Date | string, tz: string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   return clockFormatter(tz).format(d);
+}
+
+function fullDateFormatter(tz: string, locale: string) {
+  const key = `${tz}|${locale}`;
+  let f = fullDateFormatters.get(key);
+  if (!f) {
+    f = new Intl.DateTimeFormat(locale, {
+      timeZone: tz,
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    fullDateFormatters.set(key, f);
+  }
+  return f;
+}
+
+/** "Senin, 10 November 2026" in the restaurant's timezone. */
+export function formatFullDateInTz(date: Date | string, tz: string, locale = "en-GB"): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return fullDateFormatter(tz, locale).format(d);
 }
 
 export function parseTimeToMinutes(value: string): number {

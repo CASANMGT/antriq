@@ -16,6 +16,19 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.18.4",
+    date: "2026-11-10",
+    title: "Date and time in the WhatsApp message",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "The WhatsApp queue-ready message now includes the day, date and time the table became ready, in the restaurant's timezone.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.18.3",
     date: "2026-11-10",
     title: "Repeat guests and Meja siap notifications",

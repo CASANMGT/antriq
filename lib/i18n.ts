@@ -375,7 +375,7 @@ const id = {
     call: "Panggil",
     callAgain: "Panggil lagi",
     waCallMessage:
-      "Halo {name}, antrean {code} untuk {count} orang di {branch} sudah siap. Silakan datang ke pintu sekarang. Terima kasih sudah menunggu di restoran kami.",
+      "Halo {name}, antrean {code} untuk {count} orang di {branch} sudah siap pada {day} pukul {time}. Silakan datang ke pintu sekarang. Terima kasih sudah menunggu di restoran kami.",
     seat: "Hadir",
     noShow: "Tidak hadir",
     noShowShort: "Absen",
@@ -1189,7 +1189,7 @@ const en: Messages = {
     call: "Call",
     callAgain: "Call again",
     waCallMessage:
-      "Hi {name}, your queue {code} for {count} guests at {branch} is ready. Please come to the gate now. Thank you for waiting at our restaurant.",
+      "Hi {name}, your queue {code} for {count} guests at {branch} is ready on {day} at {time}. Please come to the gate now. Thank you for waiting at our restaurant.",
     seat: "Here",
     noShow: "No-show",
     noShowShort: "Absent",
