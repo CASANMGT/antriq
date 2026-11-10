@@ -545,14 +545,25 @@ export function HostBoard({
                       {(state.branch.queueMode === "split" || total > WAITING_PAGE_SIZE) && (
                         <div className="mb-1.5 flex items-center justify-between gap-2">
                           {state.branch.queueMode === "split" ? (
-                            <h3 className="text-[0.6875rem] font-extrabold uppercase tracking-[0.14em] text-ink/50">
+                            <h3 className="flex items-center gap-1.5 text-[0.6875rem] font-extrabold uppercase tracking-[0.14em] text-ink/50">
+                              <span className={`size-2 rounded-full ${group.key === "B" ? "bg-gold" : "bg-tomato"}`} />
                               {group.label}
                             </h3>
                           ) : (
                             <span />
                           )}
                           <div className="flex items-center gap-1.5">
-                            <span className="pill status-muted">{total}</span>
+                            <span
+                              className={`pill border-2 border-ink/15 ${
+                                group.key === "B"
+                                  ? "bg-gold-soft text-ink"
+                                  : group.key === "A"
+                                    ? "bg-pink text-tomato-dark"
+                                    : "status-muted"
+                              }`}
+                            >
+                              {total}
+                            </span>
                             {total > WAITING_PAGE_SIZE && (
                               <div className="flex items-center gap-1">
                                 <button
@@ -605,6 +616,7 @@ export function HostBoard({
                               next={entry.id === nextWaitingId && !query}
                               busy={pending}
                               branchName={branch.name}
+                              groupTone={state.branch.queueMode === "split" ? (group.key === "B" ? "B" : "A") : null}
                               onCall={() => run(() => hostAction("callEntry", { entryId: entry.id }))}
                               onRecall={() => run(() => hostAction("recall", { entryId: entry.id }))}
                               onSeat={() => chooseSeat(entry)}
@@ -649,6 +661,7 @@ export function HostBoard({
                     next={false}
                     busy={pending}
                     branchName={branch.name}
+                    groupTone={state.branch.queueMode === "split" ? (entry.category === "B" ? "B" : "A") : null}
                     onCall={() => run(() => hostAction("callEntry", { entryId: entry.id }))}
                     onRecall={() => run(() => hostAction("recall", { entryId: entry.id }))}
                     onSeat={() => chooseSeat(entry)}

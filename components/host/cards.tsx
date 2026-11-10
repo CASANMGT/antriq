@@ -75,6 +75,7 @@ export function QueueCard({
   manualMode = false,
   showCategory = true,
   showCountdown = true,
+  groupTone = null,
 }: {
   entry: QueueEntry;
   position: number;
@@ -90,6 +91,7 @@ export function QueueCard({
   manualMode?: boolean;
   showCategory?: boolean;
   showCountdown?: boolean;
+  groupTone?: "A" | "B" | null;
 }) {
   const { t } = useLang();
   const called = entry.status === "called";
@@ -114,7 +116,12 @@ export function QueueCard({
               {entry.code}
             </span>
             {showCategory && (
-              <span className="pill status-muted" title={entry.category === "A" ? t.guest.queueA : t.guest.queueB}>
+              <span
+                className={`pill border-2 border-ink/15 ${
+                  groupTone === "B" ? "bg-gold-soft text-ink" : "bg-pink text-tomato-dark"
+                }`}
+                title={entry.category === "A" ? t.guest.queueA : t.guest.queueB}
+              >
                 {entry.category}
               </span>
             )}
@@ -216,7 +223,12 @@ export function QueueCard({
       <div className="mt-3 flex flex-wrap gap-1.5 border-t-2 border-dashed border-ink/15 pt-2.5">
         {!called && (
           <>
-            <button type="button" className="btn btn-primary btn-sm" onClick={onCall} disabled={busy}>
+            <button
+              type="button"
+              className={`btn btn-sm ${groupTone === "B" ? "btn-gold" : "btn-primary"}`}
+              onClick={onCall}
+              disabled={busy}
+            >
               <BellRing className="size-3.5" /> {t.host.call}
             </button>
             <button type="button" className="btn btn-outline btn-sm" onClick={onSeat} disabled={busy}>
@@ -231,7 +243,12 @@ export function QueueCard({
         )}
         {called && (
           <>
-            <button type="button" className="btn btn-soft btn-sm" onClick={onRecall} disabled={busy}>
+            <button
+              type="button"
+              className={`btn btn-sm ${groupTone === "B" ? "btn-gold" : "btn-soft"}`}
+              onClick={onRecall}
+              disabled={busy}
+            >
               <BellRing className="size-3.5" /> {t.host.callAgain}
             </button>
             <button type="button" className="btn btn-sage btn-sm" onClick={onSeat} disabled={busy}>

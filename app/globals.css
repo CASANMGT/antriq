@@ -221,6 +221,15 @@
     background: var(--color-leaf-dark);
   }
 
+  .btn-gold {
+    background: var(--color-gold);
+    color: var(--color-ink);
+  }
+
+  .btn-gold:hover {
+    background: #d18f22;
+  }
+
   .btn-danger {
     background: var(--color-pink);
     color: var(--color-tomato-dark);
