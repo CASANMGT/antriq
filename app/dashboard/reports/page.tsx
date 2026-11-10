@@ -198,6 +198,24 @@ export default async function ReportsPage({
                     );
                   })}
                 </div>
+                {item.slots.length > 0 && (
+                  <div className="mt-2 border-t-2 border-dashed border-ink/10 pt-2">
+                    <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.12em] text-ink/40">
+                      {t.owner.ratingTimeslots}
+                    </p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {item.slots.map((slot) => (
+                        <span
+                          key={slot.hour}
+                          className="rounded-full border-2 border-ink/15 bg-white px-1.5 py-0.5 text-[0.625rem] font-bold"
+                        >
+                          {String(slot.hour).padStart(2, "0")}:00–{String((slot.hour + 1) % 24).padStart(2, "0")}:00 ·{" "}
+                          {slot.average.toFixed(1)} ({slot.count})
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {item.recent.length > 0 && (
                   <div className="mt-2 border-t-2 border-dashed border-ink/10 pt-2">
                     <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.12em] text-ink/40">

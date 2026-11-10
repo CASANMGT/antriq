@@ -29,7 +29,7 @@ import { format } from "@/lib/i18n";import { APP_VERSION } from "@/lib/version";
 import type { TicketView } from "@/lib/types";
 
 const FINAL_STATUSES = new Set(["completed", "no_show", "cancelled"]);
-const RATEABLE_STATUSES = new Set(["seated", "completed", "cancelled", "no_show"]);
+const RATEABLE_STATUSES = new Set(["waiting", "called", "seated", "completed", "cancelled", "no_show"]);
 
 export function TicketScreen({ token, initial }: { token: string; initial: TicketView }) {
   const router = useRouter();
@@ -41,6 +41,7 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
   const [resetOpen, setResetOpen] = useState(false);
   const [selectedRating, setSelectedRating] = useState(initial.entry.rating ?? 0);
   const [ratingNote, setRatingNote] = useState(initial.entry.ratingNote ?? "");
+  const [ratingHidden, setRatingHidden] = useState(false);
   const [pending, startTransition] = useTransition();
   const previousStatus = useRef(initial.entry.status);
   const previousCallCount = useRef(initial.entry.calledCount);
@@ -513,77 +514,107 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
               </div>
             )}
 
-            {RATEABLE_STATUSES.has(entry.status) && (
+            {RATEABLE_STATUSES.has(entry.status) && !ratingHidden && (
               <div className="mt-5 rounded-xl border-2 border-ink bg-cream px-4 py-4 text-center">
-                <p className="eyebrow text-tomato">{t.ticket.ratingTitle}</p>
-                <p className="mx-auto mt-1 max-w-xs text-xs font-semibold leading-relaxed text-muted">
-                  {entry.rating ? (
-                    <>
-                      {format(t.ticket.ratingAlready, { rating: entry.rating })}
-                      {entry.ratingNote && (
-                        <span className="mt-1 block text-[0.6875rem] font-medium italic text-ink/60">
-                          “{entry.ratingNote}”
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    t.ticket.ratingBody
-                  )}
-                </p>
-                <div className="mt-3 flex items-center justify-center gap-1.5" role="radiogroup" aria-label={t.ticket.ratingTitle}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      role="radio"
-                      aria-checked={selectedRating === star}
-                      aria-label={t.ticket.ratingStars[star - 1]}
-                      onClick={() => setSelectedRating(star)}
-                      className="rounded-lg p-0.5 transition hover:scale-110"
-                    >
-                      <Star
-                        className={`size-7 ${star <= selectedRating ? "text-gold" : "text-ink/25"}`}
-                        fill={star <= selectedRating ? "currentColor" : "none"}
-                      />
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-1 text-[0.6875rem] font-extrabold uppercase tracking-[0.12em] text-ink/55">
-                  {selectedRating ? t.ticket.ratingStars[selectedRating - 1] : " "}
-                </p>
-                {selectedRating > 0 && (
-                  <div className="mt-2 flex flex-wrap justify-center gap-1.5">
-                    {(t.ticket.ratingSuggestions[selectedRating - 1] ?? []).map((suggestion) => (
+                {entry.rating ? (
+                  <>
+                    <p className="eyebrow text-tomato">{t.ticket.ratingSummary}</p>
+                    <div className="mt-2 flex items-center justify-center gap-0.5 text-gold">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className="size-6"
+                          fill={star <= entry.rating! ? "currentColor" : "none"}
+                        />
+                      ))}
+                    </div>
+                    <p className="mt-1 text-sm font-extrabold">
+                      {entry.rating}/5 · {t.ticket.ratingStars[entry.rating - 1]}
+                    </p>
+                    {entry.ratingNote && (
+                      <p className="mt-1 text-xs font-medium italic text-ink/65">“{entry.ratingNote}”</p>
+                    )}
+                    {entry.status === "seated" ? (
                       <button
-                        key={suggestion}
                         type="button"
-                        onClick={() => setRatingNote((current) => (current === suggestion ? "" : suggestion))}
-                        className={`rounded-full border-2 px-2.5 py-1 text-[0.625rem] font-extrabold transition ${
-                          ratingNote === suggestion
-                            ? "border-ink bg-ink text-paper"
-                            : "border-ink/20 bg-white text-ink/70 hover:border-ink"
-                        }`}
+                        className="btn btn-primary btn-sm mt-3 w-full"
+                        onClick={() => setResetOpen(true)}
+                        disabled={pending}
                       >
-                        {suggestion}
+                        {t.ticket.finishSession}
                       </button>
-                    ))}
-                  </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm mt-3 w-full"
+                        onClick={() => setRatingHidden(true)}
+                      >
+                        {t.ticket.closeSummary}
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <p className="eyebrow text-tomato">{t.ticket.ratingTitle}</p>
+                    <p className="mx-auto mt-1 max-w-xs text-xs font-semibold leading-relaxed text-muted">
+                      {t.ticket.ratingBody}
+                    </p>
+                    <div className="mt-3 flex items-center justify-center gap-1.5" role="radiogroup" aria-label={t.ticket.ratingTitle}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          role="radio"
+                          aria-checked={selectedRating === star}
+                          aria-label={t.ticket.ratingStars[star - 1]}
+                          onClick={() => setSelectedRating(star)}
+                          className="rounded-lg p-0.5 transition hover:scale-110"
+                        >
+                          <Star
+                            className={`size-7 ${star <= selectedRating ? "text-gold" : "text-ink/25"}`}
+                            fill={star <= selectedRating ? "currentColor" : "none"}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    <p className="mt-1 text-[0.6875rem] font-extrabold uppercase tracking-[0.12em] text-ink/55">
+                      {selectedRating ? t.ticket.ratingStars[selectedRating - 1] : " "}
+                    </p>
+                    {selectedRating > 0 && (
+                      <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+                        {(t.ticket.ratingSuggestions[selectedRating - 1] ?? []).map((suggestion) => (
+                          <button
+                            key={suggestion}
+                            type="button"
+                            onClick={() => setRatingNote((current) => (current === suggestion ? "" : suggestion))}
+                            className={`rounded-full border-2 px-2.5 py-1 text-[0.625rem] font-extrabold transition ${
+                              ratingNote === suggestion
+                                ? "border-ink bg-ink text-paper"
+                                : "border-ink/20 bg-white text-ink/70 hover:border-ink"
+                            }`}
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    <input
+                      className="input mt-3 text-left text-sm"
+                      value={ratingNote}
+                      onChange={(event) => setRatingNote(event.target.value.slice(0, 300))}
+                      placeholder={t.ticket.ratingNotePlaceholder}
+                      maxLength={300}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm mt-2 w-full"
+                      onClick={onRate}
+                      disabled={!selectedRating || pending}
+                    >
+                      {t.ticket.ratingSubmit}
+                    </button>
+                  </>
                 )}
-                <input
-                  className="input mt-3 text-left text-sm"
-                  value={ratingNote}
-                  onChange={(event) => setRatingNote(event.target.value.slice(0, 300))}
-                  placeholder={t.ticket.ratingNotePlaceholder}
-                  maxLength={300}
-                />
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm mt-2 w-full"
-                  onClick={onRate}
-                  disabled={!selectedRating || pending}
-                >
-                  {t.ticket.ratingSubmit}
-                </button>
               </div>
             )}
           </div>
@@ -632,6 +663,7 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
             {entry.code} · {entry.partySize} {t.guest.guestUnit}
           </p>
         </div>
+        <p className="mt-2 text-xs font-semibold text-muted">{t.ticket.ratingAfterRelease}</p>
       </Modal>
 
       <Modal

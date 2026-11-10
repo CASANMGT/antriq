@@ -449,6 +449,22 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
             </div>
           </div>
         </div>
+        {ratings.slots.length > 0 && (
+          <div className="mt-4 border-t-2 border-dashed border-ink/15 pt-3">
+            <p className="eyebrow text-ink/45">{t.owner.ratingTimeslots}</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {ratings.slots.map((slot) => (
+                <span
+                  key={slot.hour}
+                  className="rounded-full border-2 border-ink/15 bg-white px-2 py-1 text-[0.625rem] font-bold"
+                >
+                  {String(slot.hour).padStart(2, "0")}:00–{String((slot.hour + 1) % 24).padStart(2, "0")}:00 ·{" "}
+                  {slot.average.toFixed(1)} ({slot.count})
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       <Notice notice={notice} onClose={() => setNotice(null)} />

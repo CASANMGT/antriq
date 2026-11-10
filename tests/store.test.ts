@@ -244,6 +244,22 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(analysis[0]?.recent[0]?.note).toBe("Cepat dan ramah");
   });
 
+  it("lets a waiting guest rate and buckets ratings by hour", async () => {
+    const branchId = await primaryBranchId();
+    const joined = await joinQueue(branchId, { guestName: "Waiting Rating", partySize: 2 });
+    const rated = await rateTicket(joined.token, 4, "Cukup cepat");
+    expect(rated.ok).toBe(true);
+    const view = await getTicketView(joined.token);
+    expect(view?.entry.rating).toBe(4);
+
+    const overview = await getOwnerOverview(branchId, 7);
+    expect(overview.ratings.slots.length).toBeGreaterThanOrEqual(1);
+    expect(overview.ratings.slots.reduce((sum, slot) => sum + slot.count, 0)).toBeGreaterThanOrEqual(1);
+
+    const analysis = await getRatingAnalysis([branchId], 7);
+    expect(analysis[0]?.slots.length).toBeGreaterThanOrEqual(1);
+  });
+
   it("calls the next fitting party and starts the hold", async () => {    const branchId = await primaryBranchId();
     await q("update branches set hold_enabled = true where id = $1", [branchId]);
     const before = await getHostState(branchId);

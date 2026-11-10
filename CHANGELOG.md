@@ -10,6 +10,21 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.16.0] — 2026-11-10
+
+The **reviews, timeslots and Hadir privacy** release.
+
+### Added
+- Guests can rate while waiting, while called, and after being marked **Hadir**; releasing the queue also offers an optional rating.
+- After rating, the ticket shows a **rating summary** with a finish or close action.
+- Hosts see the guest's rating and review on **Hadir** cards.
+- Rating analysis is broken down by **hourly time slot** (17:00–18:00, 18:00–19:00, and so on).
+- **Tidak Hadir** cards show the guest's start time and how long they waited.
+
+### Changed
+- Hadir cards no longer show the guest's phone number or WhatsApp link.
+- Customer-facing “Duduk” wording is now **“Hadir”** throughout.
+
 ## [0.15.0] — 2026-11-10
 
 The **rating reviews** release.

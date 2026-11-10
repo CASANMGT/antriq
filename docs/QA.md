@@ -4,11 +4,11 @@
 
 ```bash
 npm run lint     # ESLint, Next 16 + React 19 rules
-npm test         # 44 domain + integration + version tests on PGlite
+npm test         # 45 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **10 Nov 2026** — lint clean, 44/44 tests passing, production build green (v0.15.0 A/B queue, Hadir list, ratings + reviews).
+Last run: **10 Nov 2026** — lint clean, 45/45 tests passing, production build green (v0.16.0 reviews, timeslots, Hadir privacy).
 
 ### Notification delivery QA
 
@@ -93,10 +93,12 @@ Last run: **10 Nov 2026** — lint clean, 44/44 tests passing, production build 
 - Host queue shows **Antrean A** and **Antrean B** with per-group positions and counts.
 - Calling a guest again bumps `called_count`; the guest ticket shows a recall notice, vibrates, and sends a browser notification when the tab is hidden.
 - Cards with a phone number show `tel:` and **WA** (`wa.me`) links.
-- **Hadir** cards show `Hadir HH:MM`, sorted newest first.
-- **Tidak Hadir** lists today's no-shows; **Masukkan lagi** returns the guest to the waiting queue with a new code and keeps the same ticket token.
-- Guest ticket shows a 1–5 rating for seated/completed/cancelled/no-show states; each star offers pre-filled review suggestions and the note is optional.
-- The submitted review is shown on the ticket and included in the owner dashboard and per-restaurant Reports analysis.
+- **Hadir** cards show `Hadir HH:MM`, sorted newest first, and show the guest's rating/review; phone and WhatsApp are not shown on Hadir cards.
+- **Tidak Hadir** lists today's no-shows with start time and wait duration; **Masukkan lagi** returns the guest to the waiting queue with a new code and keeps the same ticket token.
+- Guest ticket shows a 1–5 rating while waiting, called, or Hadir, and after release; each star offers pre-filled review suggestions and the note is optional.
+- After rating, the ticket shows a summary and a finish/close action; release also shows an optional rating hint.
+- The submitted review is shown on the ticket, on the host Hadir card, on the owner dashboard, and in per-restaurant Reports analysis.
+- Reports and the dashboard include an hourly rating timeslot breakdown (17:00–18:00, 18:00–19:00, and so on).
 - Reports CSV includes `rating` and `rating_note` columns.
 - Owner dashboard relative times use `serverNow`, so no hydration mismatch.
 

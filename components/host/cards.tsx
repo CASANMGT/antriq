@@ -11,6 +11,7 @@ import {
   Phone,
   RotateCcw,
   Sparkles,
+  Star,
   UserRound,
   Utensils,
 } from "lucide-react";
@@ -325,6 +326,7 @@ export function SeatedCard({
   timezone: string;
 }) {
   const { t } = useLang();
+  const rating = entry.rating;
   return (
     <article className="min-w-0 rounded-2xl border-2 border-ink bg-leaf-soft/60 p-3.5 shadow-[3px_3px_0_#262321]">
       <div className="flex items-start justify-between gap-2">
@@ -357,19 +359,17 @@ export function SeatedCard({
               {format(t.host.hadirAt, { time: clockInTz(entry.seatedAt, timezone) })}
             </p>
           )}
-          {entry.phone && (
-            <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs font-semibold text-muted">
-              <a href={`tel:${entry.phone}`} className="inline-flex items-center gap-1 hover:text-ink">
-                <Phone className="size-3" /> {entry.phone}
-              </a>
-              <a
-                href={whatsappHref(entry.phone)}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 rounded-full border-2 border-leaf/40 bg-leaf-soft px-2 py-0.5 font-extrabold text-leaf-dark hover:border-leaf"
-              >
-                <MessageCircle className="size-3" /> WA
-              </a>
+          {rating !== null && (
+            <div className="mt-1.5 rounded-lg border-2 border-ink/10 bg-white/70 px-2 py-1.5">
+              <div className="flex items-center gap-0.5 text-gold">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star key={star} className="size-3" fill={star <= rating ? "currentColor" : "none"} />
+                ))}
+                <span className="ml-1 text-[0.625rem] font-bold text-ink/60">{rating}/5</span>
+              </div>
+              {entry.ratingNote && (
+                <p className="mt-0.5 text-[0.6875rem] font-medium italic text-muted">“{entry.ratingNote}”</p>
+              )}
             </div>
           )}
           {entry.openedBy && (
@@ -414,6 +414,11 @@ export function NoShowCard({
       <p className="mt-0.5 inline-flex items-center gap-1 text-xs font-semibold text-muted">
         <Clock3 className="size-3" />
         {format(t.host.noShowAt, { time: clockInTz(at, timezone) })}
+      </p>
+      <p className="mt-0.5 inline-flex items-center gap-1 text-[0.6875rem] font-semibold text-muted">
+        <Clock3 className="size-3" />
+        {format(t.host.startedAt, { time: clockInTz(entry.joinedAt, timezone) })} ·{" "}
+        {format(t.host.waitingFor, { minutes: Math.max(1, entry.waitMinutes) })}
       </p>
       {entry.phone && (
         <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs font-semibold text-muted">

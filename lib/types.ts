@@ -215,11 +215,18 @@ export interface RatingItem {
   ratedAt: string;
 }
 
+export interface RatingSlot {
+  hour: number;
+  count: number;
+  average: number;
+}
+
 export interface RatingSummary {
   average: number;
   count: number;
   /** Index 0 = 1 star, index 4 = 5 stars. */
   distribution: number[];
+  slots: RatingSlot[];
   recent: RatingItem[];
 }
 

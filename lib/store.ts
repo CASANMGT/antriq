@@ -13,7 +13,7 @@ import {
   positionOf,
   statsFrom,
 } from "./queue";
-import { addDaysToDay, dayInTz, elapsedMinutes, isOpenAt, parseTimeToMinutes } from "./time";
+import { addDaysToDay, dayInTz, elapsedMinutes, isOpenAt, minutesInTz, parseTimeToMinutes } from "./time";
 import { isDemoAutoReset, isDemoMode, seedDatabase } from "./seed";
 import { PRIMARY_BRANCH_ID } from "./schema";
 import type {
@@ -1362,7 +1362,7 @@ export async function rateTicket(token: string, rating: number, note?: string): 
     const rows = await db.query<Row>(
       `update queue_entries
        set rating = $2, rating_note = $3, rated_at = now()
-       where token = $1 and status in ('seated','completed','cancelled','no_show')
+       where token = $1 and status in ('waiting','called','seated','completed','cancelled','no_show')
        returning id, branch_id, code, guest_name, party_size, rating`,
       [token, safeRating, safeNote],
     );
@@ -2039,10 +2039,27 @@ export async function getOwnerOverview(branchId: number, days = 7): Promise<Owne
     (star) => rated.filter((entry) => entry.rating === star).length,
   );
   const ratingTotal = rated.reduce((sum, entry) => sum + (entry.rating ?? 0), 0);
+  const slotMap = new Map<number, { total: number; count: number }>();
+  for (const entry of rated) {
+    if (!entry.ratedAt) continue;
+    const hour = Math.floor(minutesInTz(entry.ratedAt, branch.timezone) / 60);
+    const slot = slotMap.get(hour) ?? { total: 0, count: 0 };
+    slot.total += entry.rating ?? 0;
+    slot.count += 1;
+    slotMap.set(hour, slot);
+  }
+  const slots = [...slotMap.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([hour, slot]) => ({
+      hour,
+      count: slot.count,
+      average: Math.round((slot.total / slot.count) * 10) / 10,
+    }));
   const ratings: RatingSummary = {
     average: rated.length ? Math.round((ratingTotal / rated.length) * 10) / 10 : 0,
     count: rated.length,
     distribution: ratingDistribution,
+    slots,
     recent: rated
       .filter((entry) => entry.ratedAt)
       .sort((a, b) => new Date(b.ratedAt ?? 0).getTime() - new Date(a.ratedAt ?? 0).getTime())
@@ -2128,7 +2145,7 @@ function safeJson(value: string): Row {
 export async function getRatingAnalysis(branchIds: number[], days = 30): Promise<BranchRatingSummary[]> {
   const wanted = Array.from(new Set(branchIds.filter((id) => Number.isInteger(id) && id > 0)));
   if (wanted.length === 0) return [];
-  const branchRows = await q<Row>("select id, name from branches where id = any($1::int[])", [wanted]);
+  const branchRows = await q<Row>("select id, name, timezone from branches where id = any($1::int[])", [wanted]);
   const first = await getBranch(wanted[0]);
   const windowDays = Math.min(90, Math.max(1, Math.round(days)));
   const today = dayInTz(new Date(), first.timezone);
@@ -2143,17 +2160,35 @@ export async function getRatingAnalysis(branchIds: number[], days = 30): Promise
   return branchRows
     .map((branch) => {
       const branchId = toNumber(branch.id);
+      const timezone = String(branch.timezone ?? "Asia/Jakarta");
       const ratings = rows.filter((row) => toNumber(row.branch_id) === branchId);
       const distribution = [1, 2, 3, 4, 5].map(
         (star) => ratings.filter((row) => toNumber(row.rating) === star).length,
       );
       const total = ratings.reduce((sum, row) => sum + toNumber(row.rating), 0);
+      const slotMap = new Map<number, { total: number; count: number }>();
+      for (const row of ratings) {
+        if (!row.rated_at) continue;
+        const hour = Math.floor(minutesInTz(row.rated_at, timezone) / 60);
+        const slot = slotMap.get(hour) ?? { total: 0, count: 0 };
+        slot.total += toNumber(row.rating);
+        slot.count += 1;
+        slotMap.set(hour, slot);
+      }
+      const slots = [...slotMap.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([hour, slot]) => ({
+          hour,
+          count: slot.count,
+          average: Math.round((slot.total / slot.count) * 10) / 10,
+        }));
       return {
         branchId,
         branchName: String(branch.name),
         average: ratings.length ? Math.round((total / ratings.length) * 10) / 10 : 0,
         count: ratings.length,
         distribution,
+        slots,
         recent: ratings
           .filter((row) => row.rated_at)
           .slice(0, 3)
