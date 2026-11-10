@@ -249,6 +249,23 @@ export interface RatingRecord {
   visitNumber: number;
 }
 
+export interface CustomerHistoryItem {
+  id: number;
+  code: string;
+  guestName: string;
+  partySize: number;
+  status: EntryStatus;
+  source: QueueSource;
+  joinedAt: string;
+  calledAt: string | null;
+  seatedAt: string | null;
+  closedAt: string | null;
+  tableLabel: string | null;
+  openedBy: string | null;
+  releasedBy: string | null;
+  notes: string | null;
+}
+
 export interface OwnerOverview {
   branch: Branch;
   brand: Brand | null;

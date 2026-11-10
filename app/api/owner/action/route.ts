@@ -14,6 +14,7 @@ import {
   listStaff,
   setStaffActive,
   setStaffPin,
+  setPhoneStar,
   setWaitlistStatus,
   updateBrand,
   updateBranch,
@@ -339,6 +340,12 @@ export async function POST(request: Request) {
       case "staffPin": {
         const staffing = await targetStaffInScope(Number(body.id));
         return json(await setStaffPin(staffing.id, String(body.pin ?? ""), actor));
+      }
+      case "starPhone": {
+        if (session.role !== "owner") {
+          return json({ ok: false, message: "Only owners can star numbers." }, 403);
+        }
+        return json(await setPhoneStar(String(body.phone ?? ""), Boolean(body.starred), actor));
       }
       case "staffToggle": {
         const staffing = await targetStaffInScope(Number(body.id));

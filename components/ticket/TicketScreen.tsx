@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import {
   ArrowLeft,
   ArrowRight,
+  BellRing,
   Check,
   Clock3,
   Copy,
@@ -44,6 +45,9 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
   const [ratingNote, setRatingNote] = useState(initial.entry.ratingNote ?? "");
   const [ratingHidden, setRatingHidden] = useState(false);
   const [showThanks, setShowThanks] = useState(false);
+  const [fakeNotice, setFakeNotice] = useState<{ id: number } | null>(
+    initial.entry.status === "called" ? { id: 1 } : null,
+  );
   const [pending, startTransition] = useTransition();
   const previousStatus = useRef(initial.entry.status);
   const previousCallCount = useRef(initial.entry.calledCount);
@@ -84,6 +88,7 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
     const callCount = view.entry.calledCount;
     const recalled = status === "called" && callCount > previousCallCount.current;
     if (status === "called" && (previousStatus.current !== "called" || recalled)) {
+      setFakeNotice({ id: Date.now() });
       try {
         navigator.vibrate?.([180, 90, 180]);
       } catch {
@@ -95,12 +100,11 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
           format(t.ticket.calledBody, { code: view.entry.code }),
           typeof window !== "undefined" ? window.location.href : "/",
         );
-      } else if (recalled) {
-        show(t.ticket.recalledToast, "info");
       }
     }
     previousStatus.current = status;
     previousCallCount.current = callCount;
+    if (status !== "called") setFakeNotice(null);
 
     if (FINAL_STATUSES.has(status)) {
       try {
@@ -113,7 +117,13 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
         // Ignore storage failures.
       }
     }
-  }, [show, t.ticket.calledBody, t.ticket.calledTitle, t.ticket.recalledToast, token, view.entry.calledCount, view.entry.code, view.entry.status]);
+  }, [t.ticket.calledBody, t.ticket.calledTitle, token, view.entry.calledCount, view.entry.code, view.entry.status]);
+
+  useEffect(() => {
+    if (!fakeNotice) return;
+    const timer = window.setTimeout(() => setFakeNotice(null), 7000);
+    return () => window.clearTimeout(timer);
+  }, [fakeNotice]);
 
   useEffect(() => {
     if (view.entry.rating && selectedRating === 0) setSelectedRating(view.entry.rating);
@@ -257,6 +267,40 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
 
   return (
     <main className="paper grain min-h-[100dvh] px-4 pb-10 pt-4 sm:px-5 sm:pt-6">
+      {fakeNotice && entry.status === "called" && (
+        <div
+          key={fakeNotice.id}
+          role="status"
+          aria-live="polite"
+          className="fixed inset-x-3 top-3 z-[80] mx-auto max-w-md animate-notification"
+        >
+          <div className="relative rounded-2xl border-2 border-ink bg-white p-3.5 pr-9 shadow-[4px_4px_0_#262321]">
+            <button
+              type="button"
+              onClick={() => setFakeNotice(null)}
+              className="absolute right-2 top-2 rounded-full p-1 text-ink/40 transition hover:bg-cream hover:text-ink"
+              aria-label={t.ticket.fakeNoticeClose}
+              title={t.ticket.fakeNoticeClose}
+            >
+              <X className="size-3.5" />
+            </button>
+            <div className="flex items-start gap-2.5">
+              <span className="grid size-9 shrink-0 place-items-center rounded-full border-2 border-ink bg-tomato text-white">
+                <BellRing className="size-4" />
+              </span>
+              <div className="min-w-0">
+                <p className="eyebrow text-tomato">{t.ticket.fakeNoticeKicker}</p>
+                <p className="mt-0.5 font-display text-lg font-semibold leading-tight">{t.ticket.fakeNoticeTitle}</p>
+                <p className="mt-0.5 text-xs font-semibold leading-relaxed text-muted">
+                  {format(t.ticket.fakeNoticeBody, { branch: branch.name })}
+                </p>
+                <p className="num mt-1 text-2xl font-extrabold leading-none">{entry.code}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mx-auto flex w-full max-w-md items-center justify-between gap-2">
         <Logo href={homeHref} />
         <div className="flex items-center gap-1.5">

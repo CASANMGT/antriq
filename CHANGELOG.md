@@ -10,6 +10,18 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.18.3] — 2026-11-10
+
+The **repeat guests and Meja siap** release.
+
+### Added
+- Daftar Tamu shows repeat guests with a compact `(2)`, `(3)` badge plus a repeat-guest summary and a full queue-history modal per guest.
+- Owners can star a guest phone number from Daftar Tamu. Stars are normalised to `62…` and shared across branches.
+- A called ticket shows an animated Meja siap notification; using **Panggil lagi** regenerates the notification animation.
+
+### Changed
+- Only guests who reached **Hadir** or **Selesai** count as repeat visits. Cancelled or released attempts never add to the visit count.
+
 ## [0.18.2] — 2026-11-10
 
 The **reliable WhatsApp prefill** release.

@@ -16,6 +16,8 @@ import {
   createStaff,
   getBranchBySlugs,
   getBrandAsset,
+  getCustomerHistory,
+  getCustomerList,
   getHostState,
   getOwnerOverview,
   getOwnerWeekForBranches,
@@ -28,6 +30,7 @@ import {
   listBranches,
   listBranchesForStaff,
   listStaff,
+  listStarredPhones,
   markNoShow,
   rateTicket,
   recallEntry,
@@ -35,6 +38,7 @@ import {
   resetGuestDevice,
   seatEntry,
   setBrandAsset,
+  setPhoneStar,
   setWaitlistStatus,
   undoCall,
   verifyStaffPin,
@@ -526,5 +530,54 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(csv.split("\r\n")[0]).toContain("code,day,guest");
     expect(csv).toContain("A-001");
     expect(csv).toContain("opened_by");
+  });
+
+  it("counts only Hadir visits as repeat visits", async () => {
+    const branchId = await primaryBranchId();
+    const phone = "081299990061";
+
+    // A release/cancel before being seated must never count as a visit.
+    const cancelled = await joinQueue(branchId, { guestName: "Repeat Guest", partySize: 2, phone });
+    const cancelledView = await getTicketView(cancelled.token);
+    await cancelTicket(cancelled.token);
+    expect((await getTicketView(cancelled.token))?.entry.status).toBe("cancelled");
+
+    // Second attempt is still their first counted visit.
+    const firstVisit = await joinQueue(branchId, { guestName: "Repeat Guest", partySize: 2, phone });
+    const firstView = await getTicketView(firstVisit.token);
+    let list = await getCustomerList(branchId, 1);
+    expect(list.find((entry) => entry.id === firstView!.entry.id)?.visitNumber).toBe(1);
+
+    // Hadir (then completed) makes the next attempt visit 2.
+    const seated = await seatEntry(branchId, firstView!.entry.id, null, "Wuri", 2, null);
+    expect(seated.ok).toBe(true);
+    await resetGuestDevice(firstVisit.token);
+
+    const secondVisit = await joinQueue(branchId, { guestName: "Repeat Guest", partySize: 2, phone });
+    const secondView = await getTicketView(secondVisit.token);
+    list = await getCustomerList(branchId, 1);
+    expect(list.find((entry) => entry.id === secondView!.entry.id)?.visitNumber).toBe(2);
+    expect(list.find((entry) => entry.id === cancelledView!.entry.id)?.visitNumber).toBe(1);
+
+    // Both the phone key and the guest name can retrieve the branch history.
+    const byPhone = await getCustomerHistory(branchId, { phone });
+    expect(byPhone).toHaveLength(3);
+    expect(byPhone.filter((item) => item.status === "seated" || item.status === "completed")).toHaveLength(1);
+    const byName = await getCustomerHistory(branchId, { name: "Repeat Guest" });
+    expect(byName.map((item) => item.code)).toEqual(expect.arrayContaining(byPhone.map((item) => item.code)));
+  });
+
+  it("stars a guest phone number globally", async () => {
+    const phone = "081299990062";
+    const key = "6281299990062";
+
+    expect(await listStarredPhones()).not.toContain(key);
+    expect((await setPhoneStar(phone, true, "Iwanna")).ok).toBe(true);
+    expect(await listStarredPhones()).toContain(key);
+
+    // Different formatting normalizes to the same key.
+    expect((await setPhoneStar("+62 812-9999-0062", false, "Iwanna")).ok).toBe(true);
+    expect(await listStarredPhones()).not.toContain(key);
+    expect((await setPhoneStar("", true, "Iwanna")).ok).toBe(false);
   });
 });

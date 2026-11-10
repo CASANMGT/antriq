@@ -137,6 +137,12 @@ export const SCHEMA_STATEMENTS: string[] = [
     updated_at timestamptz not null default now()
   )`,
 
+  `create table if not exists customer_marks (
+    phone text primary key,
+    starred boolean not null default false,
+    updated_at timestamptz not null default now()
+  )`,
+
   /* v0.3.1 — seat release audit + 3-minute call countdown default. */
   `alter table branches add column if not exists hold_enabled boolean not null default false`,
   `alter table branches alter column hold_minutes set default 3`,

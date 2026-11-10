@@ -16,6 +16,27 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.18.3",
+    date: "2026-11-10",
+    title: "Repeat guests and Meja siap notifications",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "Daftar Tamu shows repeat guests with a (2), (3) badge, a repeat-guest summary, and a full queue history per guest.",
+          "Owners can star a guest phone number from Daftar Tamu; starred numbers are shared across branches.",
+          "A called ticket now shows an animated Meja siap notification that replays when the host uses Panggil lagi.",
+        ],
+      },
+      {
+        label: "Changed",
+        items: [
+          "Only guests who reached Hadir or Selesai count as repeat visits; cancelled or released attempts do not.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.18.2",
     date: "2026-11-10",
     title: "Reliable WhatsApp prefill",

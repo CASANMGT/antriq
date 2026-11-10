@@ -14,6 +14,7 @@ import {
   statsFrom,
 } from "./queue";
 import { addDaysToDay, dayInTz, elapsedMinutes, isOpenAt, minutesInTz, parseTimeToMinutes } from "./time";
+import { phoneKey } from "./guest";
 import { isDemoAutoReset, isDemoMode, seedDatabase } from "./seed";
 import { PRIMARY_BRANCH_ID } from "./schema";
 import type {
@@ -24,6 +25,7 @@ import type {
   Branch,
   BranchRatingSummary,
   BranchSummary,
+  CustomerHistoryItem,
   DayPoint,
   DiningTable,
   EntryStatus,
@@ -71,6 +73,7 @@ const ENTRY_COLUMNS = `
    where qe.phone is not null and qv.phone is not null
      and regexp_replace(regexp_replace(qv.phone, '[^0-9]', '', 'g'), '^0', '62')
        = regexp_replace(regexp_replace(qe.phone, '[^0-9]', '', 'g'), '^0', '62')
+     and qv.status in ('seated','completed')
      and (qv.joined_at < qe.joined_at or (qv.joined_at = qe.joined_at and qv.id < qe.id))
   ) as visit_number,
   qe.rating, qe.rating_note, qe.rated_at,
@@ -2226,6 +2229,7 @@ export async function getRatingRecords(branchIds: number[], days = 30): Promise<
              where qe.phone is not null and qv.phone is not null
                and regexp_replace(regexp_replace(qv.phone, '[^0-9]', '', 'g'), '^0', '62')
                  = regexp_replace(regexp_replace(qe.phone, '[^0-9]', '', 'g'), '^0', '62')
+               and qv.status in ('seated','completed')
                and (qv.joined_at < qe.joined_at or (qv.joined_at = qe.joined_at and qv.id < qe.id))
             ) as visit_number,
             br.name as branch_name, br.timezone as branch_timezone
@@ -2250,7 +2254,69 @@ export async function getRatingRecords(branchIds: number[], days = 30): Promise<
   }));
 }
 
-export async function getCustomerList(branchId: number, days = 1): Promise<QueueEntry[]> {  const branch = await getBranch(branchId);
+export async function listStarredPhones(): Promise<string[]> {
+  const rows = await q<Row>("select phone from customer_marks where starred = true order by updated_at desc");
+  return rows.map((row) => String(row.phone));
+}
+
+export async function setPhoneStar(phone: string, starred: boolean, actor: string): Promise<ActionResult> {
+  const key = phoneKey(phone);
+  if (!key) return { ok: false, message: "Phone number is required." };
+  await q(
+    `insert into customer_marks (phone, starred, updated_at) values ($1, $2, now())
+     on conflict (phone) do update set starred = $2, updated_at = now()`,
+    [key, starred],
+  );
+  await logActivity(null, null, "phone_star", actor, {
+    name: key,
+    note: `${starred ? "Starred" : "Unstarred"} ${key}`,
+  });
+  return { ok: true, message: starred ? "Number starred." : "Star removed." };
+}
+
+export async function getCustomerHistory(
+  branchId: number,
+  input: { phone?: string | null; name?: string | null },
+): Promise<CustomerHistoryItem[]> {
+  const key = phoneKey(input.phone);
+  const name = input.name ? String(input.name).trim() : null;
+  if (!key && !name) return [];
+  const rows = await q<Row>(
+    `select qe.id, qe.code, qe.guest_name, qe.party_size, qe.status, qe.source,
+            qe.joined_at, qe.called_at, qe.seated_at, qe.closed_at, qe.opened_by, qe.released_by, qe.notes,
+            t.label as table_label
+     from queue_entries qe
+     left join dining_tables t on t.id = qe.table_id
+     where qe.branch_id = $1
+       and (
+         ($2::text is not null and qe.phone is not null
+           and regexp_replace(regexp_replace(qe.phone, '[^0-9]', '', 'g'), '^0', '62') = $2)
+         or ($3::text is not null and lower(qe.guest_name) = lower($3))
+       )
+     order by qe.joined_at desc
+     limit 100`,
+    [branchId, key, name],
+  );
+  return rows.map((row) => ({
+    id: toNumber(row.id),
+    code: String(row.code),
+    guestName: String(row.guest_name),
+    partySize: toNumber(row.party_size),
+    status: (row.status ?? "waiting") as EntryStatus,
+    source: (row.source ?? "qr") as QueueSource,
+    joinedAt: toIso(row.joined_at) ?? new Date().toISOString(),
+    calledAt: toIso(row.called_at),
+    seatedAt: toIso(row.seated_at),
+    closedAt: toIso(row.closed_at),
+    tableLabel: row.table_label ?? null,
+    openedBy: row.opened_by ?? null,
+    releasedBy: row.released_by ?? null,
+    notes: row.notes ?? null,
+  }));
+}
+
+export async function getCustomerList(branchId: number, days = 1): Promise<QueueEntry[]> {
+  const branch = await getBranch(branchId);
   const windowDays = Math.min(90, Math.max(1, Math.round(days)));
   const today = dayInTz(new Date(), branch.timezone);
   const startDay = addDaysToDay(today, -(windowDays - 1));

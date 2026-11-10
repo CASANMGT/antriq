@@ -539,6 +539,21 @@
   }
 }
 
+@keyframes notification-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-140%) scale(0.96);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(6px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @keyframes fade {
   from {
     opacity: 0;
@@ -572,6 +587,10 @@
 
 .animate-rise {
   animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.animate-notification {
+  animation: notification-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
 }
 
 .animate-fade {
