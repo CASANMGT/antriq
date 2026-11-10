@@ -16,6 +16,19 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.14.1",
+    date: "2026-11-10",
+    title: "QA data cleanup",
+    sections: [
+      {
+        label: "Fixed",
+        items: [
+          "One-time cleanup removes QA test tickets and their ratings from production data.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.14.0",
     date: "2026-11-10",
     title: "A/B queue, Hadir list, ratings",

@@ -10,6 +10,13 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.14.1] — 2026-11-10
+
+The **QA data cleanup** release.
+
+### Fixed
+- One-time cleanup removes QA test tickets and their ratings from production data.
+
 ## [0.14.0] — 2026-11-10
 
 The **A/B queue, Hadir list and ratings** release.

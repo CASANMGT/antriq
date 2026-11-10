@@ -389,6 +389,26 @@ async function runDataMigrations(db: Queryable) {
       await db.query("update staff set name = $2, initials = $3 where id = $1", [row.id, name, initials]);
     }
   }
+
+  const qaCleanup = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('qa_test_entries_cleanup_v1', 'done')
+     on conflict (key) do nothing returning key`,
+  );
+  if (qaCleanup.length > 0) {
+    await db.query(
+      `delete from queue_entries
+       where guest_name like 'Prod QA %'
+          or guest_name like 'Ticket Time QA %'
+          or guest_name like 'Optional Ack Prod %'
+          or guest_name like 'Selesai QA %'
+          or guest_name like 'Reset QA %'
+          or guest_name like 'Countdown QA %'
+          or guest_name like 'Max Party QA %'
+          or guest_name like 'Ack UI Check %'
+          or guest_name like 'Visual Guest %'
+          or guest_name like 'UI Rate %'`,
+    );
+  }
 }
 
 const LEGACY_TABLES = [
