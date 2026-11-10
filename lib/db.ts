@@ -342,6 +342,37 @@ async function runDataMigrations(db: Queryable) {
     await db.query("update branches set open_time = '10:00', close_time = '22:00' where slug = 'tebet'");
   }
 
+  const allBranchHours = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('all_branch_hours_10_22_v1', 'done')
+     on conflict (key) do nothing returning key`,
+  );
+  if (allBranchHours.length > 0) {
+    // Every branch opens 10:00 and closes 22:00, every day.
+    await db.query("update branches set open_time = '10:00', close_time = '22:00', updated_at = now()");
+  }
+
+  const blokMIdentity = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('blok_m_identity_v1', 'done')
+     on conflict (key) do nothing returning key`,
+  );
+  if (blokMIdentity.length > 0) {
+    // Repair a legacy copy where Blok M carried Tebet's identity.
+    await db.query(
+      `update branches
+       set name = 'Nikumaru Blok M',
+           tagline = 'Japanese Hamburg & Niku Rice · Blok M',
+           address = 'Jl. Sunan Kalijaga No. 1, RT.1/RW.1, Melawai, Kebayoran Baru, Jakarta Selatan 12160 (seberang Taman Literasi, samping M Bloc Space)',
+           phone = '+62 811 9000 212',
+           latitude = -6.2423253,
+           longitude = 106.7997002,
+           accent = '#F24B3F',
+           announcement = 'Selamat datang di Nikumaru Blok M. Ambil nomor antrean dari ponselmu — kami panggil saat meja siap.',
+           updated_at = now()
+       where slug = 'blok-m'
+         and brand_id = (select id from brands where slug = 'nikumaru')`,
+    );
+  }
+
   const splitDefault = await db.query<{ key: string }>(
     `insert into app_meta (key, value) values ('queue_split_default_v1', 'done')
      on conflict (key) do nothing returning key`,

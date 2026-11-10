@@ -16,6 +16,25 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.18.7",
+    date: "2026-11-11",
+    title: "Blok M restored and standard opening hours",
+    sections: [
+      {
+        label: "Fixed",
+        items: [
+          "Nikumaru Blok M was showing Tebet's name, address and phone. Its identity is restored so Blok M appears as its own branch again.",
+        ],
+      },
+      {
+        label: "Changed",
+        items: [
+          "Every branch now opens at 10:00 and closes at 22:00, every day. New branches use the same default.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.18.6",
     date: "2026-11-11",
     title: "No-show reasons",

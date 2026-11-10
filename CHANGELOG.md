@@ -10,6 +10,16 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.18.7] — 2026-11-11
+
+The **Blok M identity and opening hours** release.
+
+### Fixed
+- **Nikumaru Blok M** was carrying Nikumaru Tebet's name, tagline, address, phone and map coordinates, so Tebet appeared twice and Blok M looked missing. The canonical Blok M identity is restored.
+
+### Changed
+- Every branch now opens **10:00** and closes **22:00**, every day. New branches default to the same hours.
+
 ## [0.18.6] — 2026-11-11
 
 The **no-show reasons** release.

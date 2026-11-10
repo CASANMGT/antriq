@@ -168,7 +168,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Tables CRUD with capacity/zone and seated-table protection.
 - Team management: owner/host roles, generic display names, brand + branch assignment, reset PIN (default `1234`), pause access, last-owner protection.
 - **Brands:** name, slug, Instagram, accent, logo upload, menu PDF upload.
-- **Branches:** create/edit name, slug, address, phone, timezone, hours, announcement.
+- **Branches:** create/edit name, slug, address, phone, timezone, hours (10:00–22:00 default), announcement.
 - Settings: identity, accent, timezone, hours, max party (default 10), queue cap, auto no-show, announcement, **queue groups** (A/B by default; one group optional), **seating mode** (queue-only, manual, or table plan), **optional “time to table” countdown**, **optional “Saya hadir” button**, and **what it does** (stop or add minutes).
 - Printable A4 QR poster whose QR points at the branch URL.
 
