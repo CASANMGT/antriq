@@ -96,7 +96,7 @@ Last run: **10 Nov 2026** — lint clean, 45/45 tests passing, production build 
 - **Hadir** cards show `Hadir HH:MM`, sorted newest first, and show the guest's rating/review; phone and WhatsApp are not shown on Hadir cards.
 - **Tidak Hadir** lists today's no-shows with start time and wait duration; **Masukkan lagi** returns the guest to the waiting queue with a new code and keeps the same ticket token.
 - Guest ticket shows a 1–5 rating while waiting, called, or Hadir, and after release; each star offers pre-filled review suggestions and the note is optional.
-- After rating, the ticket shows a summary and a finish/close action; release also shows an optional rating hint.
+- After rating, a thank-you landing page shows a summary and a finish/close action; release also shows an optional rating hint.
 - The submitted review is shown on the ticket, on the host Hadir card, on the owner dashboard, and in per-restaurant Reports analysis.
 - Reports and the dashboard include an hourly rating timeslot breakdown (17:00–18:00, 18:00–19:00, and so on).
 - Reports CSV includes `rating` and `rating_note` columns.

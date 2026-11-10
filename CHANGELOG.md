@@ -16,7 +16,7 @@ The **reviews, timeslots and Hadir privacy** release.
 
 ### Added
 - Guests can rate while waiting, while called, and after being marked **Hadir**; releasing the queue also offers an optional rating.
-- After rating, the ticket shows a **rating summary** with a finish or close action.
+- After rating, a **thank-you landing page** shows the rating summary with a finish or close action.
 - Hosts see the guest's rating and review on **Hadir** cards.
 - Rating analysis is broken down by **hourly time slot** (17:00–18:00, 18:00–19:00, and so on).
 - **Tidak Hadir** cards show the guest's start time and how long they waited.
