@@ -16,6 +16,20 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.18.6",
+    date: "2026-11-11",
+    title: "No-show reasons",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "Marking a guest as no-show now asks for a reason: quick presets (no response, already left, waited too long, wrong number) or a custom note.",
+          "The reason appears on the no-show card, in the customer history and in the CSV report.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.18.5",
     date: "2026-11-10",
     title: "Table analytics follow the seating mode",

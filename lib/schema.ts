@@ -110,6 +110,7 @@ export const SCHEMA_STATEMENTS: string[] = [
     seated_at timestamptz,
     closed_at timestamptz,
     cancelled_by text,
+    no_show_reason text,
     unique (branch_id, day, seq)
   )`,
 
@@ -169,6 +170,7 @@ export const SCHEMA_STATEMENTS: string[] = [
   `alter table queue_entries add column if not exists rating integer`,
   `alter table queue_entries add column if not exists rating_note text`,
   `alter table queue_entries add column if not exists rated_at timestamptz`,
+  `alter table queue_entries add column if not exists no_show_reason text`,
   `alter table queue_entries drop constraint if exists queue_entries_rating_check`,
   `alter table queue_entries add constraint queue_entries_rating_check check (rating is null or rating between 1 and 5)`,
 

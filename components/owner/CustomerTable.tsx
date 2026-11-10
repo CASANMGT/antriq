@@ -181,6 +181,11 @@ export function CustomerTable({
                       <td className="num px-3 py-2.5 text-right font-semibold">{entry.partySize}</td>
                       <td className="px-3 py-2.5">
                         <span className={`pill ${statusTone(entry.status)}`}>{t.status[statusKey(entry.status)]}</span>
+                        {entry.noShowReason && (
+                          <p className="mt-1 max-w-[11rem] text-[0.625rem] font-bold leading-snug text-tomato-dark">
+                            {entry.noShowReason}
+                          </p>
+                        )}
                       </td>
                       <td className="px-3 py-2.5 text-xs font-semibold">
                         {entry.tableLabel ? (
@@ -251,6 +256,11 @@ export function CustomerTable({
                       </p>
                     )}
                     {item.tableLabel && <p className="mt-0.5 text-[0.6875rem] font-semibold text-muted">{item.tableLabel}</p>}
+                    {item.noShowReason && (
+                      <p className="mt-0.5 text-[0.6875rem] font-bold text-tomato-dark">
+                        {format(t.host.noShowReasonLabel, { reason: item.noShowReason })}
+                      </p>
+                    )}
                     {(item.openedBy || item.releasedBy) && (
                       <p className="mt-0.5 text-[0.6875rem] font-semibold text-muted">
                         {item.openedBy ? `${t.owner.picOpened}: ${item.openedBy}` : ""}

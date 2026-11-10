@@ -488,6 +488,11 @@ export function NoShowCard({
         {format(t.host.startedAt, { time: clockInTz(entry.joinedAt, timezone) })} ·{" "}
         {format(t.host.waitingFor, { minutes: Math.max(1, entry.waitMinutes) })}
       </p>
+      {entry.noShowReason && (
+        <p className="mt-1.5 rounded-lg border-2 border-tomato/25 bg-white/80 px-2 py-1 text-[0.6875rem] font-bold text-tomato-dark">
+          {format(t.host.noShowReasonLabel, { reason: entry.noShowReason })}
+        </p>
+      )}
       {entry.phone && (
         <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs font-semibold text-muted">
           <a href={`tel:${entry.phone}`} className="inline-flex items-center gap-1 hover:text-ink">

@@ -341,10 +341,14 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(calledAgain.ok).toBe(true);
     state = await getHostState(branchId);
     const entryAgain = state.called.find((item) => item.code === "A-001")!;
-    const noShow = await markNoShow(branchId, entryAgain.id, "Wuri");
+    const noShow = await markNoShow(branchId, entryAgain.id, "Wuri", "Tidak ada kabar");
     expect(noShow.ok).toBe(true);
     state = await getHostState(branchId);
-    expect(state.recent.some((item) => item.code === "A-001" && item.status === "no_show")).toBe(true);
+    const marked = state.recent.find((item) => item.code === "A-001" && item.status === "no_show");
+    expect(marked?.noShowReason).toBe("Tidak ada kabar");
+    const csv = await getReportCsv(branchId, 1);
+    expect(csv).toContain("no_show_reason");
+    expect(csv).toContain("Tidak ada kabar");
   });
 
   it("acknowledges a called guest once and pauses the countdown", async () => {

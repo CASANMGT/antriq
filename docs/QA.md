@@ -8,7 +8,7 @@ npm test         # 45 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **10 Nov 2026** — lint clean, 47/47 tests passing, production build green (v0.18.5 table analytics follow seating mode).
+Last run: **11 Nov 2026** — lint clean, 47/47 tests passing, production build green (v0.18.6 no-show reasons).
 
 ### Notification delivery QA
 

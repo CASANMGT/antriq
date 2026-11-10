@@ -10,6 +10,14 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.18.6] — 2026-11-11
+
+The **no-show reasons** release.
+
+### Added
+- The **Tandai tidak hadir** dialog now asks for a reason: quick presets (**Tidak ada kabar**, **Sudah pulang**, **Menunggu terlalu lama**, **Salah nomor**) or a custom note.
+- The reason is stored with the ticket, shown on the no-show card, in customer history, and exported as the `no_show_reason` CSV column.
+
 ## [0.18.5] — 2026-11-10
 
 The **table analytics follow seating mode** release.

@@ -65,7 +65,7 @@ export async function POST(request: Request) {
           ),
         );
       case "noShow":
-        return json(await markNoShow(branchId, Number(body.entryId), session.name));
+        return json(await markNoShow(branchId, Number(body.entryId), session.name, body.reason ? String(body.reason) : null));
       case "requeue":
         return json(await requeueEntry(branchId, Number(body.entryId), session.name));
       case "undoCall":

@@ -67,6 +67,8 @@ export function HostBoard({
   const [seatTableId, setSeatTableId] = useState<number | null>(null);
   const [seatNumber, setSeatNumber] = useState<number | null>(null);
   const [noShowTarget, setNoShowTarget] = useState<QueueEntry | null>(null);
+  const [noShowReason, setNoShowReason] = useState("noResponse");
+  const [noShowCustom, setNoShowCustom] = useState("");
   const [releaseTarget, setReleaseTarget] = useState<DiningTable | null>(null);
   const [releaseEntryTarget, setReleaseEntryTarget] = useState<QueueEntry | null>(null);
   const [query, setQuery] = useState("");
@@ -292,6 +294,12 @@ export function HostBoard({
     setSeatNumber(null);
   }
 
+  function openNoShow(entry: QueueEntry) {
+    setNoShowReason("noResponse");
+    setNoShowCustom("");
+    setNoShowTarget(entry);
+  }
+
   function openSeat(entry: QueueEntry) {
     const table = state.tables
       .filter((item) => item.status === "available" && item.capacity >= entry.partySize)
@@ -343,6 +351,15 @@ export function HostBoard({
       return next;
     });
   }
+
+  const noShowReasons = [
+    { id: "noResponse", label: t.host.noShowReasonNoResponse },
+    { id: "left", label: t.host.noShowReasonLeft },
+    { id: "tooLong", label: t.host.noShowReasonTooLong },
+    { id: "wrongNumber", label: t.host.noShowReasonWrongNumber },
+    { id: "other", label: t.host.noShowReasonOther },
+  ];
+  const canMarkNoShow = noShowReason !== "other" || noShowCustom.trim().length > 0;
 
   return (
     <div className="min-h-[100dvh] bg-paper">
@@ -622,7 +639,7 @@ export function HostBoard({
                               onRecall={() => run(() => hostAction("recall", { entryId: entry.id }))}
                               onSeat={() => chooseSeat(entry)}
                               onOpenSeat={() => openSeat(entry)}
-                              onNoShow={() => setNoShowTarget(entry)}
+                              onNoShow={() => openNoShow(entry)}
                               onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
                               manualMode={manual}
                               showCategory={state.branch.queueMode === "split"}
@@ -668,7 +685,7 @@ export function HostBoard({
                     onRecall={() => run(() => hostAction("recall", { entryId: entry.id }))}
                     onSeat={() => chooseSeat(entry)}
                     onOpenSeat={() => openSeat(entry)}
-                    onNoShow={() => setNoShowTarget(entry)}
+                    onNoShow={() => openNoShow(entry)}
                     onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
                     manualMode={manual}
                     showCategory={state.branch.queueMode === "split"}
@@ -1086,11 +1103,15 @@ export function HostBoard({
             <button
               type="button"
               className="btn btn-danger"
-              disabled={pending}
+              disabled={pending || !canMarkNoShow}
               onClick={() => {
                 const target = noShowTarget;
+                const reason =
+                  noShowReason === "other"
+                    ? noShowCustom.trim()
+                    : noShowReasons.find((item) => item.id === noShowReason)?.label ?? "";
                 setNoShowTarget(null);
-                if (target) run(() => hostAction("noShow", { entryId: target.id }));
+                if (target) run(() => hostAction("noShow", { entryId: target.id, reason }));
               }}
             >
               {t.host.markNoShow}
@@ -1099,13 +1120,50 @@ export function HostBoard({
         }
       >
         {noShowTarget && (
-          <div className="rounded-xl border-2 border-ink bg-cream px-4 py-3">
-            <p className="num font-display text-lg font-semibold">{noShowTarget.code}</p>
-            <p className="mt-0.5 text-sm font-bold">{noShowTarget.guestName}</p>
-            <p className="text-xs font-semibold text-muted">
-              {noShowTarget.partySize} {t.guest.guestUnit}
-            </p>
-          </div>
+          <>
+            <div className="rounded-xl border-2 border-ink bg-cream px-4 py-3">
+              <p className="num font-display text-lg font-semibold">{noShowTarget.code}</p>
+              <p className="mt-0.5 text-sm font-bold">{noShowTarget.guestName}</p>
+              <p className="text-xs font-semibold text-muted">
+                {noShowTarget.partySize} {t.guest.guestUnit}
+              </p>
+            </div>
+
+            <div className="mt-3">
+              <p className="text-xs font-extrabold uppercase tracking-[0.1em] text-ink/55">{t.host.noShowReason}</p>
+              <p className="mt-0.5 text-xs font-semibold text-muted">{t.host.noShowReasonHint}</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {noShowReasons.map((reason) => {
+                  const active = noShowReason === reason.id;
+                  return (
+                    <button
+                      key={reason.id}
+                      type="button"
+                      onClick={() => setNoShowReason(reason.id)}
+                      aria-pressed={active}
+                      className={`pill border-2 transition ${
+                        active
+                          ? "border-ink bg-tomato text-white"
+                          : "border-ink/15 bg-white text-ink hover:border-ink/40"
+                      }`}
+                    >
+                      {reason.label}
+                    </button>
+                  );
+                })}
+              </div>
+              {noShowReason === "other" && (
+                <input
+                  className="input mt-2"
+                  value={noShowCustom}
+                  onChange={(event) => setNoShowCustom(event.target.value)}
+                  placeholder={t.host.noShowReasonCustom}
+                  maxLength={240}
+                  autoFocus
+                />
+              )}
+            </div>
+          </>
         )}
       </Modal>
 

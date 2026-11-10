@@ -44,6 +44,7 @@ function entry(overrides: Partial<QueueEntry> & { id: number; joinedAt: string }
     seatedAt: null,
     closedAt: null,
     cancelledBy: null,
+    noShowReason: null,
     waitMinutes: 0,
     calledMinutesAgo: null,
     holdSecondsLeft: 0,

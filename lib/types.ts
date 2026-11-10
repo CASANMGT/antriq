@@ -107,6 +107,7 @@ export interface QueueEntry {
   seatedAt: string | null;
   closedAt: string | null;
   cancelledBy: string | null;
+  noShowReason: string | null;
   waitMinutes: number;
   calledMinutesAgo: number | null;
   holdSecondsLeft: number;
@@ -264,6 +265,7 @@ export interface CustomerHistoryItem {
   openedBy: string | null;
   releasedBy: string | null;
   notes: string | null;
+  noShowReason: string | null;
 }
 
 export interface OwnerOverview {

@@ -78,7 +78,7 @@ const ENTRY_COLUMNS = `
   ) as visit_number,
   qe.rating, qe.rating_note, qe.rated_at,
   qe.joined_at, qe.called_at,
-  qe.hold_expires_at, qe.seated_at, qe.closed_at, qe.cancelled_by,
+  qe.hold_expires_at, qe.seated_at, qe.closed_at, qe.cancelled_by, qe.no_show_reason,
   t.label as table_label
 `;
 
@@ -204,6 +204,7 @@ function mapEntry(row: Row, tablesById: Map<number, string>, now = new Date()): 
     seatedAt,
     closedAt,
     cancelledBy: row.cancelled_by ?? null,
+    noShowReason: row.no_show_reason ?? null,
     waitMinutes: elapsedMinutes(joinedAt, waitUntil),
     calledMinutesAgo: calledAt ? elapsedMinutes(calledAt, now.toISOString()) : null,
     holdSecondsLeft: holdExpiresAt
@@ -1668,15 +1669,26 @@ export async function seatEntry(
   });
 }
 
-export async function markNoShow(branchId: number, entryId: number, actor: string): Promise<ActionResult> {
+export async function markNoShow(
+  branchId: number,
+  entryId: number,
+  actor: string,
+  reason?: string | null,
+): Promise<ActionResult> {
+  const cleaned = reason ? String(reason).trim().slice(0, 240) : "";
   return updateEntryStatus(
     branchId,
     entryId,
     ["called", "waiting"],
-    { status: "no_show", closed_at: new Date().toISOString(), hold_expires_at: null },
+    {
+      status: "no_show",
+      closed_at: new Date().toISOString(),
+      hold_expires_at: null,
+      no_show_reason: cleaned || null,
+    },
     actor,
     "no_show",
-    "Marked as no-show",
+    cleaned ? `No-show: ${cleaned}` : "Marked as no-show",
     "Guest marked as a no-show.",
   );
 }
@@ -2284,7 +2296,7 @@ export async function getCustomerHistory(
   const rows = await q<Row>(
     `select qe.id, qe.code, qe.guest_name, qe.party_size, qe.status, qe.source,
             qe.joined_at, qe.called_at, qe.seated_at, qe.closed_at, qe.opened_by, qe.released_by, qe.notes,
-            t.label as table_label
+            qe.no_show_reason, t.label as table_label
      from queue_entries qe
      left join dining_tables t on t.id = qe.table_id
      where qe.branch_id = $1
@@ -2312,6 +2324,7 @@ export async function getCustomerHistory(
     openedBy: row.opened_by ?? null,
     releasedBy: row.released_by ?? null,
     notes: row.notes ?? null,
+    noShowReason: row.no_show_reason ?? null,
   }));
 }
 
@@ -2342,7 +2355,7 @@ export async function getReportCsv(branchId: number, days = 30): Promise<string>
     `select qe.code, to_char(qe.day, 'YYYY-MM-DD') as day_text, qe.guest_name, qe.phone,
             qe.party_size, qe.source, qe.status, qe.seat_number, qe.opened_by,
             qe.released_by, qe.joined_at, qe.called_at, qe.seated_at, qe.closed_at, qe.notes,
-            qe.rating, qe.rating_note, t.label as table_label
+            qe.no_show_reason, qe.rating, qe.rating_note, t.label as table_label
      from queue_entries qe
      left join dining_tables t on t.id = qe.table_id
      where qe.branch_id = $1 and qe.day >= $2::date
@@ -2353,7 +2366,7 @@ export async function getReportCsv(branchId: number, days = 30): Promise<string>
   const header = [
     "code", "day", "guest", "phone", "party_size", "source", "status",
     "joined_at", "called_at", "seated_at", "closed_at", "table", "seat", "opened_by", "released_by",
-    "wait_min", "turn_min", "rating", "rating_note", "notes",
+    "wait_min", "turn_min", "rating", "rating_note", "notes", "no_show_reason",
   ];
   const lines = [header.join(",")];
   for (const row of rows) {
@@ -2384,6 +2397,7 @@ export async function getReportCsv(branchId: number, days = 30): Promise<string>
         row.rating ?? "",
         row.rating_note ?? "",
         row.notes ?? "",
+        row.no_show_reason ?? "",
       ]
         .map((value) => csvCell(value))
         .join(","),
@@ -2403,7 +2417,7 @@ export async function getReportCsvForBranches(branchIds: number[], days = 30): P
     `select qe.code, to_char(qe.day, 'YYYY-MM-DD') as day_text, br.name as branch_name, qe.guest_name, qe.phone,
             qe.party_size, qe.source, qe.status, qe.seat_number, qe.opened_by,
             qe.released_by, qe.joined_at, qe.called_at, qe.seated_at, qe.closed_at, qe.notes,
-            qe.rating, qe.rating_note, t.label as table_label
+            qe.no_show_reason, qe.rating, qe.rating_note, t.label as table_label
      from queue_entries qe
      join branches br on br.id = qe.branch_id
      left join dining_tables t on t.id = qe.table_id
@@ -2415,7 +2429,7 @@ export async function getReportCsvForBranches(branchIds: number[], days = 30): P
   const header = [
     "branch", "code", "day", "guest", "phone", "party_size", "source", "status",
     "joined_at", "called_at", "seated_at", "closed_at", "table", "seat", "opened_by", "released_by",
-    "wait_min", "turn_min", "rating", "rating_note", "notes",
+    "wait_min", "turn_min", "rating", "rating_note", "notes", "no_show_reason",
   ];
   const lines = [header.join(",")];
   for (const row of rows) {
@@ -2447,6 +2461,7 @@ export async function getReportCsvForBranches(branchIds: number[], days = 30): P
         row.rating ?? "",
         row.rating_note ?? "",
         row.notes ?? "",
+        row.no_show_reason ?? "",
       ]
         .map((value) => csvCell(value))
         .join(","),
