@@ -231,30 +231,14 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
             </p>
           </div>
           <div className="mt-5 space-y-2">
-            {entry.status === "seated" ? (
-              <>
-                <button
-                  type="button"
-                  className="btn btn-primary btn-lg w-full"
-                  onClick={() => {
-                    setShowThanks(false);
-                    setResetOpen(true);
-                  }}
-                >
-                  {t.ticket.finishSession}
-                </button>
-                <button type="button" className="btn btn-ghost w-full" onClick={() => setShowThanks(false)}>
-                  {t.ticket.backToTicket}
-                </button>
-              </>
-            ) : entry.status === "waiting" || entry.status === "called" ? (
-              <button type="button" className="btn btn-primary btn-lg w-full" onClick={() => setShowThanks(false)}>
-                {t.ticket.backToTicket}
-              </button>
-            ) : (
+            {entry.status === "completed" || entry.status === "cancelled" || entry.status === "no_show" ? (
               <Link href={homeHref} className="btn btn-primary btn-lg w-full">
                 {t.ticket.backRestaurant}
               </Link>
+            ) : (
+              <button type="button" className="btn btn-primary btn-lg w-full" onClick={() => setShowThanks(false)}>
+                {t.ticket.closeSummary}
+              </button>
             )}
           </div>
           <p className="mt-6 text-[0.6875rem] font-semibold leading-relaxed text-muted-soft">
@@ -602,24 +586,13 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                     {entry.ratingNote && (
                       <p className="mt-1 text-xs font-medium italic text-ink/65">“{entry.ratingNote}”</p>
                     )}
-                    {entry.status === "seated" ? (
-                      <button
-                        type="button"
-                        className="btn btn-primary btn-sm mt-3 w-full"
-                        onClick={() => setResetOpen(true)}
-                        disabled={pending}
-                      >
-                        {t.ticket.finishSession}
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm mt-3 w-full"
-                        onClick={() => setRatingHidden(true)}
-                      >
-                        {t.ticket.closeSummary}
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm mt-3 w-full"
+                      onClick={() => setRatingHidden(true)}
+                    >
+                      {t.ticket.closeSummary}
+                    </button>
                   </>
                 ) : (
                   <>

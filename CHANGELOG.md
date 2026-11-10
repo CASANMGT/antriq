@@ -10,6 +10,18 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.17.0] — 2026-11-10
+
+The **rating list filters and queue pages** release.
+
+### Added
+- Reports now has an **All ratings** list with guest, phone, time, rating and review.
+- Filter the rating list by clicking **5, 4, 3, 2 or 1 stars**.
+- **Antrean A** and **Antrean B** are paginated (4 cards per page) so both groups stay within easy reach.
+
+### Changed
+- The rating summary and thank-you page now use **“Tutup”**; finishing the visit stays on the **“Selesai Antrian”** button.
+
 ## [0.16.0] — 2026-11-10
 
 The **reviews, timeslots and Hadir privacy** release.

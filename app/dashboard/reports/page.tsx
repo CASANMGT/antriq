@@ -3,8 +3,9 @@ import Link from "next/link";
 import { ArrowLeft, Download, Star, TrendingUp } from "lucide-react";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { WeekBars } from "@/components/owner/charts";
+import { RatingList } from "@/components/owner/RatingList";
 import { Mascot } from "@/components/Mascot";
-import { getOwnerOverview, getOwnerWeekForBranches, getRatingAnalysis } from "@/lib/store";
+import { getOwnerOverview, getOwnerWeekForBranches, getRatingAnalysis, getRatingRecords } from "@/lib/store";
 import { resolveOwnerScope } from "@/lib/scope";
 import { formatDayLong } from "@/lib/time";
 import { getLang } from "@/lib/lang";
@@ -31,11 +32,12 @@ export default async function ReportsPage({
   const { branches, active } = await resolveOwnerScope(params.branch === "all" ? undefined : params.branch);
   const canSeeAll = branches.length > 1;
   const showAll = canSeeAll && params.branch === "all";
-  const [week, ratings, lang] = await Promise.all([
+  const [week, ratings, ratingRecords, lang] = await Promise.all([
     showAll
       ? getOwnerWeekForBranches(branches.map((branch) => branch.id), days)
       : getOwnerOverview(active.id, days).then((overview) => overview.week),
     getRatingAnalysis(showAll ? branches.map((branch) => branch.id) : [active.id], days),
+    getRatingRecords(showAll ? branches.map((branch) => branch.id) : [active.id], days),
     getLang(),
   ]);
   const t = getDict(lang);
@@ -240,6 +242,8 @@ export default async function ReportsPage({
           </div>
         )}
       </section>
+
+      <RatingList records={ratingRecords} />
 
       <section className="card overflow-hidden">
         <div className="flex items-center justify-between gap-3 border-b-2 border-ink px-4 py-3 sm:px-5">

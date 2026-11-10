@@ -7,6 +7,8 @@ import {
   BellRing,
   Check,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   LayoutDashboard,
   Loader2,
   LogOut,
@@ -34,6 +36,8 @@ import { dayInTz, formatDayLong } from "@/lib/time";
 import { format } from "@/lib/i18n";
 import { zoneLabel } from "@/lib/labels";
 import type { ActionResult, BranchSummary, DiningTable, HostState, QueueEntry, Role } from "@/lib/types";
+
+const WAITING_PAGE_SIZE = 4;
 
 type Tab = "queue" | "called" | "tables" | "seated" | "noShow";
 
@@ -67,7 +71,12 @@ export function HostBoard({
   const [releaseEntryTarget, setReleaseEntryTarget] = useState<QueueEntry | null>(null);
   const [query, setQuery] = useState("");
   const [muted, setMuted] = useState(false);
+  const [waitingPages, setWaitingPages] = useState<Record<string, number>>({});
   const [pending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setWaitingPages({});
+  }, [query]);
 
   const { branch, brand, stats } = state;
   const plan = branch.seatingMode === "plan";
@@ -525,44 +534,92 @@ export function HostBoard({
                   note={query ? t.host.noMatchNote : t.host.emptyLineNote}
                 />
               ) : (
-                waitingGroups.map((group) => (
-                  <div key={group.key}>
-                    {state.branch.queueMode === "split" && (
-                      <div className="mb-1.5 flex items-center justify-between">
-                        <h3 className="text-[0.6875rem] font-extrabold uppercase tracking-[0.14em] text-ink/50">
-                          {group.label}
-                        </h3>
-                        <span className="pill status-muted">{group.entries.length}</span>
-                      </div>
-                    )}
-                    <div className="space-y-2.5">
-                      {group.entries.length === 0 ? (
-                        <p className="rounded-xl border-2 border-dashed border-ink/20 bg-white/50 px-3 py-4 text-center text-xs font-semibold text-muted">
-                          {t.host.groupEmpty}
-                        </p>
-                      ) : (
-                        group.entries.map((entry, index) => (
-                          <QueueCard
-                            key={entry.id}
-                            entry={entry}
-                            position={index + 1}
-                            next={entry.id === nextWaitingId && !query}
-                            busy={pending}
-                            onCall={() => run(() => hostAction("callEntry", { entryId: entry.id }))}
-                            onRecall={() => run(() => hostAction("recall", { entryId: entry.id }))}
-                            onSeat={() => chooseSeat(entry)}
-                            onOpenSeat={() => openSeat(entry)}
-                            onNoShow={() => setNoShowTarget(entry)}
-                            onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
-                            manualMode={manual}
-                            showCategory={state.branch.queueMode === "split"}
-                            showCountdown={state.branch.holdEnabled}
-                          />
-                        ))
+                waitingGroups.map((group) => {
+                  const total = group.entries.length;
+                  const maxPage = Math.max(1, Math.ceil(total / WAITING_PAGE_SIZE));
+                  const page = Math.min(Math.max(1, waitingPages[group.key] ?? 1), maxPage);
+                  const start = (page - 1) * WAITING_PAGE_SIZE;
+                  const visible = group.entries.slice(start, start + WAITING_PAGE_SIZE);
+                  return (
+                    <div key={group.key}>
+                      {(state.branch.queueMode === "split" || total > WAITING_PAGE_SIZE) && (
+                        <div className="mb-1.5 flex items-center justify-between gap-2">
+                          {state.branch.queueMode === "split" ? (
+                            <h3 className="text-[0.6875rem] font-extrabold uppercase tracking-[0.14em] text-ink/50">
+                              {group.label}
+                            </h3>
+                          ) : (
+                            <span />
+                          )}
+                          <div className="flex items-center gap-1.5">
+                            <span className="pill status-muted">{total}</span>
+                            {total > WAITING_PAGE_SIZE && (
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  className="grid size-6 place-items-center rounded-full border-2 border-ink/20 bg-white text-ink/60 transition hover:border-ink disabled:opacity-30"
+                                  onClick={() =>
+                                    setWaitingPages((current) => ({
+                                      ...current,
+                                      [group.key]: Math.max(1, page - 1),
+                                    }))
+                                  }
+                                  disabled={page <= 1}
+                                  aria-label={t.host.previousPage}
+                                >
+                                  <ChevronLeft className="size-3.5" />
+                                </button>
+                                <span className="min-w-8 text-center text-[0.625rem] font-extrabold text-muted">
+                                  {page}/{maxPage}
+                                </span>
+                                <button
+                                  type="button"
+                                  className="grid size-6 place-items-center rounded-full border-2 border-ink/20 bg-white text-ink/60 transition hover:border-ink disabled:opacity-30"
+                                  onClick={() =>
+                                    setWaitingPages((current) => ({
+                                      ...current,
+                                      [group.key]: Math.min(maxPage, page + 1),
+                                    }))
+                                  }
+                                  disabled={page >= maxPage}
+                                  aria-label={t.host.nextPage}
+                                >
+                                  <ChevronRight className="size-3.5" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       )}
+                      <div className="space-y-2.5">
+                        {total === 0 ? (
+                          <p className="rounded-xl border-2 border-dashed border-ink/20 bg-white/50 px-3 py-4 text-center text-xs font-semibold text-muted">
+                            {t.host.groupEmpty}
+                          </p>
+                        ) : (
+                          visible.map((entry, index) => (
+                            <QueueCard
+                              key={entry.id}
+                              entry={entry}
+                              position={start + index + 1}
+                              next={entry.id === nextWaitingId && !query}
+                              busy={pending}
+                              onCall={() => run(() => hostAction("callEntry", { entryId: entry.id }))}
+                              onRecall={() => run(() => hostAction("recall", { entryId: entry.id }))}
+                              onSeat={() => chooseSeat(entry)}
+                              onOpenSeat={() => openSeat(entry)}
+                              onNoShow={() => setNoShowTarget(entry)}
+                              onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
+                              manualMode={manual}
+                              showCategory={state.branch.queueMode === "split"}
+                              showCountdown={state.branch.holdEnabled}
+                            />
+                          ))
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </section>

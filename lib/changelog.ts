@@ -16,6 +16,27 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.17.0",
+    date: "2026-11-10",
+    title: "Rating list filters and queue pages",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "Reports now has an All ratings list with guest, phone, time, rating and review.",
+          "Filter the rating list by clicking 5, 4, 3, 2 or 1 stars.",
+          "Antrean A and Antrean B are paginated (4 cards per page) so both groups stay within easy reach.",
+        ],
+      },
+      {
+        label: "Changed",
+        items: [
+          "The rating summary and thank-you page now use “Tutup”; finishing the visit stays on the “Selesai Antrian” button.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.16.0",
     date: "2026-11-10",
     title: "Reviews, timeslots and Hadir privacy",

@@ -35,6 +35,7 @@ import type {
   QueueEntry,
   QueueMode,
   QueueSource,
+  RatingRecord,
   RatingSummary,
   Role,
   SeatingMode,
@@ -2202,6 +2203,36 @@ export async function getRatingAnalysis(branchIds: number[], days = 30): Promise
       };
     })
     .sort((a, b) => b.average - a.average || b.count - a.count);
+}
+
+export async function getRatingRecords(branchIds: number[], days = 30): Promise<RatingRecord[]> {
+  const wanted = Array.from(new Set(branchIds.filter((id) => Number.isInteger(id) && id > 0)));
+  if (wanted.length === 0) return [];
+  const first = await getBranch(wanted[0]);
+  const windowDays = Math.min(90, Math.max(1, Math.round(days)));
+  const today = dayInTz(new Date(), first.timezone);
+  const startDay = addDaysToDay(today, -(windowDays - 1));
+  const rows = await q<Row>(
+    `select qe.branch_id, qe.code, qe.guest_name, qe.phone, qe.rating, qe.rating_note, qe.rated_at,
+            br.name as branch_name, br.timezone as branch_timezone
+     from queue_entries qe
+     join branches br on br.id = qe.branch_id
+     where qe.branch_id = any($1::int[]) and qe.day >= $2::date
+       and qe.rating is not null and qe.rated_at is not null
+     order by qe.rated_at desc`,
+    [wanted, startDay],
+  );
+  return rows.map((row) => ({
+    branchId: toNumber(row.branch_id),
+    branchName: String(row.branch_name),
+    branchTimezone: String(row.branch_timezone ?? "Asia/Jakarta"),
+    code: String(row.code),
+    guestName: String(row.guest_name),
+    phone: row.phone ?? null,
+    rating: toNumber(row.rating),
+    note: row.rating_note ?? null,
+    ratedAt: toIso(row.rated_at) as string,
+  }));
 }
 
 export async function getCustomerList(branchId: number, days = 1): Promise<QueueEntry[]> {  const branch = await getBranch(branchId);

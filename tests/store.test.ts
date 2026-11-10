@@ -21,6 +21,7 @@ import {
   getOwnerWeekForBranches,
   getPublicSnapshot,
   getRatingAnalysis,
+  getRatingRecords,
   getReportCsv,
   getTicketView,
   joinQueue,
@@ -242,6 +243,10 @@ describe("store integration (PGlite + demo seed)", () => {
     const analysis = await getRatingAnalysis([branchId], 7);
     expect(analysis[0]?.count).toBeGreaterThanOrEqual(1);
     expect(analysis[0]?.recent[0]?.note).toBe("Cepat dan ramah");
+
+    const records = await getRatingRecords([branchId], 7);
+    expect(records[0]?.rating).toBe(5);
+    expect(records[0]?.note).toBe("Cepat dan ramah");
   });
 
   it("lets a waiting guest rate and buckets ratings by hour", async () => {

@@ -235,6 +235,18 @@ export interface BranchRatingSummary extends RatingSummary {
   branchName: string;
 }
 
+export interface RatingRecord {
+  branchId: number;
+  branchName: string;
+  branchTimezone: string;
+  code: string;
+  guestName: string;
+  phone: string | null;
+  rating: number;
+  note: string | null;
+  ratedAt: string;
+}
+
 export interface OwnerOverview {
   branch: Branch;
   brand: Brand | null;

@@ -126,7 +126,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Take a number in about 20 seconds: party size, name, optional phone/note.
 - Ticket with a human code (`A-024`), queue position, parties ahead, now-serving code. The guest ticket does not show a join time or wait duration.
 - Called state: **“Meja siap!”** with an optional **3-minute countdown** (off by default), optional “Saya hadir” (stops or extends the countdown), directions and release.
-- Guest ticket includes a **1–5 queue rating** while waiting, called, or Hadir, with pre-filled review suggestions and an optional note; releasing the queue also offers an optional rating. After rating, a thank-you landing page shows a summary and finish/close action.
+- Guest ticket includes a **1–5 queue rating** while waiting, called, or Hadir, with pre-filled review suggestions and an optional note; releasing the queue also offers an optional rating. After rating, a thank-you landing page shows a summary with a **Tutup** button.
 - Browser notification permission prompt on the ticket, plus a notification when the call changes while the tab is hidden.
 - Seated state shows the open-seat confirmation, or the assigned table/seat when the branch uses the table plan. Host name and directions are hidden once seated.
 - Host queue cards show the live waiting time; seated cards show the wait until the call.
@@ -137,7 +137,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 ### Host stand
 - PIN login, 12-hour signed session, branch-scoped access.
 - Four-column board: **Antrean (A/B) / Dipanggil / Hadir / Tidak Hadir** — tabs on phones.
-- Queue groups are **A/B by default**: Antrean A for 1–2 guests, Antrean B for 3+; hosts see each group separately with its own positions and counts.
+- Queue groups are **A/B by default**: Antrean A for 1–2 guests, Antrean B for 3+; hosts see each group separately with its own positions, counts and **pagination (4 cards per page)**.
 - Branch switcher for owners and brand owners.
 - Queue positions on every card, not waiting-time guesses.
 - **Call next** selects the first party a free table can physically seat; suggests the smallest fitting table.
@@ -160,7 +160,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Brand → branch switcher; every view, report and QR link is branch-scoped.
 - Queue-focused KPIs: waiting, called, seated today, tables open.
 - Hourly service pulse (joined vs seated), floor map by zone, live queue, activity feed.
-- **Guest ratings** card: average, 1–5 distribution, hourly timeslot breakdown and latest comments, plus a per-restaurant rating table in Reports with review content and timeslots.
+- **Guest ratings** card: average, 1–5 distribution, hourly timeslot breakdown and latest comments, plus a per-restaurant rating table and an **All ratings** list with guest, phone, time, rating and review; filter by clicking 5/4/3/2/1 stars.
 - 7/30/90-day reports: joined, seated, attendance, no-shows, cancellations, CSV (incl. table, seat, PIC). Owners can switch to **all branches**; the view and CSV stay scoped to the branches they manage.
 - **Customers** page: contact, party, status, table/seat, opener/releaser PIC, join time, 1/7/30-day ranges.
 - Tables CRUD with capacity/zone and seated-table protection.
