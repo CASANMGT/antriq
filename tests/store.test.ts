@@ -565,6 +565,12 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(byPhone.filter((item) => item.status === "seated" || item.status === "completed")).toHaveLength(1);
     const byName = await getCustomerHistory(branchId, { name: "Repeat Guest" });
     expect(byName.map((item) => item.code)).toEqual(expect.arrayContaining(byPhone.map((item) => item.code)));
+
+    // A namesake with a different phone must never leak into phone history.
+    const namesake = await joinQueue(branchId, { guestName: "Repeat Guest", partySize: 2, phone: "081299990063" });
+    expect(namesake.token).toBeTruthy();
+    expect(await getCustomerHistory(branchId, { phone })).toHaveLength(3);
+    expect(await getCustomerHistory(branchId, { name: "Repeat Guest" })).toHaveLength(4);
   });
 
   it("stars a guest phone number globally", async () => {
