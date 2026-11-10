@@ -93,6 +93,7 @@ export function QueueCard({
 }) {
   const { t } = useLang();
   const called = entry.status === "called";
+  const rating = entry.rating;
   const waMessage = format(t.host.waCallMessage, {
     name: entry.guestName,
     code: entry.code,
@@ -197,6 +198,20 @@ export function QueueCard({
           <UserRound className="size-4" />
         </span>
       </div>
+
+      {rating !== null && (
+        <div className="mt-2 rounded-lg border-2 border-ink/10 bg-white/70 px-2 py-1.5">
+          <div className="flex items-center gap-0.5 text-gold">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star key={star} className="size-3" fill={star <= rating ? "currentColor" : "none"} />
+            ))}
+            <span className="ml-1 text-[0.625rem] font-bold text-ink/60">{rating}/5</span>
+          </div>
+          {entry.ratingNote && (
+            <p className="mt-0.5 text-[0.6875rem] font-medium italic text-muted">“{entry.ratingNote}”</p>
+          )}
+        </div>
+      )}
 
       <div className="mt-3 flex flex-wrap gap-1.5 border-t-2 border-dashed border-ink/15 pt-2.5">
         {!called && (
@@ -422,6 +437,7 @@ export function NoShowCard({
 }) {
   const { t } = useLang();
   const at = entry.closedAt ?? entry.calledAt ?? entry.joinedAt;
+  const rating = entry.rating;
   return (
     <article className="min-w-0 rounded-2xl border-2 border-ink bg-cream p-3.5 shadow-[3px_3px_0_#262321]">
       <div className="flex flex-wrap items-center gap-1.5">
@@ -457,6 +473,19 @@ export function NoShowCard({
         <p className="mt-2 rounded-lg bg-white/70 px-2 py-1.5 text-xs font-medium leading-relaxed text-ink/70">
           {entry.notes}
         </p>
+      )}
+      {rating !== null && (
+        <div className="mt-2 rounded-lg border-2 border-ink/10 bg-white/70 px-2 py-1.5">
+          <div className="flex items-center gap-0.5 text-gold">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star key={star} className="size-3" fill={star <= rating ? "currentColor" : "none"} />
+            ))}
+            <span className="ml-1 text-[0.625rem] font-bold text-ink/60">{rating}/5</span>
+          </div>
+          {entry.ratingNote && (
+            <p className="mt-0.5 text-[0.6875rem] font-medium italic text-muted">“{entry.ratingNote}”</p>
+          )}
+        </div>
       )}
       <button type="button" className="btn btn-primary btn-sm mt-3 w-full" onClick={onRequeue} disabled={busy}>
         <RotateCcw className="size-3.5" /> {t.host.requeue}
