@@ -62,9 +62,10 @@ export function OwnerShell({
         { href: withBranch("/dashboard/team", active.id), base: "/dashboard/team", label: t.owner.team, icon: Users },
         { href: withBranch("/dashboard/settings", active.id), base: "/dashboard/settings", label: t.owner.settings, icon: Settings },
         { href: withBranch("/dashboard/qr", active.id), base: "/dashboard/qr", label: t.owner.qr, icon: QrCode },
-      ].filter((item) =>
-        isOwner || !["/dashboard/tables", "/dashboard/team", "/dashboard/settings"].includes(item.base),
-      ),
+      ].filter((item) => {
+        if (item.base === "/dashboard/tables" && active.seatingMode !== "plan") return false;
+        return isOwner || !["/dashboard/tables", "/dashboard/team", "/dashboard/settings"].includes(item.base);
+      }),
     },
     {
       label: t.owner.navBusiness,

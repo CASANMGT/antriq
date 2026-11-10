@@ -28,10 +28,11 @@ const sourceLabel: Record<string, string> = {
   walkin: "Walk-in",
 };
 
-export function whatsappHref(phone: string): string {
+export function whatsappHref(phone: string, message?: string): string {
   const digits = phone.replace(/\D/g, "");
   const normalized = digits.startsWith("0") ? `62${digits.slice(1)}` : digits;
-  return `https://wa.me/${normalized}`;
+  const base = `https://wa.me/${normalized}`;
+  return message ? `${base}?text=${encodeURIComponent(message)}` : base;
 }
 
 export function StatsStrip({ stats, showTables = true }: { stats: HostStats; showTables?: boolean }) {
@@ -64,6 +65,7 @@ export function QueueCard({
   position,
   next,
   busy,
+  branchName,
   onCall,
   onRecall,
   onSeat,
@@ -78,6 +80,7 @@ export function QueueCard({
   position: number;
   next: boolean;
   busy: boolean;
+  branchName: string;
   onCall: () => void;
   onRecall: () => void;
   onSeat: () => void;
@@ -90,6 +93,12 @@ export function QueueCard({
 }) {
   const { t } = useLang();
   const called = entry.status === "called";
+  const waMessage = format(t.host.waCallMessage, {
+    name: entry.guestName,
+    code: entry.code,
+    count: entry.partySize,
+    branch: branchName,
+  });
 
   return (
     <article
@@ -109,6 +118,11 @@ export function QueueCard({
               </span>
             )}
             <span className="pill status-muted">{sourceLabel[entry.source] ?? entry.source}</span>
+            {entry.visitNumber > 1 && (
+              <span className="pill status-waiting">
+                {format(t.common.visitNumber, { count: entry.visitNumber })}
+              </span>
+            )}
             {next && !called && (
               <span className="pill bg-tomato text-white">
                 <ClipboardList className="size-3" /> {t.host.nextUp}
@@ -142,14 +156,16 @@ export function QueueCard({
                   <Phone className="size-3" />
                   {entry.phone}
                 </a>
-                <a
-                  href={whatsappHref(entry.phone)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 rounded-full border-2 border-leaf/40 bg-leaf-soft px-2 py-0.5 font-extrabold text-leaf-dark hover:border-leaf"
-                >
-                  <MessageCircle className="size-3" /> WA
-                </a>
+                {called && (
+                  <a
+                    href={whatsappHref(entry.phone, waMessage)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 rounded-full border-2 border-leaf/40 bg-leaf-soft px-2 py-0.5 font-extrabold text-leaf-dark hover:border-leaf"
+                  >
+                    <MessageCircle className="size-3" /> WA
+                  </a>
+                )}
               </>
             )}
           </div>
@@ -341,6 +357,11 @@ export function SeatedCard({
               </span>
             )}
             <span className="pill status-seated">{t.ticket.seated}</span>
+            {entry.visitNumber > 1 && (
+              <span className="pill status-waiting">
+                {format(t.common.visitNumber, { count: entry.visitNumber })}
+              </span>
+            )}
           </div>
           <h3 className="mt-2 min-w-0 truncate font-display text-[1.4rem] leading-tight tracking-tight">{entry.guestName}</h3>
           <p className="mt-0.5 text-xs font-semibold text-muted">
@@ -409,6 +430,11 @@ export function NoShowCard({
         </span>
         <span className="pill status-muted">{entry.partySize} {t.guest.guestUnit}</span>
         <span className="pill status-muted">{t.host.noShow}</span>
+        {entry.visitNumber > 1 && (
+          <span className="pill status-waiting">
+            {format(t.common.visitNumber, { count: entry.visitNumber })}
+          </span>
+        )}
       </div>
       <h3 className="mt-2 min-w-0 truncate font-display text-[1.4rem] leading-tight tracking-tight">{entry.guestName}</h3>
       <p className="mt-0.5 inline-flex items-center gap-1 text-xs font-semibold text-muted">
@@ -424,14 +450,6 @@ export function NoShowCard({
         <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs font-semibold text-muted">
           <a href={`tel:${entry.phone}`} className="inline-flex items-center gap-1 hover:text-ink">
             <Phone className="size-3" /> {entry.phone}
-          </a>
-          <a
-            href={whatsappHref(entry.phone)}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 rounded-full border-2 border-leaf/40 bg-leaf-soft px-2 py-0.5 font-extrabold text-leaf-dark hover:border-leaf"
-          >
-            <MessageCircle className="size-3" /> WA
           </a>
         </div>
       )}

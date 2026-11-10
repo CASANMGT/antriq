@@ -10,6 +10,20 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.18.0] — 2026-11-10
+
+The **rating analytics, repeat guests and WA prefill** release.
+
+### Added
+- Owner dashboard now combines rating analytics: distribution, by restaurant, by date, by hour, and all ratings.
+- All ratings support a date filter and pagination when the list is long.
+- Guests with a phone seen before are labelled **Visit 2**, **Visit 3**, and so on on host cards and the rating list.
+- WhatsApp on a called card now opens a pre-filled message with the guest name, queue code, party size and restaurant, asking them to come to the gate.
+
+### Changed
+- The **Meja** (tables) sidebar item is hidden unless the branch uses the table-plan seating mode.
+- WhatsApp is only offered on called cards; phone numbers remain elsewhere except the Hadir list.
+
 ## [0.17.0] — 2026-11-10
 
 The **rating list filters and queue pages** release.

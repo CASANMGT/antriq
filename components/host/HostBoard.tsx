@@ -604,6 +604,7 @@ export function HostBoard({
                               position={start + index + 1}
                               next={entry.id === nextWaitingId && !query}
                               busy={pending}
+                              branchName={branch.name}
                               onCall={() => run(() => hostAction("callEntry", { entryId: entry.id }))}
                               onRecall={() => run(() => hostAction("recall", { entryId: entry.id }))}
                               onSeat={() => chooseSeat(entry)}
@@ -647,6 +648,7 @@ export function HostBoard({
                     position={index + 1}
                     next={false}
                     busy={pending}
+                    branchName={branch.name}
                     onCall={() => run(() => hostAction("callEntry", { entryId: entry.id }))}
                     onRecall={() => run(() => hostAction("recall", { entryId: entry.id }))}
                     onSeat={() => chooseSeat(entry)}

@@ -60,7 +60,7 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
     return () => window.clearInterval(timer);
   }, [branchId, router]);
 
-  const { branch, brand, stats, today, week, hourly, activity, tables, waiting, ratings } = data;
+  const { branch, brand, stats, today, week, hourly, activity, tables, waiting } = data;
   const status = branch.waitlistStatus;
   const locale = lang === "id" ? "id-ID" : "en-GB";
   const now = new Date(data.serverNow);
@@ -387,85 +387,6 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
           </div>
         </section>
       </div>
-
-      <section className="card p-4 sm:p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="font-display text-[1.5rem] font-semibold leading-tight">{t.owner.ratingTitle}</h2>
-            <p className="mt-0.5 text-xs font-semibold text-muted">{t.owner.ratingSub}</p>
-          </div>
-          <div className="text-right">
-            <p className="num font-display text-3xl font-semibold leading-none">
-              {ratings.count ? ratings.average.toFixed(1) : "—"}
-            </p>
-            <p className="mt-1 text-[0.625rem] font-extrabold uppercase tracking-[0.1em] text-muted">
-              {format(t.owner.ratingCount, { count: ratings.count })}
-            </p>
-          </div>
-        </div>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            {[5, 4, 3, 2, 1].map((star) => {
-              const count = ratings.distribution[star - 1] ?? 0;
-              const pct = ratings.count ? Math.round((count / ratings.count) * 100) : 0;
-              return (
-                <div key={star} className="flex items-center gap-2 text-xs font-bold">
-                  <span className="inline-flex w-9 shrink-0 items-center gap-0.5">
-                    <Star className="size-3 text-gold" fill="currentColor" /> {star}
-                  </span>
-                  <span className="h-2 flex-1 overflow-hidden rounded-full bg-cream">
-                    <span className="block h-2 rounded-full bg-gold" style={{ width: `${pct}%` }} />
-                  </span>
-                  <span className="num w-7 text-right text-muted">{count}</span>
-                </div>
-              );
-            })}
-          </div>
-          <div>
-            <p className="eyebrow text-ink/45">{t.owner.ratingRecent}</p>
-            <div className="mt-2 space-y-2">
-              {ratings.recent.length === 0 ? (
-                <p className="text-xs font-semibold text-muted">{t.owner.ratingNone}</p>
-              ) : (
-                ratings.recent.map((item) => (
-                  <div key={`${item.code}-${item.ratedAt}`} className="rounded-xl border-2 border-ink/10 bg-cream/50 px-3 py-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="truncate text-xs font-extrabold">
-                        {item.code} · {item.guestName}
-                      </p>
-                      <span className="inline-flex shrink-0 items-center gap-0.5 text-gold">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star key={star} className="size-3" fill={star <= item.rating ? "currentColor" : "none"} />
-                        ))}
-                      </span>
-                    </div>
-                    {item.note && <p className="mt-0.5 text-[0.6875rem] font-medium text-ink/65">{item.note}</p>}
-                    <p className="mt-0.5 text-[0.625rem] font-semibold text-muted">
-                      {relativeTime(item.ratedAt, now, lang)}
-                    </p>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-        {ratings.slots.length > 0 && (
-          <div className="mt-4 border-t-2 border-dashed border-ink/15 pt-3">
-            <p className="eyebrow text-ink/45">{t.owner.ratingTimeslots}</p>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {ratings.slots.map((slot) => (
-                <span
-                  key={slot.hour}
-                  className="rounded-full border-2 border-ink/15 bg-white px-2 py-1 text-[0.625rem] font-bold"
-                >
-                  {String(slot.hour).padStart(2, "0")}:00–{String((slot.hour + 1) % 24).padStart(2, "0")}:00 ·{" "}
-                  {slot.average.toFixed(1)} ({slot.count})
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-      </section>
 
       <Notice notice={notice} onClose={() => setNotice(null)} />
     </div>

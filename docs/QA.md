@@ -8,7 +8,7 @@ npm test         # 45 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **10 Nov 2026** — lint clean, 45/45 tests passing, production build green (v0.17.0 rating list filters and queue pages).
+Last run: **10 Nov 2026** — lint clean, 45/45 tests passing, production build green (v0.18.0 rating analytics, repeat guests, WA prefill).
 
 ### Notification delivery QA
 
@@ -98,6 +98,10 @@ Last run: **10 Nov 2026** — lint clean, 45/45 tests passing, production build 
 - Guest ticket shows a 1–5 rating while waiting, called, or Hadir, and after release; each star offers pre-filled review suggestions and the note is optional.
 - After rating, a thank-you landing page shows a summary and a **Tutup** action; release also shows an optional rating hint.
 - Reports has an **All ratings** list with guest, phone, rated-at time, stars and review; clicking 5/4/3/2/1 filters the list.
+- Owner dashboard has a combined **Rating analytics** section: distribution, per-restaurant comparison, daily chart, hourly chart and the paginated All ratings list with date/star filters.
+- Repeat guests display `Visit 2`, `Visit 3`, etc. on host cards and rating rows.
+- Called cards expose a WhatsApp link with a pre-filled message: queue code, party size, restaurant and “please come to the gate” with thanks for waiting.
+- The **Meja** sidebar item is hidden unless the branch seating mode is table plan.
 - Antrean A and Antrean B each paginate at 4 cards per page with previous/next controls.
 - The **Selesai Antrian** button remains the finish-session action; rating summary and thank-you use **Tutup**.
 - The submitted review is shown on the ticket, on the host Hadir card, on the owner dashboard, and in per-restaurant Reports analysis.

@@ -66,7 +66,14 @@ const ENTRY_COLUMNS = `
   qe.category, qe.guest_name, qe.phone, qe.party_size, qe.notes, qe.source, qe.status,
   qe.table_id, qe.seat_number, qe.opened_by, qe.opened_by_staff_id,
   qe.released_by, qe.released_by_staff_id,
-  qe.called_count, qe.acknowledged, qe.rating, qe.rating_note, qe.rated_at,
+  qe.called_count, qe.acknowledged,
+  (select count(*)::int + 1 from queue_entries qv
+   where qe.phone is not null and qv.phone is not null
+     and regexp_replace(regexp_replace(qv.phone, '[^0-9]', '', 'g'), '^0', '62')
+       = regexp_replace(regexp_replace(qe.phone, '[^0-9]', '', 'g'), '^0', '62')
+     and (qv.joined_at < qe.joined_at or (qv.joined_at = qe.joined_at and qv.id < qe.id))
+  ) as visit_number,
+  qe.rating, qe.rating_note, qe.rated_at,
   qe.joined_at, qe.called_at,
   qe.hold_expires_at, qe.seated_at, qe.closed_at, qe.cancelled_by,
   t.label as table_label
@@ -184,6 +191,7 @@ function mapEntry(row: Row, tablesById: Map<number, string>, now = new Date()): 
     releasedByStaffId: row.released_by_staff_id ? toNumber(row.released_by_staff_id) : null,
     calledCount: toNumber(row.called_count),
     acknowledged: Boolean(row.acknowledged),
+    visitNumber: toNumber(row.visit_number, 1),
     rating: row.rating === null || row.rating === undefined ? null : toNumber(row.rating),
     ratingNote: row.rating_note ?? null,
     ratedAt: toIso(row.rated_at),
@@ -2214,6 +2222,12 @@ export async function getRatingRecords(branchIds: number[], days = 30): Promise<
   const startDay = addDaysToDay(today, -(windowDays - 1));
   const rows = await q<Row>(
     `select qe.branch_id, qe.code, qe.guest_name, qe.phone, qe.rating, qe.rating_note, qe.rated_at,
+            (select count(*)::int + 1 from queue_entries qv
+             where qe.phone is not null and qv.phone is not null
+               and regexp_replace(regexp_replace(qv.phone, '[^0-9]', '', 'g'), '^0', '62')
+                 = regexp_replace(regexp_replace(qe.phone, '[^0-9]', '', 'g'), '^0', '62')
+               and (qv.joined_at < qe.joined_at or (qv.joined_at = qe.joined_at and qv.id < qe.id))
+            ) as visit_number,
             br.name as branch_name, br.timezone as branch_timezone
      from queue_entries qe
      join branches br on br.id = qe.branch_id
@@ -2232,6 +2246,7 @@ export async function getRatingRecords(branchIds: number[], days = 30): Promise<
     rating: toNumber(row.rating),
     note: row.rating_note ?? null,
     ratedAt: toIso(row.rated_at) as string,
+    visitNumber: toNumber(row.visit_number, 1),
   }));
 }
 

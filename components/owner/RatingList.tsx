@@ -1,20 +1,44 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Phone, Star } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, Phone, Star } from "lucide-react";
 import { useLang } from "@/components/LanguageProvider";
+import { format } from "@/lib/i18n";
 import { clockInTz, dayInTz, formatDayShort } from "@/lib/time";
 import type { RatingRecord } from "@/lib/types";
+
+const PAGE_SIZE = 10;
 
 export function RatingList({ records }: { records: RatingRecord[] }) {
   const { lang, t } = useLang();
   const [filter, setFilter] = useState<number | null>(null);
+  const [dateFilter, setDateFilter] = useState("");
+  const [page, setPage] = useState(1);
   const locale = lang === "id" ? "id-ID" : "en-GB";
-  const counts = useMemo(
-    () => [5, 4, 3, 2, 1].map((star) => records.filter((record) => record.rating === star).length),
+
+  const dates = useMemo(
+    () => Array.from(new Set(records.map((record) => dayInTz(record.ratedAt, record.branchTimezone)))).sort().reverse(),
     [records],
   );
-  const filtered = filter === null ? records : records.filter((record) => record.rating === filter);
+  const dateFiltered = useMemo(
+    () =>
+      dateFilter
+        ? records.filter((record) => dayInTz(record.ratedAt, record.branchTimezone) === dateFilter)
+        : records,
+    [dateFilter, records],
+  );
+  const counts = useMemo(
+    () => [5, 4, 3, 2, 1].map((star) => dateFiltered.filter((record) => record.rating === star).length),
+    [dateFiltered],
+  );
+  const filtered = filter === null ? dateFiltered : dateFiltered.filter((record) => record.rating === filter);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const visible = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filter, dateFilter]);
 
   return (
     <section className="card overflow-hidden">
@@ -26,7 +50,7 @@ export function RatingList({ records }: { records: RatingRecord[] }) {
         <span className="pill status-muted">{records.length}</span>
       </div>
 
-      <div className="flex flex-wrap gap-1.5 border-b-2 border-dashed border-ink/10 px-4 py-3 sm:px-5">
+      <div className="flex flex-wrap items-center gap-1.5 border-b-2 border-dashed border-ink/10 px-4 py-3 sm:px-5">
         <button
           type="button"
           onClick={() => setFilter(null)}
@@ -35,7 +59,7 @@ export function RatingList({ records }: { records: RatingRecord[] }) {
             filter === null ? "border-ink bg-ink text-paper" : "border-ink/20 bg-white text-ink/65 hover:border-ink"
           }`}
         >
-          {t.owner.ratingFilterAll} ({records.length})
+          {t.owner.ratingFilterAll} ({dateFiltered.length})
         </button>
         {[5, 4, 3, 2, 1].map((star, index) => (
           <button
@@ -51,21 +75,41 @@ export function RatingList({ records }: { records: RatingRecord[] }) {
             {star} ({counts[index]})
           </button>
         ))}
+        <select
+          value={dateFilter}
+          onChange={(event) => setDateFilter(event.target.value)}
+          aria-label={t.owner.ratingAllDates}
+          className="input ml-auto h-8 w-auto rounded-full border-2 border-ink/20 bg-white px-2.5 py-1 text-[0.6875rem] font-extrabold"
+        >
+          <option value="">{t.owner.ratingAllDates}</option>
+          {dates.map((day) => (
+            <option key={day} value={day}>
+              {formatDayShort(day, locale)}
+            </option>
+          ))}
+        </select>
       </div>
 
       {filtered.length === 0 ? (
         <p className="px-4 py-10 text-center text-xs font-semibold text-muted sm:px-5">
-          {records.length === 0 ? t.owner.ratingNoRecords : filter !== null ? t.owner.ratingFilterEmpty : t.owner.ratingNoRatings}
+          {records.length === 0 || (filter === null && dateFiltered.length === 0)
+            ? t.owner.ratingNoRecords
+            : t.owner.ratingFilterEmpty}
         </p>
       ) : (
         <div className="divide-y-2 divide-dashed divide-ink/10">
-          {filtered.map((record) => (
+          {visible.map((record) => (
             <div key={`${record.branchId}-${record.code}-${record.ratedAt}`} className="flex flex-wrap items-start gap-3 px-4 py-3 sm:px-5">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-1.5">
                   <p className="truncate text-sm font-extrabold">{record.guestName}</p>
                   <span className="pill status-muted">{record.code}</span>
                   <span className="pill status-muted">{record.branchName}</span>
+                  {record.visitNumber > 1 && (
+                    <span className="pill status-waiting">
+                      {format(t.common.visitNumber, { count: record.visitNumber })}
+                    </span>
+                  )}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.6875rem] font-semibold text-muted">
                   <span>
@@ -93,6 +137,34 @@ export function RatingList({ records }: { records: RatingRecord[] }) {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {filtered.length > PAGE_SIZE && (
+        <div className="flex items-center justify-between border-t-2 border-dashed border-ink/10 px-4 py-3 sm:px-5">
+          <span className="text-[0.625rem] font-extrabold uppercase tracking-[0.1em] text-muted">
+            {currentPage} / {pageCount} · {filtered.length}
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              className="grid size-7 place-items-center rounded-full border-2 border-ink/20 bg-white text-ink/60 transition hover:border-ink disabled:opacity-30"
+              onClick={() => setPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage <= 1}
+              aria-label={t.owner.previousPage}
+            >
+              <ChevronLeft className="size-4" />
+            </button>
+            <button
+              type="button"
+              className="grid size-7 place-items-center rounded-full border-2 border-ink/20 bg-white text-ink/60 transition hover:border-ink disabled:opacity-30"
+              onClick={() => setPage(Math.min(pageCount, currentPage + 1))}
+              disabled={currentPage >= pageCount}
+              aria-label={t.owner.nextPage}
+            >
+              <ChevronRight className="size-4" />
+            </button>
+          </div>
         </div>
       )}
     </section>

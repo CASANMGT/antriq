@@ -16,6 +16,29 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.18.0",
+    date: "2026-11-10",
+    title: "Rating analytics, repeat guests and WA prefill",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "Owner dashboard now combines rating analytics: distribution, by restaurant, by date, by hour, and all ratings.",
+          "All ratings support a date filter and pagination when the list is long.",
+          "Guests with a phone seen before are labelled Visit 2, Visit 3, and so on on host cards and the rating list.",
+          "WhatsApp on a called card now opens a pre-filled message with the guest name, queue code, party size and restaurant, asking them to come to the gate.",
+        ],
+      },
+      {
+        label: "Changed",
+        items: [
+          "The Meja (tables) sidebar item is hidden unless the branch uses the table-plan seating mode.",
+          "WhatsApp is only offered on called cards; phone numbers remain elsewhere except the Hadir list.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.17.0",
     date: "2026-11-10",
     title: "Rating list filters and queue pages",

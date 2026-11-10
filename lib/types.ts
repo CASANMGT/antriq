@@ -97,6 +97,7 @@ export interface QueueEntry {
   releasedByStaffId: number | null;
   calledCount: number;
   acknowledged: boolean;
+  visitNumber: number;
   rating: number | null;
   ratingNote: string | null;
   ratedAt: string | null;
@@ -245,6 +246,7 @@ export interface RatingRecord {
   rating: number;
   note: string | null;
   ratedAt: string;
+  visitNumber: number;
 }
 
 export interface OwnerOverview {
