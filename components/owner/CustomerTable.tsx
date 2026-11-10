@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Clock3, History, Loader2, Phone, Star, Users } from "lucide-react";
+import { Clock3, History, Loader2, MapPin, Phone, Star, Users } from "lucide-react";
 import { Modal } from "@/components/Modal";
 import { useLang } from "@/components/LanguageProvider";
 import { postJson } from "@/lib/client-api";
@@ -246,6 +246,9 @@ export function CustomerTable({
                       </p>
                       <span className={`pill ${statusTone(item.status)}`}>{t.status[statusKey(item.status)]}</span>
                     </div>
+                    <p className="mt-1 flex items-center gap-1 text-[0.6875rem] font-extrabold text-ink/70">
+                      <MapPin className="size-3" /> {item.branchName}
+                    </p>
                     <p className="mt-0.5 inline-flex items-center gap-1 text-[0.6875rem] font-semibold text-muted">
                       <Clock3 className="size-3" />
                       {formatDayLong(dayInTz(item.joinedAt, timezone), locale)} · {clockInTz(item.joinedAt, timezone)}

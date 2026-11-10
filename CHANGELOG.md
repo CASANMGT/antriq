@@ -10,6 +10,14 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.18.8] — 2026-11-11
+
+The **restaurant names in history** release.
+
+### Changed
+- **Riwayat antrean** now shows the restaurant for every attempt and lists attempts from all branches in the owner's scope.
+- The **Hari demi hari** column is now labelled **Antrean** instead of **Masuk**.
+
 ## [0.18.7] — 2026-11-11
 
 The **Blok M identity and opening hours** release.

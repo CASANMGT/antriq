@@ -18,6 +18,10 @@ export async function GET(request: Request) {
   const branch = branches.find((item) => item.id === branchId) ?? branches[0];
   if (!branch) return NextResponse.json({ error: "branch_not_found" }, { status: 403 });
 
-  const items = await getCustomerHistory(branch.id, { phone, name });
+  // Owners can see every queue attempt across the branches in their scope.
+  const items = await getCustomerHistory(
+    branches.map((item) => item.id),
+    { phone, name },
+  );
   return NextResponse.json({ items }, { headers: { "Cache-Control": "no-store" } });
 }

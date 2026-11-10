@@ -175,7 +175,7 @@ export default async function ReportsPage({
             <thead>
               <tr className="border-b-2 border-ink/15 bg-cream/60 text-left text-[0.625rem] uppercase tracking-[0.12em] text-ink/50">
                 <th className="px-4 py-2.5 font-extrabold sm:px-5">{t.owner.day}</th>
-                <th className="px-3 py-2.5 font-extrabold text-right">{t.owner.joined}</th>
+                <th className="px-3 py-2.5 font-extrabold text-right">{t.owner.queueColumn}</th>
                 <th className="px-3 py-2.5 font-extrabold text-right">{t.owner.seated}</th>
                 <th className="px-3 py-2.5 font-extrabold text-right">{t.owner.noShowsCol}</th>
                 <th className="px-4 py-2.5 font-extrabold text-right sm:px-5">{t.owner.cancelledCol}</th>

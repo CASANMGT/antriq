@@ -261,6 +261,7 @@ export interface CustomerHistoryItem {
   calledAt: string | null;
   seatedAt: string | null;
   closedAt: string | null;
+  branchName: string;
   tableLabel: string | null;
   openedBy: string | null;
   releasedBy: string | null;

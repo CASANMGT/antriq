@@ -2287,19 +2287,22 @@ export async function setPhoneStar(phone: string, starred: boolean, actor: strin
 }
 
 export async function getCustomerHistory(
-  branchId: number,
+  branchIds: number[],
   input: { phone?: string | null; name?: string | null },
 ): Promise<CustomerHistoryItem[]> {
+  const wanted = Array.from(new Set(branchIds.filter((id) => Number.isInteger(id) && id > 0)));
+  if (wanted.length === 0) return [];
   const key = phoneKey(input.phone);
   const name = input.name ? String(input.name).trim() : null;
   if (!key && !name) return [];
   const rows = await q<Row>(
     `select qe.id, qe.code, qe.guest_name, qe.party_size, qe.status, qe.source,
             qe.joined_at, qe.called_at, qe.seated_at, qe.closed_at, qe.opened_by, qe.released_by, qe.notes,
-            qe.no_show_reason, t.label as table_label
+            qe.no_show_reason, br.name as branch_name, t.label as table_label
      from queue_entries qe
+     join branches br on br.id = qe.branch_id
      left join dining_tables t on t.id = qe.table_id
-     where qe.branch_id = $1
+     where qe.branch_id = any($1::int[])
        and (
          ($2::text is not null and qe.phone is not null
            and regexp_replace(regexp_replace(qe.phone, '[^0-9]', '', 'g'), '^0', '62') = $2)
@@ -2307,7 +2310,7 @@ export async function getCustomerHistory(
        )
      order by qe.joined_at desc
      limit 100`,
-    [branchId, key, name],
+    [wanted, key, name],
   );
   return rows.map((row) => ({
     id: toNumber(row.id),
@@ -2320,6 +2323,7 @@ export async function getCustomerHistory(
     calledAt: toIso(row.called_at),
     seatedAt: toIso(row.seated_at),
     closedAt: toIso(row.closed_at),
+    branchName: String(row.branch_name),
     tableLabel: row.table_label ?? null,
     openedBy: row.opened_by ?? null,
     releasedBy: row.released_by ?? null,

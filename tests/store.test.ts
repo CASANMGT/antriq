@@ -564,17 +564,37 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(list.find((entry) => entry.id === cancelledView!.entry.id)?.visitNumber).toBe(1);
 
     // Both the phone key and the guest name can retrieve the branch history.
-    const byPhone = await getCustomerHistory(branchId, { phone });
+    const byPhone = await getCustomerHistory([branchId], { phone });
     expect(byPhone).toHaveLength(3);
     expect(byPhone.filter((item) => item.status === "seated" || item.status === "completed")).toHaveLength(1);
-    const byName = await getCustomerHistory(branchId, { name: "Repeat Guest" });
+    const byName = await getCustomerHistory([branchId], { name: "Repeat Guest" });
     expect(byName.map((item) => item.code)).toEqual(expect.arrayContaining(byPhone.map((item) => item.code)));
 
     // A namesake with a different phone must never leak into phone history.
     const namesake = await joinQueue(branchId, { guestName: "Repeat Guest", partySize: 2, phone: "081299990063" });
     expect(namesake.token).toBeTruthy();
-    expect(await getCustomerHistory(branchId, { phone })).toHaveLength(3);
-    expect(await getCustomerHistory(branchId, { name: "Repeat Guest" })).toHaveLength(4);
+    expect(await getCustomerHistory([branchId], { phone })).toHaveLength(3);
+    expect(await getCustomerHistory([branchId], { name: "Repeat Guest" })).toHaveLength(4);
+  });
+
+  it("labels each history attempt with the restaurant it belongs to", async () => {
+    const blokM = await primaryBranchId();
+    const tebetBranch = await getBranchBySlugs("nikumaru", "tebet");
+    expect(tebetBranch).toBeTruthy();
+    const tebet = tebetBranch!.branch.id;
+    const phone = "081299990071";
+
+    await joinQueue(blokM, { guestName: "Cross Branch Guest", partySize: 2, phone });
+    await joinQueue(
+      tebet,
+      { guestName: "Cross Branch Guest", partySize: 3, phone, source: "walkin", actor: "Wuri" },
+      true,
+    );
+
+    const history = await getCustomerHistory([blokM, tebet], { phone });
+    expect(history).toHaveLength(2);
+    expect(history.map((item) => item.branchName).sort()).toEqual(["Nikumaru Blok M", "Nikumaru Tebet"]);
+    expect(await getCustomerHistory([tebet], { phone })).toHaveLength(1);
   });
 
   it("stars a guest phone number globally", async () => {

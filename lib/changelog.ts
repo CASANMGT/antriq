@@ -16,6 +16,20 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.18.8",
+    date: "2026-11-11",
+    title: "Restaurant names in history",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "Customer history now shows which restaurant each queue attempt belongs to and includes attempts from every branch in the owner's scope.",
+          "The Hari demi hari column is now labelled Antrean instead of Masuk.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.18.7",
     date: "2026-11-11",
     title: "Blok M restored and standard opening hours",
