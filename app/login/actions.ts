@@ -49,10 +49,10 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
   const firstBranch = staff.branchId ?? branches[0]?.id ?? null;
 
   if (next === "/host" && firstBranch) redirect(`/host?branch=${firstBranch}`);
-  if (next === "/dashboard" && (staff.role === "owner" || staff.role === "manager")) {
+  if (next === "/dashboard" && staff.role === "owner") {
     redirect(firstBranch ? `/dashboard?branch=${firstBranch}` : "/dashboard");
   }
-  if (staff.role === "owner" || staff.role === "manager") {
+  if (staff.role === "owner") {
     redirect(firstBranch ? `/dashboard?branch=${firstBranch}` : "/dashboard");
   }
   redirect(firstBranch ? `/host?branch=${firstBranch}` : "/login");

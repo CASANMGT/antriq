@@ -224,7 +224,7 @@ export function HostBoard({
   }
 
   const status = branch.waitlistStatus;
-  const canManageQueue = staff.role === "owner" || staff.role === "manager";
+  const canManageQueue = staff.role === "owner";
   const statusLabel =
     status === "open" ? t.host.waitlistOpen : status === "paused" ? t.host.waitlistPaused : t.host.waitlistClosed;
   const statusTone = status === "open" ? "status-seated" : status === "paused" ? "status-waiting" : "status-muted";
@@ -327,13 +327,7 @@ export function HostBoard({
                 <h1 className="truncate font-display text-[1.2rem] font-semibold leading-tight">{branch.name}</h1>
                 <span className={`pill ${statusTone}`}>{statusLabel}</span>
                 <span className="pill status-muted hidden sm:inline-flex">
-                  {staff.role === "cashier"
-                    ? t.login.cashierRole
-                    : staff.role === "owner"
-                      ? t.login.ownerRole
-                      : staff.role === "manager"
-                        ? t.login.managerRole
-                        : t.login.greeterRole}
+                  {staff.role === "owner" ? t.login.ownerRole : t.login.hostRole}
                 </span>
               </div>
             </div>
@@ -382,7 +376,7 @@ export function HostBoard({
             >
               {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
             </button>
-            {(staff.role === "owner" || staff.role === "manager") && (
+            {staff.role === "owner" && (
               <>
                 <Link
                   href={`/dashboard?branch=${activeBranchId}`}
@@ -691,7 +685,7 @@ export function HostBoard({
               </span>
             </button>
           ))}
-          {(staff.role === "owner" || staff.role === "manager") && (
+          {(staff.role === "owner") && (
             <>
               <Link
                 href={`/dashboard?branch=${activeBranchId}`}
@@ -860,7 +854,7 @@ export function HostBoard({
                   run(() =>
                     hostAction("releaseSeat", {
                       tableId: table.id,
-                      reason: staff.role === "cashier" ? t.host.paymentSettled : t.host.releasedByHost,
+                      reason: t.host.releasedByHost,
                     }),
                   );
                 }
@@ -881,7 +875,7 @@ export function HostBoard({
               </p>
             )}
             <p className="text-xs font-semibold leading-relaxed text-muted">
-              {staff.role === "cashier" ? t.host.cashierReleaseNote : t.host.hostReleaseNote}
+              {t.host.hostReleaseNote}
             </p>
           </div>
         )}
@@ -909,7 +903,7 @@ export function HostBoard({
                   run(() =>
                     hostAction("releaseEntry", {
                       entryId: entry.id,
-                      reason: staff.role === "cashier" ? t.host.paymentSettled : t.host.releasedByHost,
+                      reason: t.host.releasedByHost,
                     }),
                   );
                 }
@@ -926,7 +920,7 @@ export function HostBoard({
             <p className="font-display text-lg font-semibold">{releaseEntryTarget.code}</p>
             <p className="text-sm font-bold">{releaseEntryTarget.guestName}</p>
             <p className="text-xs font-semibold leading-relaxed text-muted">
-              {staff.role === "cashier" ? t.host.cashierReleaseNote : t.host.hostReleaseNote}
+              {t.host.hostReleaseNote}
             </p>
           </div>
         )}

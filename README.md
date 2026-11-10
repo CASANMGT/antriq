@@ -5,7 +5,7 @@
 **Antrean restoran, lebih praktis.**  
 *Makan enak. Nunggu santai.*
 
-A bold, warm restaurant queue for guests, hosts, cashiers and owners — built for multi-brand, multi-branch hospitality groups like **Nikumaru** and **Tenka**.
+A bold, warm restaurant queue for guests, hosts and owners - built for multi-brand, multi-branch hospitality groups like **Nikumaru** and **Tenka**.
 
 [Live demo](https://antriq1.vercel.app) · [GitHub](https://github.com/CASANMGT/antriq) · [PRD](docs/PRD.md) · [Architecture](docs/ARCHITECTURE.md) · [Reverse engineering](docs/REVERSE_ENGINEERING.md) · [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md)
 
@@ -46,9 +46,8 @@ AntriQ is a multi-brand, multi-branch queue system with three connected surfaces
 | Surface | Who | What they can do |
 | --- | --- | --- |
 | **Guest** | Diner, no account | Open a brand or branch URL, see the live queue, take a number, watch position and now-serving, get called, see the assigned table/seat |
-| **Host stand** | Greeter, cashier, manager or owner (PIN) | Work the line with live wait times, call the next party, seat openly (no table required), finish the visit with **Selesai**, mark no-shows, add walk-ins, pause the queue |
-| **Owner dashboard** | Owner (PIN, scoped by brand/branch) | Live queue counts, service pulse, floor map, activity, reports, CSV, tables, team, brand assets, branches, settings, QR poster |
-| **Manager dashboard** | Manager (PIN, scoped by brand/branch or all) | Monitor every branch they cover: live queue, reports, customers and QR posters. Can operate the host floor, but cannot manage staff accounts, settings, brands, branches or tables |
+| **Host stand** | Host or owner (PIN) | Work the line with live wait times, call the next party, seat openly (no table required), finish the visit with **Selesai**, mark no-shows, add walk-ins |
+| **Owner dashboard** | Owner (PIN, scoped by brand/branch) | Live queue counts, service pulse, floor map, activity, reports, CSV, tables, team, brand assets, branches, settings, QR poster; owners can also pause/reopen the queue |
 
 Brands own identity and assets (logo, menu PDF, Instagram); branches own hours, tables, staff, the queue and their own public URL. A platform owner manages every brand, a brand owner manages every branch in their brand, and a branch owner manages only their branch.
 
@@ -77,16 +76,16 @@ A fictional **ramen & izakaya** group with two brands and three branches:
 
 | Role | Name | Scope | PIN |
 | --- | --- | --- | --- |
-| Platform owner | Iwanna | All brands & branches | `1234` |
-| Manager | Rina Manager | All brands & branches (monitor, no user management) | `1234` |
-| Greeter | Wuri | Nikumaru Blok M | `1234` |
-| Greeter | Bima Pratama | Nikumaru Blok M | `1234` |
-| Cashier | Sari Kasir | Nikumaru Blok M | `1234` |
-| Greeter | Dewi Larasati | Nikumaru Tebet | `1234` |
-| Brand owner | Kenji Sato | Tenka | `1234` |
-| Cashier | Akira Tanaka | Tenka KAMAJA | `1234` |
+| Platform owner | Owner | All brands & branches | `1234` |
+| Brand owner | Owner Nikumaru | Nikumaru | `1234` |
+| Host | Host Blok M | Nikumaru Blok M | `1234` |
+| Host | Host Blok M 2 | Nikumaru Blok M | `1234` |
+| Host | Host Blok M 3 | Nikumaru Blok M | `1234` |
+| Host | Host Tebet | Nikumaru Tebet | `1234` |
+| Brand owner | Owner Tenka | Tenka | `1234` |
+| Host | Host KAMAJA | Tenka KAMAJA | `1234` |
 
-Open `/login`. Demo shortcuts (one-click staff + PIN `1234`) appear in local development only; production never shows demo PINs.
+Open `/login`. Staff names are intentionally generic; new and reset PINs default to `1234`. Demo shortcuts appear in local development only; production never shows demo PINs.
 
 > With `DEMO_AUTO_RESET=1`, the demo resets its floor on the first request of each new day, even on a warm serverless instance. Leave `DEMO_AUTO_RESET=0` in production so clearing a queue stays cleared.
 
@@ -115,7 +114,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - QR poster uses a **1600px high-resolution, high-error-correction QR** and prints on A4 at 68mm.
 - Queue screen includes an owner QR-poster shortcut.
 - Live queue snapshot: **one group by default**, now serving and branch status. Owners can switch to **two groups - A (1-2), B (3+)** in Settings. No empty-table count.
-- **Queue control:** owners and managers can pause new joins and reopen the queue from the dashboard; existing guests keep their place.
+- **Queue control:** owners can pause new joins and reopen the queue from the dashboard; existing guests keep their place.
 - **Service-hours gate:** outside opening hours the join form becomes an opening-hours panel with the next opening time, and guest joins are rejected server-side.
 - **In-app version + changelog:** `/changelog`, linked from the guest footer, ticket, owner sidebar, mobile nav and host header.
 - **One active ticket per guest:** duplicate protection by device cookie and phone; the join form becomes an existing-ticket panel until the ticket is released or completed. A seated guest can tap **“Selesai Antrian”** to close the ticket and clear this device’s history before joining again.
@@ -134,7 +133,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Capability URL + local ticket memory; no account.
 - Mobile-first, installable, reduced-motion aware, Indonesian/English.
 
-### Greeter / cashier
+### Host stand
 - PIN login, 12-hour signed session, branch-scoped access.
 - Three-column board: **Antrean / Dipanggil / Lantai** — tabs on phones.
 - Branch switcher for owners and brand owners.
@@ -159,7 +158,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - 7/30/90-day reports: joined, seated, attendance, no-shows, cancellations, CSV (incl. table, seat, PIC). Owners can switch to **all branches**; the view and CSV stay scoped to the branches they manage.
 - **Customers** page: contact, party, status, table/seat, opener/releaser PIC, join time, 1/7/30-day ranges.
 - Tables CRUD with capacity/zone and seated-table protection.
-- Team management: owner/greeter/cashier, brand + branch assignment, reset PIN, pause access, last-owner protection.
+- Team management: owner/host roles, generic display names, brand + branch assignment, reset PIN (default `1234`), pause access, last-owner protection.
 - **Brands:** name, slug, Instagram, accent, logo upload, menu PDF upload.
 - **Branches:** create/edit name, slug, address, phone, timezone, hours, announcement.
 - Settings: identity, accent, timezone, hours, max party (default 10), queue cap, auto no-show, announcement, **queue groups** (1 group by default, or split A/B), **seating mode** (queue-only, manual, or table plan), **optional “time to table” countdown**, **optional “Saya hadir” button**, and **what it does** (stop or add minutes).
@@ -287,7 +286,7 @@ All writes are validated, parameterised, and return `{ ok, message, data }`. Hos
 ```text
 brands (identity, logo bytea, menu bytea, Instagram)
   └─ branches (URL slug, hours, queue policy, announcement)
-       ├─ staff (owner | greeter | cashier, brand_id / branch_id scope, scrypt pin_hash)
+       ├─ staff (owner | host, brand_id / branch_id scope, scrypt pin_hash)
        ├─ dining_tables (capacity, zone, status)
        ├─ queue_entries (branch_id, token, code, day+seq, party, status,
        │                  table_id, seat_number, opened_by, opened_by_staff_id,
@@ -304,7 +303,7 @@ Brand assets live in Postgres (`bytea`) and are streamed by `/api/brands/[id]/�
 - Staff sessions: HMAC-signed, HTTP-only, SameSite=Lax, 12h.
 - PINs: salted **scrypt** hashes; never logged or returned.
 - Owner guards and brand/branch scope on every owner page and API.
-- Host/cashier branch scope on every host API.
+- Host branch scope on every host API.
 - Rate limits on joins, ticket actions and login attempts.
 - Positional SQL only; input length/enum validation.
 - No third-party analytics or tracking scripts.
@@ -332,7 +331,7 @@ app/
   b/[brand]/[branch]/      Guest branch landing + join
   t/[token]/               Live ticket
   login/                   Staff PIN login
-  host/                    Greeter/cashier board (?branch=)
+  host/                    Host board (?branch=)
   dashboard/               Owner: overview, reports, customers, tables, team, brands, branches, settings, QR
   api/                     JSON reads/writes
 components/

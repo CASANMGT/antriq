@@ -1,4 +1,4 @@
-export type Role = "owner" | "manager" | "greeter" | "cashier";
+export type Role = "owner" | "host";
 export type WaitlistStatus = "open" | "paused" | "closed";
 export type SeatingMode = "queue" | "manual" | "plan";
 export type QueueMode = "single" | "split";

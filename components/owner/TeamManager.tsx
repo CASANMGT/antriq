@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { KeyRound, Loader2, Pencil, Plus, Shield, Store, UserRound, Users } from "lucide-react";
+import { KeyRound, Loader2, Pencil, Plus, Shield, UserRound, Users } from "lucide-react";
 import { Modal } from "@/components/Modal";
 import { Notice, type NoticeState } from "@/components/Notice";
 import { useLang } from "@/components/LanguageProvider";
@@ -47,18 +47,16 @@ export function TeamManager({
   const [resetting, setResetting] = useState<StaffRow | null>(null);
   const [pin, setPin] = useState("");
   const [draft, setDraft] = useState<Draft>({
-    name: "",
-    role: "greeter",
-    pin: "",
+    name: "Host",
+    role: "host",
+    pin: "1234",
     brandId: "",
     branchId: "",
   });
 
   const active = staff.filter((person) => person.active);
   const owners = staff.filter((person) => person.role === "owner");
-  const managers = staff.filter((person) => person.role === "manager");
-  const greeters = staff.filter((person) => person.role === "greeter");
-  const cashiers = staff.filter((person) => person.role === "cashier");
+  const hosts = staff.filter((person) => person.role === "host");
 
   const branchOptions = useMemo(() => {
     const brandId = Number(draft.brandId);
@@ -88,9 +86,9 @@ export function TeamManager({
     const branch = branches.find((item) => item.id === defaultBranchId) ?? branches[0];
     setEditing(null);
     setDraft({
-      name: "",
-      role: "greeter",
-      pin: "",
+      name: "Host",
+      role: "host",
+      pin: "1234",
       brandId: String(scope.brandId ?? branch?.brandId ?? brands[0]?.id ?? ""),
       branchId: String(scope.branchId ?? branch?.id ?? ""),
     });
@@ -130,13 +128,7 @@ export function TeamManager({
   }
 
   function roleLabel(role: Role): string {
-    return role === "owner"
-      ? t.login.ownerRole
-      : role === "manager"
-        ? t.login.managerRole
-        : role === "cashier"
-          ? t.login.cashierRole
-          : t.login.greeterRole;
+    return role === "owner" ? t.login.ownerRole : t.login.hostRole;
   }
 
   return (
@@ -149,8 +141,7 @@ export function TeamManager({
             {format(t.owner.teamSub, {
               active: active.length,
               owners: owners.length,
-              managers: managers.length,
-              greeters: greeters.length + cashiers.length,
+              hosts: hosts.length,
             })}
           </p>
         </div>
@@ -159,12 +150,10 @@ export function TeamManager({
         </button>
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-3">
         <Stat icon={Users} label={t.owner.activeAccess} value={active.length} tone="bg-pink" />
         <Stat icon={Shield} label={t.owner.owners} value={owners.length} hint={t.owner.ownerAccess} tone="bg-cream" />
-        <Stat icon={UserRound} label={t.owner.managers} value={managers.length} hint={t.owner.managerAccess} tone="bg-butter" />
-        <Stat icon={UserRound} label={t.owner.greeters} value={greeters.length} hint={t.owner.greeterAccess} tone="bg-leaf-soft" />
-        <Stat icon={Store} label={t.owner.cashiers} value={cashiers.length} hint={t.owner.cashierAccess} tone="bg-white" />
+        <Stat icon={UserRound} label={t.owner.hosts} value={hosts.length} hint={t.owner.hostAccess} tone="bg-leaf-soft" />
       </div>
 
       {demoPinCount > 0 && (
@@ -194,7 +183,7 @@ export function TeamManager({
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-sm font-extrabold">{person.name}</p>
-                  <span className={`pill ${person.role === "owner" ? "status-called" : person.role === "manager" ? "status-waiting" : "status-muted"}`}>
+                  <span className={`pill ${person.role === "owner" ? "status-called" : "status-muted"}`}>
                     {roleLabel(person.role)}
                   </span>
                   {!person.active && <span className="pill status-muted">{t.owner.paused}</span>}
@@ -213,7 +202,7 @@ export function TeamManager({
                   className="btn btn-soft btn-sm"
                   onClick={() => {
                     setResetting(person);
-                    setPin("");
+                    setPin("1234");
                   }}
                 >
                   <KeyRound className="size-3.5" /> {t.owner.resetPin}
@@ -264,10 +253,11 @@ export function TeamManager({
               className="input"
               value={draft.name}
               onChange={(event) => setDraft({ ...draft, name: event.target.value })}
-              placeholder="Wuri"
+              placeholder="Host"
               maxLength={60}
               required
             />
+            <p className="mt-1.5 text-xs font-semibold leading-relaxed text-muted">{t.owner.staffNameHint}</p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
@@ -282,15 +272,18 @@ export function TeamManager({
                   setDraft({
                     ...draft,
                     role,
-                    branchId: role === "greeter" || role === "cashier" ? draft.branchId || String(defaultBranchId) : draft.branchId,
+                    name:
+                      draft.name === "Host" || draft.name === "Owner"
+                        ? role === "owner"
+                          ? "Owner"
+                          : "Host"
+                        : draft.name,
+                    branchId: role === "host" ? draft.branchId || String(defaultBranchId) : draft.branchId,
                   });
                 }}
               >
-                <option value="greeter">{t.login.greeterRole}</option>
-                <option value="cashier">{t.login.cashierRole}</option>
-                {canOwners && <option value="manager">{t.login.managerRole}</option>}
+                <option value="host">{t.login.hostRole}</option>
                 {canOwners && <option value="owner">{t.login.ownerRole}</option>}
-                {!canOwners && draft.role === "manager" && <option value="manager">{t.login.managerRole}</option>}
                 {!canOwners && draft.role === "owner" && <option value="owner">{t.login.ownerRole}</option>}
               </select>
             </div>
@@ -307,11 +300,11 @@ export function TeamManager({
                   setDraft({
                     ...draft,
                     brandId,
-                    branchId: draft.role === "owner" || draft.role === "manager" ? draft.branchId : firstBranch ? String(firstBranch.id) : "",
+                    branchId: draft.role === "host" ? (firstBranch ? String(firstBranch.id) : "") : draft.branchId,
                   });
                 }}
               >
-                {(draft.role === "owner" || draft.role === "manager") && scope.brandId === null && (
+                {draft.role === "owner" && scope.brandId === null && (
                   <option value="">{t.owner.allBrands}</option>
                 )}
                 {brands.map((brand) => (
@@ -327,22 +320,18 @@ export function TeamManager({
             <div>
               <label className="label" htmlFor="staff-branch">
                 {t.owner.branch}
-                {(draft.role === "greeter" || draft.role === "cashier") && <span className="ml-1 text-tomato">*</span>}
+                {draft.role === "host" && <span className="ml-1 text-tomato">*</span>}
               </label>
               <select
                 id="staff-branch"
                 className="input bg-white"
                 value={draft.branchId}
                 disabled={lockedBranch}
-                required={draft.role === "greeter" || draft.role === "cashier"}
+                required={draft.role === "host"}
                 onChange={(event) => setDraft({ ...draft, branchId: event.target.value })}
               >
-                {(draft.role === "owner" || draft.role === "manager") && (
-                  <option value="">{t.owner.allBranches}</option>
-                )}
-                {!draft.branchId && draft.role !== "owner" && draft.role !== "manager" && (
-                  <option value="">{t.owner.chooseBranch}</option>
-                )}
+                {draft.role === "owner" && <option value="">{t.owner.allBranches}</option>}
+                {!draft.branchId && draft.role === "host" && <option value="">{t.owner.chooseBranch}</option>}
                 {branchOptions.map((branch) => (
                   <option key={branch.id} value={branch.id}>
                     {branch.brandName} · {branch.name}
@@ -362,7 +351,7 @@ export function TeamManager({
                 maxLength={8}
                 value={draft.pin}
                 onChange={(event) => setDraft({ ...draft, pin: event.target.value.replace(/\D/g, "").slice(0, 8) })}
-                placeholder="••••"
+                placeholder="1234"
                 required={!editing}
               />
             </div>
@@ -398,7 +387,7 @@ export function TeamManager({
                 () => postJson("/api/owner/action", { type: "staffPin", id: resetting.id, pin }),
                 () => {
                   setResetting(null);
-                  setPin("");
+                  setPin("1234");
                 },
               );
             }}

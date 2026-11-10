@@ -8,7 +8,7 @@ npm test         # 41 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **10 Nov 2026** — lint clean, 41/41 tests passing, production build green (v0.12.2 ticket-stub mascot).
+Last run: **10 Nov 2026** — lint clean, 41/41 tests passing, production build green (v0.13.0 Owner & Host roles).
 
 ### Notification delivery QA
 
@@ -34,29 +34,30 @@ Last run: **10 Nov 2026** — lint clean, 41/41 tests passing, production build 
 
 - `/login` in production does not render the demo shortcut block or show `1234`.
 - Local development still renders the demo shortcuts.
-- Platform owner sees **all branches** in Laporan; a brand owner sees only their brand’s branches; host/cashier cannot open Laporan.
+- Platform owner sees **all branches** in Laporan; a brand owner sees only their brand’s branches; hosts cannot open Laporan.
 - “All branches” CSV includes a `branch` column and only in-scope branches.
 
-### Manager role
+### Owner and Host roles
 
-- Manager logs in and lands on the dashboard.
-- Owns no admin navigation: Team, Settings, Tables, Brands and Branches are hidden.
-- Direct visits to those pages redirect to `/dashboard`.
-- Manager can open the host stand for any covered branch and call/seat guests.
-- `POST /api/owner/action` returns **401** for a manager.
+- Owner logs in and lands on the dashboard.
+- Host logs in and lands on `/host`.
+- Hosts have no admin navigation: Team, Settings, Tables, Brands and Branches are hidden.
+- Direct visits to those pages redirect to `/host`.
+- Hosts can operate the host stand for their assigned branch and call/seat guests.
+- `POST /api/owner/action` returns **401** for a host.
 - Laporan “all branches” and CSV stay scoped to covered branches.
-- Toast floats above the mobile bottom navigation (33 px gap at 390 × 844).
-- Branch page logo links to `/b/{brand}`, not the global picker.
+- Team names are generic (`Owner`, `Host Blok M`), never personal names.
+- New staff and PIN resets default to `1234`.
 
 ### Queue control and service hours
 
-- Owner and manager can pause new joins from the dashboard; the status pill and button update immediately.
+- Only owners can pause new joins from the dashboard; the status pill and button update immediately.
 - Reopening the queue restores guest joins.
 - Active-ticket banner fits inside the mobile join card at 320/390.
 - Mobile wordmark matches desktop (receipt mark included).
 - Host at 320 px: `scrollWidth = 320`, nav fits.
 - Reports 30-day: no overflow, weekly buckets.
-- Greeters/cashiers do **not** see the pause control, and `POST /api/host/action` with `type=waitlist` returns **403** for them.
+- Hosts do **not** see the pause control, and `POST /api/host/action` with `type=waitlist` returns **403** for them.
 - Outside `openTime`–`closeTime`, the join form is replaced by the opening-hours panel with the next opening time.
 - `POST /api/join` outside hours returns **400** with the hours in the message.
 - Restoring the hours returns the form and allows a normal join.

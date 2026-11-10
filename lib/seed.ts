@@ -169,14 +169,14 @@ const TABLES_BY_BRANCH: Record<string, { label: string; capacity: number; zone: 
 };
 
 const STAFF_SEED = [
-  { name: "Iwanna", role: "owner", pin: "1234", initials: "IW", brand: null, branch: null },
-  { name: "Rina Manager", role: "manager", pin: "1234", initials: "RM", brand: null, branch: null },
-  { name: "Wuri", role: "greeter", pin: "1234", initials: "WU", brand: "nikumaru", branch: "nikumaru/blok-m" },
-  { name: "Bima Pratama", role: "greeter", pin: "1234", initials: "BP", brand: "nikumaru", branch: "nikumaru/blok-m" },
-  { name: "Sari Kasir", role: "cashier", pin: "1234", initials: "SK", brand: "nikumaru", branch: "nikumaru/blok-m" },
-  { name: "Dewi Larasati", role: "greeter", pin: "1234", initials: "DL", brand: "nikumaru", branch: "nikumaru/tebet" },
-  { name: "Kenji Sato", role: "owner", pin: "1234", initials: "KS", brand: "tenka", branch: null },
-  { name: "Akira Tanaka", role: "cashier", pin: "1234", initials: "AT", brand: "tenka", branch: "tenka/kamaja" },
+  { name: "Owner", role: "owner", pin: "1234", initials: "OW", brand: null, branch: null },
+  { name: "Owner Nikumaru", role: "owner", pin: "1234", initials: "ON", brand: "nikumaru", branch: null },
+  { name: "Host Blok M", role: "host", pin: "1234", initials: "HB", brand: "nikumaru", branch: "nikumaru/blok-m" },
+  { name: "Host Blok M 2", role: "host", pin: "1234", initials: "H2", brand: "nikumaru", branch: "nikumaru/blok-m" },
+  { name: "Host Blok M 3", role: "host", pin: "1234", initials: "H3", brand: "nikumaru", branch: "nikumaru/blok-m" },
+  { name: "Host Tebet", role: "host", pin: "1234", initials: "HT", brand: "nikumaru", branch: "nikumaru/tebet" },
+  { name: "Owner Tenka", role: "owner", pin: "1234", initials: "OT", brand: "tenka", branch: null },
+  { name: "Host KAMAJA", role: "host", pin: "1234", initials: "HK", brand: "tenka", branch: "tenka/kamaja" },
 ];
 
 interface DemoEntry {

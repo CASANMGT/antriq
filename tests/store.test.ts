@@ -97,27 +97,28 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(week.reduce((sum, day) => sum + day.seated, 0)).toBeGreaterThan(0);
   });
 
-  it("seeds a manager who monitors every branch without admin rights", async () => {
+  it("seeds hosts who operate their branch without admin rights", async () => {
     const people = await listStaff();
-    const manager = people.find((person) => person.name === "Rina Manager");
-    expect(manager?.role).toBe("manager");
-    expect(await verifyStaffPin(manager!.id, "1234")).toBeTruthy();
+    const host = people.find((person) => person.name === "Host Blok M");
+    expect(host?.role).toBe("host");
+    expect(await verifyStaffPin(host!.id, "1234")).toBeTruthy();
 
-    const branches = await listBranchesForStaff(manager!);
-    expect(branches.length).toBeGreaterThanOrEqual(5);
+    const branches = await listBranchesForStaff(host!);
+    expect(branches.length).toBe(1);
     const branchId = await primaryBranchId();
-    expect(await canOperateBranch(manager!, branchId)).toBe(true);
-    expect(await canManageBranch(manager!, branchId)).toBe(false);
-    expect(await canManageBrand(manager!, branches[0].brandId)).toBe(false);
+    expect(await canOperateBranch(host!, branchId)).toBe(true);
+    expect(await canManageBranch(host!, branchId)).toBe(false);
+    expect(await canManageBrand(host!, branches[0].brandId)).toBe(false);
 
+    const tebet = (await listBranches()).find((branch) => branch.slug === "tebet")!;
     const created = await createStaff(
-      { name: "Second Manager", role: "manager", pin: "4321", brandId: null, branchId: null },
-      "Iwanna",
+      { name: "Host Tebet 2", role: "host", pin: "4321", brandId: tebet.brandId, branchId: tebet.id },
+      "Owner",
     );
     expect(created.ok).toBe(true);
-    const second = (await listStaff()).find((person) => person.name === "Second Manager");
-    expect(second?.role).toBe("manager");
-    expect(second?.branchId).toBeNull();
+    const second = (await listStaff()).find((person) => person.name === "Host Tebet 2");
+    expect(second?.role).toBe("host");
+    expect(second?.branchId).toBe(tebet.id);
   });
 
   it("prevents one guest from holding two active tickets", async () => {
@@ -155,9 +156,9 @@ describe("store integration (PGlite + demo seed)", () => {
 
   it("verifies staff PINs and rejects the wrong one", async () => {
     const people = await listStaff();
-    const ayu = people.find((person) => person.name === "Wuri");
+    const ayu = people.find((person) => person.name === "Host Blok M");
     expect(ayu).toBeTruthy();
-    expect((await verifyStaffPin(ayu!.id, "1234"))?.name).toBe("Wuri");
+    expect((await verifyStaffPin(ayu!.id, "1234"))?.name).toBe("Host Blok M");
     expect(await verifyStaffPin(ayu!.id, "9999")).toBeNull();
     expect(await verifyStaffPin(999, "1234")).toBeNull();
   });

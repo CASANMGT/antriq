@@ -170,7 +170,7 @@ export function OwnerShell({
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-extrabold text-ink">{session.name}</p>
-              <p className="text-[0.625rem] font-semibold text-muted">{isOwner ? t.owner.owner : t.login.managerRole}</p>
+              <p className="text-[0.625rem] font-semibold text-muted">{isOwner ? t.owner.owner : t.login.hostRole}</p>
             </div>
             <form action={logoutAction}>
               <button

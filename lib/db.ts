@@ -341,6 +341,45 @@ async function runDataMigrations(db: Queryable) {
   if (tebetHours.length > 0) {
     await db.query("update branches set open_time = '10:00', close_time = '22:00' where slug = 'tebet'");
   }
+
+  const genericStaff = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('generic_staff_names_v1', 'done')
+     on conflict (key) do nothing returning key`,
+  );
+  if (genericStaff.length > 0) {
+    const rows = await db.query<{
+      id: number;
+      role: string;
+      brand_name: string | null;
+      branch_name: string | null;
+    }>(
+      `select s.id, s.role, b.name as brand_name, br.name as branch_name
+       from staff s
+       left join brands b on b.id = s.brand_id
+       left join branches br on br.id = s.branch_id
+       order by s.id`,
+    );
+    const counts = new Map<string, number>();
+    for (const row of rows) {
+      const brand = row.brand_name ? String(row.brand_name) : null;
+      const branch = row.branch_name ? String(row.branch_name) : null;
+      let label: string;
+      if (row.role === "owner") {
+        label = branch ? `Owner ${branch}` : brand ? `Owner ${brand}` : "Owner";
+      } else if (branch) {
+        const shortBranch = brand && branch.startsWith(`${brand} `) ? branch.slice(brand.length + 1) : branch;
+        label = `Host ${shortBranch}`;
+      } else {
+        label = brand ? `Host ${brand}` : "Host";
+      }
+      const count = (counts.get(label) ?? 0) + 1;
+      counts.set(label, count);
+      const name = count === 1 ? label : `${label} ${count}`;
+      const words = name.split(" ").filter(Boolean);
+      const initials = `${words[0]?.[0] ?? "?"}${words[1]?.[0] ?? ""}`.toUpperCase();
+      await db.query("update staff set name = $2, initials = $3 where id = $1", [row.id, name, initials]);
+    }
+  }
 }
 
 const LEGACY_TABLES = [

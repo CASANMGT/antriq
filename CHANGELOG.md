@@ -10,6 +10,19 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.13.0] — 2026-11-10
+
+The **Owner & Host roles** release.
+
+### Changed
+- Staff roles are now **Owner** and **Host** only; manager, greeter and cashier accounts become Host.
+- Team names are generic (“Owner”, “Host Blok M”) instead of personal names.
+- New staff and PIN resets default to **1234**.
+- Owners can still run the host stand; only owners can pause/reopen the queue and manage settings.
+
+### Fixed
+- `antriq.vercel.app` now serves the working deployment instead of the broken project.
+
 ## [0.12.2] — 2026-11-10
 
 The **ticket-stub mascot** release.

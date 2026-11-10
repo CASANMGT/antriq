@@ -199,7 +199,7 @@ function mapStaff(row: Row): PublicStaff {
   return {
     id: toNumber(row.id),
     name: String(row.name),
-    role: (row.role ?? "greeter") as Role,
+    role: (row.role ?? "host") as Role,
     initials: row.initials ?? null,
     brandId: row.brand_id === null || row.brand_id === undefined ? null : toNumber(row.brand_id),
     branchId: row.branch_id === null || row.branch_id === undefined ? null : toNumber(row.branch_id),
@@ -475,7 +475,7 @@ export async function listBranchesForStaff(staff: {
   branchId: number | null;
 }): Promise<BranchSummary[]> {
   const all = await listBranches();
-  const elevated = staff.role === "owner" || staff.role === "manager";
+  const elevated = staff.role === "owner";
   if (elevated && !staff.brandId && !staff.branchId) return all;
   if (elevated && staff.brandId && !staff.branchId) {
     return all.filter((branch) => branch.brandId === staff.brandId);
@@ -512,7 +512,7 @@ export async function canOperateBranch(
   staff: { role: Role; brandId: number | null; branchId: number | null },
   branchId: number,
 ): Promise<boolean> {
-  if (staff.role === "owner" || staff.role === "manager") {
+  if (staff.role === "owner") {
     const branches = await listBranchesForStaff(staff);
     return branches.some((branch) => branch.id === branchId);
   }
@@ -788,20 +788,12 @@ export async function createStaff(
 ): Promise<ActionResult> {
   const name = validateGuestName(input.name);
   const pin = validatePin(input.pin);
-  const role: Role =
-    input.role === "owner"
-      ? "owner"
-      : input.role === "manager"
-        ? "manager"
-        : input.role === "cashier"
-          ? "cashier"
-          : "greeter";
-  const frontLine = role === "greeter" || role === "cashier";
-  if (frontLine && !input.branchId) {
-    return { ok: false, message: "Greeters and cashiers need a branch." };
+  const role: Role = input.role === "owner" ? "owner" : "host";
+  if (role === "host" && !input.branchId) {
+    return { ok: false, message: "Hosts need a branch." };
   }
-  if ((role === "owner" || role === "manager") && !input.brandId && input.branchId) {
-    return { ok: false, message: "A branch cannot exist without a brand." };
+  if (role === "owner" && !input.brandId && input.branchId) {
+    return { ok: false, message: "A platform owner cannot be tied to one branch." };
   }
   const { hashPin } = await import("./pin");
   const initials = name
@@ -829,20 +821,12 @@ export async function updateStaff(
   const current = rows[0];
   if (!current) return { ok: false, message: "Team member not found." };
   const name = input.name !== undefined ? validateGuestName(input.name) : String(current.name);
-  const role: Role =
-    input.role === "owner"
-      ? "owner"
-      : input.role === "manager"
-        ? "manager"
-        : input.role === "cashier"
-          ? "cashier"
-          : "greeter";
-  const frontLine = role === "greeter" || role === "cashier";
-  if (frontLine && !input.branchId) {
-    return { ok: false, message: "Greeters and cashiers need a branch." };
+  const role: Role = input.role === "owner" ? "owner" : "host";
+  if (role === "host" && !input.branchId) {
+    return { ok: false, message: "Hosts need a branch." };
   }
-  if ((role === "owner" || role === "manager") && !input.brandId && input.branchId) {
-    return { ok: false, message: "A branch cannot exist without a brand." };
+  if (role === "owner" && !input.brandId && input.branchId) {
+    return { ok: false, message: "A platform owner cannot be tied to one branch." };
   }
   if (current.role === "owner" && role !== "owner") {
     const owners = await q<Row>(

@@ -23,25 +23,11 @@ export function LoginForm({
 
   const selected = staff.find((person) => String(person.id) === staffId);
   const owner = staff.find((person) => person.role === "owner");
-  const manager = staff.find((person) => person.role === "manager");
-  const greeter = staff.find((person) => person.role === "greeter");
-  const cashier = staff.find((person) => person.role === "cashier");
+  const host = staff.find((person) => person.role === "host");
   const roleLabel = (role: PublicStaff["role"]) =>
-    role === "owner"
-      ? t.login.ownerRole
-      : role === "manager"
-        ? t.login.managerRole
-        : role === "cashier"
-          ? t.login.cashierRole
-          : t.login.greeterRole;
+    role === "owner" ? t.login.ownerRole : t.login.hostRole;
   const roleDesc = (role: PublicStaff["role"]) =>
-    role === "owner"
-      ? t.login.ownerDesc
-      : role === "manager"
-        ? t.login.managerDesc
-        : role === "cashier"
-          ? t.login.cashierDesc
-          : t.login.greeterDesc;
+    role === "owner" ? t.login.ownerDesc : t.login.hostDesc;
   const error =
     state.code === "choose"
       ? t.login.chooseName
@@ -85,7 +71,7 @@ export function LoginForm({
             ))}
           </select>
           <p className="mt-1.5 text-xs font-semibold text-muted">
-            {selected ? roleDesc(selected.role) : t.login.greeterDesc}
+            {selected ? roleDesc(selected.role) : t.login.hostDesc}
           </p>
         </div>
 
@@ -140,7 +126,7 @@ export function LoginForm({
         </p>
       </form>
 
-      {demo && (owner || manager || greeter || cashier) && (
+      {demo && (owner || host) && (
         <div className="mt-6 rounded-2xl border-2 border-ink bg-cream p-4 shadow-[3px_3px_0_#262321]">
           <p className="eyebrow text-tomato">{t.login.demoAccess}</p>
           <p className="mt-1 text-xs font-semibold leading-relaxed text-ink/65">{t.login.demoHint}</p>
@@ -151,37 +137,17 @@ export function LoginForm({
                 onClick={() => quickFill(owner, "1234")}
                 className="btn btn-soft btn-sm justify-between text-left"
               >
-                <span className="truncate">{owner.name.split(" ")[0]} · {t.login.ownerDemo}</span>
+                <span className="truncate">{t.login.ownerDemo}</span>
                 <span className="num font-extrabold">1234</span>
               </button>
             )}
-            {manager && (
+            {host && (
               <button
                 type="button"
-                onClick={() => quickFill(manager, "1234")}
+                onClick={() => quickFill(host, "1234")}
                 className="btn btn-soft btn-sm justify-between text-left"
               >
-                <span className="truncate">{manager.name.split(" ")[0]} · {t.login.managerRole}</span>
-                <span className="num font-extrabold">1234</span>
-              </button>
-            )}
-            {greeter && (
-              <button
-                type="button"
-                onClick={() => quickFill(greeter, "1234")}
-                className="btn btn-soft btn-sm justify-between text-left"
-              >
-                <span className="truncate">{greeter.name.split(" ")[0]} · {t.login.hostDemo}</span>
-                <span className="num font-extrabold">1234</span>
-              </button>
-            )}
-            {cashier && (
-              <button
-                type="button"
-                onClick={() => quickFill(cashier, "1234")}
-                className="btn btn-soft btn-sm justify-between text-left"
-              >
-                <span className="truncate">{cashier.name.split(" ")[0]} · {t.login.cashierRole}</span>
+                <span className="truncate">{t.login.hostDemo}</span>
                 <span className="num font-extrabold">1234</span>
               </button>
             )}

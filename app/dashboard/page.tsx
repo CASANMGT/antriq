@@ -15,7 +15,7 @@ export default async function DashboardPage({
   searchParams: Promise<{ branch?: string }>;
 }) {
   const params = await searchParams;
-  const { session, active } = await resolveOwnerScope(params.branch);
+  const { active } = await resolveOwnerScope(params.branch);
   const overview = await getOwnerOverview(active.id, 7);
-  return <OverviewBoard initial={overview} role={session.role} />;
+  return <OverviewBoard initial={overview} />;
 }

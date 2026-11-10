@@ -57,7 +57,7 @@ export const SCHEMA_STATEMENTS: string[] = [
   `create table if not exists staff (
     id serial primary key,
     name text not null,
-    role text not null check (role in ('owner','manager','greeter','cashier')),
+    role text not null check (role in ('owner','host')),
     pin_hash text not null,
     initials text,
     brand_id integer references brands(id) on delete set null,
@@ -152,7 +152,8 @@ export const SCHEMA_STATEMENTS: string[] = [
   `alter table branches add column if not exists latitude double precision`,
   `alter table branches add column if not exists longitude double precision`,
   `alter table staff drop constraint if exists staff_role_check`,
-  `alter table staff add constraint staff_role_check check (role in ('owner','manager','greeter','cashier'))`,
+  `update staff set role = 'host' where role in ('manager','greeter','cashier')`,
+  `alter table staff add constraint staff_role_check check (role in ('owner','host'))`,
   `alter table queue_entries add column if not exists category text not null default 'A'`,
   `alter table queue_entries add column if not exists released_by text`,
   `alter table queue_entries add column if not exists released_by_staff_id integer references staff(id) on delete set null`,

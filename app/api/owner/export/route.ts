@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const session = await getSession();
-  if (!session || (session.role !== "owner" && session.role !== "manager")) {
+  if (!session || session.role !== "owner") {
     return new Response("Unauthorised", { status: 401 });
   }
 

@@ -47,7 +47,7 @@ export function decodeSession(token: string | undefined): Session | null {
     const parsed = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as Session;
     if (!parsed || typeof parsed.staffId !== "number" || typeof parsed.exp !== "number") return null;
     if (parsed.exp < Math.floor(Date.now() / 1000)) return null;
-    if (parsed.role !== "owner" && parsed.role !== "manager" && parsed.role !== "greeter" && parsed.role !== "cashier") return null;
+    if (parsed.role !== "owner" && parsed.role !== "host") return null;
     return {
       ...parsed,
       brandId: parsed.brandId ?? null,

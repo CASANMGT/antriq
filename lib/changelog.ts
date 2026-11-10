@@ -16,6 +16,28 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.13.0",
+    date: "2026-11-10",
+    title: "Owner & Host roles",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "Staff roles are now Owner and Host only; manager, greeter and cashier accounts become Host.",
+          "Team names are generic (“Owner”, “Host Blok M”) instead of personal names.",
+          "New staff and PIN resets default to 1234.",
+          "Owners can still run the host stand; only owners can pause/reopen the queue and manage settings.",
+        ],
+      },
+      {
+        label: "Fixed",
+        items: [
+          "antriq.vercel.app now serves the working deployment instead of the broken project.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.12.2",
     date: "2026-11-10",
     title: "Ticket-stub mascot",
