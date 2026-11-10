@@ -30,9 +30,11 @@ const sourceLabel: Record<string, string> = {
 
 export function whatsappHref(phone: string, message?: string): string {
   const digits = phone.replace(/\D/g, "");
-  const normalized = digits.startsWith("0") ? `62${digits.slice(1)}` : digits;
-  const base = `https://wa.me/${normalized}`;
-  return message ? `${base}?text=${encodeURIComponent(message)}` : base;
+  let normalized = digits;
+  if (normalized.startsWith("0")) normalized = `62${normalized.slice(1)}`;
+  else if (normalized.startsWith("8")) normalized = `62${normalized}`;
+  const base = `https://api.whatsapp.com/send?phone=${normalized}`;
+  return message ? `${base}&text=${encodeURIComponent(message)}` : base;
 }
 
 export function StatsStrip({ stats, showTables = true }: { stats: HostStats; showTables?: boolean }) {
@@ -169,6 +171,7 @@ export function QueueCard({
                     href={whatsappHref(entry.phone, waMessage)}
                     target="_blank"
                     rel="noreferrer"
+                    title={waMessage}
                     className="inline-flex items-center gap-1 rounded-full border-2 border-leaf/40 bg-leaf-soft px-2 py-0.5 font-extrabold text-leaf-dark hover:border-leaf"
                   >
                     <MessageCircle className="size-3" /> WA

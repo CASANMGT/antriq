@@ -10,6 +10,14 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.18.2] — 2026-11-10
+
+The **reliable WhatsApp prefill** release.
+
+### Fixed
+- The WhatsApp button now uses the official **api.whatsapp.com/send** link and normalizes Indonesian phone numbers to `62`.
+- The full queue-ready message is included in the link and shown as the button tooltip.
+
 ## [0.18.1] — 2026-11-10
 
 The **combined report analytics and optional rating** release.

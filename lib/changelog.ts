@@ -16,6 +16,20 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.18.2",
+    date: "2026-11-10",
+    title: "Reliable WhatsApp prefill",
+    sections: [
+      {
+        label: "Fixed",
+        items: [
+          "The WhatsApp button now uses the official api.whatsapp.com/send link and normalizes Indonesian phone numbers to 62.",
+          "The full queue-ready message is included in the link and shown as the button tooltip.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.18.1",
     date: "2026-11-10",
     title: "Combined report analytics and optional rating",

@@ -141,7 +141,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Branch switcher for owners and brand owners.
 - Queue positions on every card, not waiting-time guesses.
 - **Call next** selects the first party a free table can physically seat; suggests the smallest fitting table.
-- **Panggil lagi** recalls a called guest and sends another ticket notification; when a phone number exists, called cards offer a **WhatsApp** shortcut with a pre-filled “your queue is ready, please come to the gate” message including the code, party size and restaurant.
+- **Panggil lagi** recalls a called guest and sends another ticket notification; when a phone number exists, called cards offer a **WhatsApp** shortcut using `api.whatsapp.com/send` with a pre-filled “your queue is ready, please come to the gate” message including the code, party size and restaurant; the message is also shown on hover.
 - Guests who have been seen before are labelled **Visit 2**, **Visit 3**, and so on on host cards and the rating list.
 - Mark a guest **Hadir** from waiting or called at a specific table with an optional seat number, or use **Hadir cepat** to skip the number entirely.
 - **Hadir** list shows the check-in time (`Hadir HH:MM`), sorts the newest check-ins first, and shows the guest's rating/review; phone and WhatsApp are hidden on this list.
