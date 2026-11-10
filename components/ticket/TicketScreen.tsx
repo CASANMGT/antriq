@@ -42,6 +42,7 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
   const [selectedRating, setSelectedRating] = useState(initial.entry.rating ?? 0);
   const [ratingNote, setRatingNote] = useState(initial.entry.ratingNote ?? "");
   const [ratingHidden, setRatingHidden] = useState(false);
+  const [showThanks, setShowThanks] = useState(false);
   const [pending, startTransition] = useTransition();
   const previousStatus = useRef(initial.entry.status);
   const previousCallCount = useRef(initial.entry.calledCount);
@@ -169,6 +170,7 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
         note: ratingNote.trim(),
       });
       show(result.ok ? t.ticket.ratingThanks : t.ticket.ratingError, result.ok ? "success" : "error");
+      if (result.ok) setShowThanks(true);
       await refresh();
     });
   }
@@ -196,6 +198,72 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
   const mapsHref = branch.address
     ? `https://maps.google.com/?q=${encodeURIComponent(branch.address)}`
     : null;
+
+  if (showThanks) {
+    const shownRating = selectedRating || entry.rating || 0;
+    return (
+      <main className="paper grain min-h-[100dvh] px-4 pb-10 pt-4 sm:px-5 sm:pt-6">
+        <div className="mx-auto flex w-full max-w-md items-center justify-between gap-2">
+          <Logo href={homeHref} />
+          <LanguageToggle compact />
+        </div>
+        <div className="mx-auto mt-8 w-full max-w-md text-center">
+          <p className="eyebrow text-leaf-dark">{t.ticket.ratingThanksKicker}</p>
+          <Mascot mood="celebrate" className="mx-auto mt-2 w-40" />
+          <h1 className="mt-4 font-display text-[2.35rem] leading-[1.02] tracking-tight">
+            {t.ticket.ratingThanksTitle}
+          </h1>
+          <p className="mx-auto mt-3 max-w-sm text-sm font-semibold leading-relaxed text-muted">
+            {t.ticket.ratingThanksBody}
+          </p>
+          <div className="mt-5 rounded-2xl border-2 border-ink bg-cream p-4 shadow-[3px_3px_0_#262321]">
+            <div className="flex justify-center gap-0.5 text-gold">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star key={star} className="size-7" fill={star <= shownRating ? "currentColor" : "none"} />
+              ))}
+            </div>
+            <p className="mt-1 text-sm font-extrabold">
+              {shownRating}/5 · {t.ticket.ratingStars[shownRating - 1]}
+            </p>
+            {ratingNote && <p className="mt-1 text-xs font-medium italic text-ink/65">“{ratingNote}”</p>}
+            <p className="mt-2 text-[0.625rem] font-bold text-muted">
+              {entry.code} · {branch.name}
+            </p>
+          </div>
+          <div className="mt-5 space-y-2">
+            {entry.status === "seated" ? (
+              <>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-lg w-full"
+                  onClick={() => {
+                    setShowThanks(false);
+                    setResetOpen(true);
+                  }}
+                >
+                  {t.ticket.finishSession}
+                </button>
+                <button type="button" className="btn btn-ghost w-full" onClick={() => setShowThanks(false)}>
+                  {t.ticket.backToTicket}
+                </button>
+              </>
+            ) : entry.status === "waiting" || entry.status === "called" ? (
+              <button type="button" className="btn btn-primary btn-lg w-full" onClick={() => setShowThanks(false)}>
+                {t.ticket.backToTicket}
+              </button>
+            ) : (
+              <Link href={homeHref} className="btn btn-primary btn-lg w-full">
+                {t.ticket.backRestaurant}
+              </Link>
+            )}
+          </div>
+          <p className="mt-6 text-[0.6875rem] font-semibold leading-relaxed text-muted-soft">
+            {t.ticket.footerNote} · v{APP_VERSION}
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   const progress =
     view.position && view.waitingCount > 0
