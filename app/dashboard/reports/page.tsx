@@ -198,6 +198,25 @@ export default async function ReportsPage({
                     );
                   })}
                 </div>
+                {item.recent.length > 0 && (
+                  <div className="mt-2 border-t-2 border-dashed border-ink/10 pt-2">
+                    <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.12em] text-ink/40">
+                      {t.owner.ratingRecent}
+                    </p>
+                    <div className="mt-1 space-y-1">
+                      {item.recent.map((review) => (
+                        <div key={`${review.code}-${review.ratedAt}`}>
+                          <p className="truncate text-[0.625rem] font-bold text-ink/70">
+                            {review.code} · {review.guestName} · {review.rating}/5
+                          </p>
+                          {review.note && (
+                            <p className="text-[0.625rem] font-medium italic text-muted">“{review.note}”</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

@@ -126,7 +126,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Take a number in about 20 seconds: party size, name, optional phone/note.
 - Ticket with a human code (`A-024`), queue position, parties ahead, now-serving code. The guest ticket does not show a join time or wait duration.
 - Called state: **“Meja siap!”** with an optional **3-minute countdown** (off by default), optional “Saya hadir” (stops or extends the countdown), directions and release.
-- Seated/Hadir ticket includes a **1–5 queue rating** with an optional short note; the rating is saved to the ticket and analysed by restaurant.
+- Seated/Hadir ticket includes a **1–5 queue rating** with pre-filled review suggestions and an optional note; the chosen review is saved to the ticket and analysed by restaurant.
 - Browser notification permission prompt on the ticket, plus a notification when the call changes while the tab is hidden.
 - Seated state shows the open-seat confirmation, or the assigned table/seat when the branch uses the table plan. Host name and directions are hidden once seated.
 - Host queue cards show the live waiting time; seated cards show the wait until the call.
@@ -160,7 +160,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Brand → branch switcher; every view, report and QR link is branch-scoped.
 - Queue-focused KPIs: waiting, called, seated today, tables open.
 - Hourly service pulse (joined vs seated), floor map by zone, live queue, activity feed.
-- **Guest ratings** card: average, 1–5 distribution and latest comments, plus a per-restaurant rating table in Reports.
+- **Guest ratings** card: average, 1–5 distribution and latest comments, plus a per-restaurant rating table in Reports with review content.
 - 7/30/90-day reports: joined, seated, attendance, no-shows, cancellations, CSV (incl. table, seat, PIC). Owners can switch to **all branches**; the view and CSV stay scoped to the branches they manage.
 - **Customers** page: contact, party, status, table/seat, opener/releaser PIC, join time, 1/7/30-day ranges.
 - Tables CRUD with capacity/zone and seated-table protection.

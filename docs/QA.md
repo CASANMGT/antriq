@@ -8,7 +8,7 @@ npm test         # 44 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **10 Nov 2026** — lint clean, 44/44 tests passing, production build green (v0.14.1 A/B queue, Hadir list, ratings).
+Last run: **10 Nov 2026** — lint clean, 44/44 tests passing, production build green (v0.15.0 A/B queue, Hadir list, ratings + reviews).
 
 ### Notification delivery QA
 
@@ -95,8 +95,8 @@ Last run: **10 Nov 2026** — lint clean, 44/44 tests passing, production build 
 - Cards with a phone number show `tel:` and **WA** (`wa.me`) links.
 - **Hadir** cards show `Hadir HH:MM`, sorted newest first.
 - **Tidak Hadir** lists today's no-shows; **Masukkan lagi** returns the guest to the waiting queue with a new code and keeps the same ticket token.
-- Guest ticket shows a 1–5 rating for seated/completed/cancelled/no-show states; the note is optional.
-- Owner dashboard shows the branch average, star distribution and latest ratings; Reports shows a rating card per restaurant for the selected range.
+- Guest ticket shows a 1–5 rating for seated/completed/cancelled/no-show states; each star offers pre-filled review suggestions and the note is optional.
+- The submitted review is shown on the ticket and included in the owner dashboard and per-restaurant Reports analysis.
 - Reports CSV includes `rating` and `rating_note` columns.
 - Owner dashboard relative times use `serverNow`, so no hydration mismatch.
 

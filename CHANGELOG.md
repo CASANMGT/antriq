@@ -10,6 +10,15 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.15.0] — 2026-11-10
+
+The **rating reviews** release.
+
+### Added
+- Each star rating now offers **pre-filled review suggestions**, so guests can send useful feedback in one tap.
+- The submitted review is shown on the ticket result.
+- Rating analysis by restaurant now includes the latest **review comments and content**.
+
 ## [0.14.1] — 2026-11-10
 
 The **QA data cleanup** release.

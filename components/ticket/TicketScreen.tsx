@@ -517,7 +517,18 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
               <div className="mt-5 rounded-xl border-2 border-ink bg-cream px-4 py-4 text-center">
                 <p className="eyebrow text-tomato">{t.ticket.ratingTitle}</p>
                 <p className="mx-auto mt-1 max-w-xs text-xs font-semibold leading-relaxed text-muted">
-                  {entry.rating ? format(t.ticket.ratingAlready, { rating: entry.rating }) : t.ticket.ratingBody}
+                  {entry.rating ? (
+                    <>
+                      {format(t.ticket.ratingAlready, { rating: entry.rating })}
+                      {entry.ratingNote && (
+                        <span className="mt-1 block text-[0.6875rem] font-medium italic text-ink/60">
+                          “{entry.ratingNote}”
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    t.ticket.ratingBody
+                  )}
                 </p>
                 <div className="mt-3 flex items-center justify-center gap-1.5" role="radiogroup" aria-label={t.ticket.ratingTitle}>
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -540,6 +551,24 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
                 <p className="mt-1 text-[0.6875rem] font-extrabold uppercase tracking-[0.12em] text-ink/55">
                   {selectedRating ? t.ticket.ratingStars[selectedRating - 1] : " "}
                 </p>
+                {selectedRating > 0 && (
+                  <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+                    {(t.ticket.ratingSuggestions[selectedRating - 1] ?? []).map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        onClick={() => setRatingNote((current) => (current === suggestion ? "" : suggestion))}
+                        className={`rounded-full border-2 px-2.5 py-1 text-[0.625rem] font-extrabold transition ${
+                          ratingNote === suggestion
+                            ? "border-ink bg-ink text-paper"
+                            : "border-ink/20 bg-white text-ink/70 hover:border-ink"
+                        }`}
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <input
                   className="input mt-3 text-left text-sm"
                   value={ratingNote}

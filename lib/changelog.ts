@@ -16,6 +16,21 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.15.0",
+    date: "2026-11-10",
+    title: "Rating reviews",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "Each star rating now offers pre-filled review suggestions, so guests can send useful feedback in one tap.",
+          "The submitted review is shown on the ticket result.",
+          "Rating analysis by restaurant now includes the latest review comments and content.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.14.1",
     date: "2026-11-10",
     title: "QA data cleanup",

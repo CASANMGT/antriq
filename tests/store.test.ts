@@ -241,6 +241,7 @@ describe("store integration (PGlite + demo seed)", () => {
 
     const analysis = await getRatingAnalysis([branchId], 7);
     expect(analysis[0]?.count).toBeGreaterThanOrEqual(1);
+    expect(analysis[0]?.recent[0]?.note).toBe("Cepat dan ramah");
   });
 
   it("calls the next fitting party and starts the hold", async () => {    const branchId = await primaryBranchId();
