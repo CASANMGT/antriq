@@ -2291,7 +2291,7 @@ export async function getCustomerHistory(
        and (
          ($2::text is not null and qe.phone is not null
            and regexp_replace(regexp_replace(qe.phone, '[^0-9]', '', 'g'), '^0', '62') = $2)
-         or ($3::text is not null and lower(qe.guest_name) = lower($3))
+         or ($2::text is null and $3::text is not null and lower(qe.guest_name) = lower($3))
        )
      order by qe.joined_at desc
      limit 100`,

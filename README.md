@@ -125,7 +125,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Queue-only mode is the default: parties are seated openly without a table or seat number.
 - Take a number in about 20 seconds: party size, name, optional phone/note.
 - Ticket with a human code (`A-024`), queue position, parties ahead, now-serving code. The guest ticket does not show a join time or wait duration.
-- Called state: **“Meja siap!”** with an optional **3-minute countdown** (off by default), optional “Saya hadir” (stops or extends the countdown), directions and release.
+- Called state: **“Meja siap!”** with an optional **3-minute countdown** (off by default), optional “Saya hadir” (stops or extends the countdown), directions and release. An animated in-app **Meja siap** notification slides in and replays whenever the host uses **Panggil lagi**.
 - Guest ticket includes a **1–5 queue rating** while waiting, called, or Hadir, with pre-filled review suggestions and an optional note; releasing the queue also offers an optional rating. After rating, a thank-you landing page shows a summary with a **Tutup** button. The prompt has a close control so guests can opt out without rating.
 - Browser notification permission prompt on the ticket, plus a notification when the call changes while the tab is hidden.
 - Seated state shows the open-seat confirmation, or the assigned table/seat when the branch uses the table plan. Host name and directions are hidden once seated.
