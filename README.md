@@ -162,7 +162,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Queue-focused KPIs: waiting, called, seated today, tables open.
 - Hourly service pulse (joined vs seated), floor map by zone, live queue, activity feed.
 - **Rating analytics** on the dashboard and Reports: average, distribution, per-restaurant comparison, daily chart, hourly chart, and an **All ratings** list with guest, phone, time, rating and review; filter by 5/4/3/2/1 stars, filter by date, and paginate long lists.
-- The **Meja** sidebar item only appears when the active branch uses the table-plan seating mode.
+- The **Meja** sidebar item only appears when the active branch uses the table-plan seating mode, and the dashboard's empty-tables KPI, live floor panel and floor-occupancy stat follow the same rule.
 - 7/30/90-day reports: joined, seated, attendance, no-shows, cancellations, CSV (incl. table, seat, PIC). Owners can switch to **all branches**; the view and CSV stay scoped to the branches they manage.
 - **Customers** page: contact, party, status, table/seat, opener/releaser PIC, join time, 1/7/30-day ranges, repeat-guest `(2)`/`(3)` badges (Hadir/Selesai only), per-guest queue history, and owner phone starring.
 - Tables CRUD with capacity/zone and seated-table protection.

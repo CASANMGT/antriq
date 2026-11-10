@@ -10,6 +10,13 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.18.5] — 2026-11-10
+
+The **table analytics follow seating mode** release.
+
+### Changed
+- When a branch is not in table-plan mode, the owner dashboard hides the **empty tables** KPI, the **Lantai sekarang** floor panel and the **floor occupancy** pacing stat. They appear automatically when the branch switches to table plan.
+
 ## [0.18.4] — 2026-11-10
 
 The **WhatsApp date and time** release.

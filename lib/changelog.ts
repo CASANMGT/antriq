@@ -16,6 +16,19 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.18.5",
+    date: "2026-11-10",
+    title: "Table analytics follow the seating mode",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "When a branch does not use the table-plan seating mode, the owner dashboard hides the empty-tables KPI, the live floor panel and floor occupancy so the overview only shows relevant analytics.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.18.4",
     date: "2026-11-10",
     title: "Date and time in the WhatsApp message",

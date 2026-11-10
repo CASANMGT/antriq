@@ -62,6 +62,7 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
 
   const { branch, brand, stats, today, week, hourly, activity, tables, waiting } = data;
   const status = branch.waitlistStatus;
+  const showFloor = branch.seatingMode === "plan";
   const locale = lang === "id" ? "id-ID" : "en-GB";
   const now = new Date(data.serverNow);
   const todayLabel = formatDayLong(dayInTz(now, branch.timezone), locale);
@@ -149,7 +150,7 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
         </div>
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className={`grid gap-3 sm:grid-cols-2 ${showFloor ? "xl:grid-cols-4" : "xl:grid-cols-3"}`}>
         <Kpi
           label={t.owner.waitingNow}
           value={stats.waiting}
@@ -171,20 +172,22 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
           icon={UtensilsCrossed}
           tone="leaf"
         />
-        <Kpi
-          label={t.host.tablesFreeLabel}
-          value={`${stats.availableTables}/${stats.totalTables}`}
-          hint={format(t.owner.floorSummary, {
-            free: stats.availableTables,
-            seated: stats.seated,
-            dirty: stats.dirtyTables,
-          })}
-          icon={LayoutGrid}
-          tone="white"
-        />
+        {showFloor && (
+          <Kpi
+            label={t.host.tablesFreeLabel}
+            value={`${stats.availableTables}/${stats.totalTables}`}
+            hint={format(t.owner.floorSummary, {
+              free: stats.availableTables,
+              seated: stats.seated,
+              dirty: stats.dirtyTables,
+            })}
+            icon={LayoutGrid}
+            tone="white"
+          />
+        )}
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[1.55fr_1fr]">
+      <div className={`grid gap-4 ${showFloor ? "xl:grid-cols-[1.55fr_1fr]" : ""}`}>
         <section className="card p-4 sm:p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -215,68 +218,70 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
           </div>
         </section>
 
-        <section className="card p-4 sm:p-5">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <h2 className="font-display text-[1.5rem] font-semibold leading-tight">{t.owner.floorNow}</h2>
-              <p className="mt-0.5 text-xs font-semibold text-muted">
-                {format(t.owner.floorSummary, {
-                  free: stats.availableTables,
-                  seated: stats.seated,
-                  dirty: stats.dirtyTables,
-                })}
-              </p>
+        {showFloor && (
+          <section className="card p-4 sm:p-5">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <h2 className="font-display text-[1.5rem] font-semibold leading-tight">{t.owner.floorNow}</h2>
+                <p className="mt-0.5 text-xs font-semibold text-muted">
+                  {format(t.owner.floorSummary, {
+                    free: stats.availableTables,
+                    seated: stats.seated,
+                    dirty: stats.dirtyTables,
+                  })}
+                </p>
+              </div>
+              <Link href={`/host?branch=${branch.id}`} className="btn btn-ghost btn-icon" aria-label={t.owner.openHost}>
+                <ArrowUpRight className="size-4" />
+              </Link>
             </div>
-            <Link href={`/host?branch=${branch.id}`} className="btn btn-ghost btn-icon" aria-label={t.owner.openHost}>
-              <ArrowUpRight className="size-4" />
-            </Link>
-          </div>
 
-          <div className="mt-4 space-y-3">
-            {[...new Set(tables.map((table) => table.zone))].map((zone) => {
-              const zoneTables = tables.filter((table) => table.zone === zone);
-              return (
-                <div key={zone}>
-                  <p className="mb-1 text-[0.5625rem] font-extrabold uppercase tracking-[0.14em] text-ink/40">
-                    {zoneLabel(zone, lang)}
-                  </p>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {zoneTables.map((table) => {
-                      const color =
-                        table.status === "available"
-                          ? "bg-leaf"
-                          : table.status === "seated"
-                            ? "bg-tomato"
-                            : table.status === "dirty"
-                              ? "bg-gold"
-                              : "bg-muted-soft";
-                      return (
-                        <div
-                          key={table.id}
-                          className="flex items-center gap-2 rounded-lg border-2 border-ink/15 bg-white px-2 py-1.5"
-                          title={`${table.zone} · ${table.capacity} ${t.owner.seats}`}
-                        >
-                          <span className={`size-1.5 shrink-0 rounded-full ${color}`} />
-                          <span className="num text-[0.6875rem] font-extrabold">{table.label}</span>
-                          <span className="ml-auto text-[0.625rem] font-bold text-muted">
-                            {table.capacity} {t.common.paxShort}
-                          </span>
-                        </div>
-                      );
-                    })}
+            <div className="mt-4 space-y-3">
+              {[...new Set(tables.map((table) => table.zone))].map((zone) => {
+                const zoneTables = tables.filter((table) => table.zone === zone);
+                return (
+                  <div key={zone}>
+                    <p className="mb-1 text-[0.5625rem] font-extrabold uppercase tracking-[0.14em] text-ink/40">
+                      {zoneLabel(zone, lang)}
+                    </p>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {zoneTables.map((table) => {
+                        const color =
+                          table.status === "available"
+                            ? "bg-leaf"
+                            : table.status === "seated"
+                              ? "bg-tomato"
+                              : table.status === "dirty"
+                                ? "bg-gold"
+                                : "bg-muted-soft";
+                        return (
+                          <div
+                            key={table.id}
+                            className="flex items-center gap-2 rounded-lg border-2 border-ink/15 bg-white px-2 py-1.5"
+                            title={`${table.zone} · ${table.capacity} ${t.owner.seats}`}
+                          >
+                            <span className={`size-1.5 shrink-0 rounded-full ${color}`} />
+                            <span className="num text-[0.6875rem] font-extrabold">{table.label}</span>
+                            <span className="ml-auto text-[0.625rem] font-bold text-muted">
+                              {table.capacity} {t.common.paxShort}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
 
-          <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 border-t-2 border-dashed border-ink/15 pt-3 text-[0.625rem] font-bold text-muted">
-            <Legend className="bg-leaf" label={t.owner.openLegend} />
-            <Legend className="bg-tomato" label={t.owner.seatedLegend} />
-            <Legend className="bg-gold" label={t.owner.resetLegend} />
-            <Legend className="bg-muted-soft" label={t.owner.blockedLegend} />
-          </div>
-        </section>
+            <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 border-t-2 border-dashed border-ink/15 pt-3 text-[0.625rem] font-bold text-muted">
+              <Legend className="bg-leaf" label={t.owner.openLegend} />
+              <Legend className="bg-tomato" label={t.owner.seatedLegend} />
+              <Legend className="bg-gold" label={t.owner.resetLegend} />
+              <Legend className="bg-muted-soft" label={t.owner.blockedLegend} />
+            </div>
+          </section>
+        )}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
@@ -380,7 +385,7 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
           <h2 className="font-display text-[1.5rem] font-semibold leading-tight">{t.owner.pacing}</h2>
           <div className="mt-3 space-y-2.5">
             <Pacing label={t.owner.noShows} value={String(stats.noShowToday)} />
-            <Pacing label={t.owner.floorOccupancy} value={`${today.utilization}%`} />
+            {showFloor && <Pacing label={t.owner.floorOccupancy} value={`${today.utilization}%`} />}
             <Pacing label={t.owner.walkInsPacing} value={`${today.walkIns} / ${stats.joinedToday}`} />
             <Pacing label={t.owner.remoteJoins} value={String(today.remote)} />
             <Pacing label={t.owner.cancelled} value={String(today.cancelled)} />
