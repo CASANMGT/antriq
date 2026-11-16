@@ -10,6 +10,15 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.21.5] — 2026-11-17
+
+The **mobile header and smoother queue cards** release.
+
+### Changed
+- **Berikutnya** is now a corner marker instead of an in-flow badge, so it no longer makes the A card taller and A/B cards stay aligned.
+- The mobile host header is **two rows** with a horizontally swipeable control strip, giving the queue more vertical space.
+- Removed the sticky header blur and throttled the scroll listener with `requestAnimationFrame` for smoother scrolling.
+
 ## [0.21.4] — 2026-11-17
 
 The **pure-SaaS pricing matrix** release.

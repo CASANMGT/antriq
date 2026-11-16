@@ -4,7 +4,6 @@ import {
   BellRing,
   Check,
   ChevronRight,
-  ClipboardList,
   Clock3,
   CornerUpLeft,
   MessageCircle,
@@ -117,10 +116,15 @@ export function QueueCard({
 
   return (
     <article
-      className={`min-w-0 rounded-2xl border-2 border-ink p-3 shadow-[3px_3px_0_#262321] transition sm:p-3.5 ${
+      className={`relative flex min-h-[22rem] min-w-0 flex-col rounded-2xl border-2 border-ink p-3 shadow-[3px_3px_0_#262321] transition sm:min-h-0 sm:p-3.5 ${
         called ? "bg-pink-soft" : next ? "bg-white" : "bg-white/85"
       }`}
     >
+      {next && !called && (
+        <span className="absolute -top-2.5 left-3 rounded-full border-2 border-ink bg-tomato px-2 py-0.5 text-[0.5625rem] font-extrabold uppercase tracking-[0.08em] text-white shadow-[2px_2px_0_#262321]">
+          {t.host.nextUp}
+        </span>
+      )}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
@@ -141,11 +145,6 @@ export function QueueCard({
             {entry.visitNumber > 1 && (
               <span className="pill status-waiting">
                 {format(t.common.visitNumber, { count: entry.visitNumber })}
-              </span>
-            )}
-            {next && !called && (
-              <span className="pill bg-tomato text-white">
-                <ClipboardList className="size-3" /> {t.host.nextUp}
               </span>
             )}
             {called && entry.acknowledged && (
@@ -245,7 +244,7 @@ export function QueueCard({
         </div>
       )}
 
-      <div className="mt-3 flex flex-wrap gap-1.5 border-t-2 border-dashed border-ink/15 pt-2.5">
+      <div className="mt-auto flex flex-wrap gap-1.5 border-t-2 border-dashed border-ink/15 pt-2.5">
         {!called && (
           <>
             <button

@@ -75,6 +75,7 @@ export function HostBoard({
   const [releaseEntryTarget, setReleaseEntryTarget] = useState<QueueEntry | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const scrolledRef = useRef(false);
   const [query, setQuery] = useState("");
   const [muted, setMuted] = useState(false);
   const [waitingPages, setWaitingPages] = useState<Record<string, number>>({});
@@ -85,10 +86,25 @@ export function HostBoard({
   }, [query]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const next = window.scrollY > 24;
+      if (next !== scrolledRef.current) {
+        scrolledRef.current = next;
+        setScrolled(next);
+      }
+    };
+    const onScroll = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(update);
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, []);
 
   useEffect(() => {
@@ -407,7 +423,7 @@ export function HostBoard({
 
   return (
     <div className="min-h-[100dvh] bg-paper">
-      <header className="sticky top-0 z-40 border-b-2 border-ink bg-paper/95 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b-2 border-ink bg-paper">
         <div className="mx-auto flex max-w-[1500px] flex-wrap items-center gap-2 px-3 py-2.5 sm:px-5">
           <div className="flex min-w-0 items-center gap-2.5">
             <Logo compact href={`/host?branch=${activeBranchId}`} />
@@ -423,7 +439,7 @@ export function HostBoard({
             </div>
           </div>
 
-          <div className="ml-auto flex flex-wrap items-center justify-end gap-1 sm:gap-1.5">
+          <div className="ml-auto flex w-full min-w-0 flex-nowrap items-center justify-start gap-1 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:w-auto sm:flex-wrap sm:justify-end sm:gap-1.5 sm:overflow-visible sm:pb-0">
             {branches.length > 1 && (
               <div className="relative">
                 <label className="sr-only" htmlFor="host-branch">
@@ -448,7 +464,9 @@ export function HostBoard({
               <span className="live-dot" />
               <LiveClock timezone={branch.timezone} />
             </div>
-            <LanguageToggle compact />
+            <div className="hidden sm:block">
+              <LanguageToggle compact />
+            </div>
             <Link
               href="/changelog"
               className="hidden rounded-full border-2 border-ink/15 px-2 py-1 text-[0.625rem] font-bold text-muted hover:text-ink sm:inline-flex"

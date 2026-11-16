@@ -16,6 +16,21 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.21.5",
+    date: "2026-11-17",
+    title: "Mobile header and smoother queue cards",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "Berikutnya is now a corner marker, so it no longer changes a card's height and Queue A/B cards line up.",
+          "The mobile host header is two rows with a swipeable control strip; the stats strip still hides on scroll.",
+          "Removed the sticky header blur and throttled the scroll listener for smoother scrolling.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.21.4",
     date: "2026-11-17",
     title: "Pure-SaaS pricing matrix",
