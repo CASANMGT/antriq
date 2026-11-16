@@ -135,7 +135,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Mobile-first, installable, reduced-motion aware, Indonesian/English.
 
 ### For business
-- Public **`/sales`** page with a **pure-SaaS pricing matrix** per branch and a **Bulanan / Tahunan toggle** (annual saves ~20%): Free (Rp0, 30 queues/day), Starter (Rp79rb monthly / Rp65rb annual), Pro (Rp149rb / Rp119rb), Business/Chain (Rp249rb / Rp199rb). **Pilih paket** preselects the plan in the form; business-type ideas, feature list and a short **name / business / type** form open WhatsApp to **+62 812-8194-8180** with a prefilled message. No WA blast.
+- Public **`/sales`** page with a **pure-SaaS pricing matrix** per branch and a **Bulanan / Tahunan toggle** (annual saves ~20%): Free (Rp0, 30 queues/day), Starter (Rp79rb monthly / Rp65rb annual), Pro (Rp149rb / Rp119rb), Business/Chain (Rp249rb / Rp199rb). One **Coba gratis / Chat** CTA opens the plan-selector form; a current-user panel links to the dashboard or an upgrade chat. No WA blast.
 - A visible **business card** on the queue page and a compact **business banner near the top of the ticket** link to `/sales`, so guests who run their own business can find the **from Rp65rb/bulan** offer.
 
 ### Host stand

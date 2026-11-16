@@ -16,6 +16,21 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.21.8",
+    date: "2026-11-17",
+    title: "Tighter cards and a clearer sales page",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "Queue and called cards are content-height again, removing the empty white space while keeping A/B side by side.",
+          "The per-plan Pilih paket buttons are gone; use the single Coba gratis / Chat CTA and choose the plan in the form.",
+          "The sales page adds a section for current AntriQ users to open their dashboard or chat for an upgrade.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.21.7",
     date: "2026-11-17",
     title: "Billing toggle and working plan buttons",

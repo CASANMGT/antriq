@@ -10,6 +10,15 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.21.8] — 2026-11-17
+
+The **tighter cards and clearer sales page** release.
+
+### Changed
+- Queue and called cards return to **content height**, removing the empty white space while A/B stay side by side.
+- Removed the per-plan **Pilih paket** buttons. The pricing section has one **Coba gratis / Chat** CTA, and the form has a plan selector.
+- Added a **current AntriQ users** panel with a dashboard link and a chat link for upgrades.
+
 ## [0.21.7] — 2026-11-17
 
 The **billing toggle and working plan buttons** release.

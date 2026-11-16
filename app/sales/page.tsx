@@ -179,6 +179,16 @@ export default async function SalesPage({
         <p className="mt-2 text-xs font-bold text-ink/55">{copy.noWaBlast}</p>
 
         <PricingGrid lang={lang} />
+
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          <a href="/sales?plan=free#start" className="btn btn-primary">
+            {copy.ctaFree} <ArrowRight className="size-4" />
+          </a>
+          <a href={direct} target="_blank" rel="noreferrer" className="btn btn-soft">
+            <MessageCircle className="size-4" /> {copy.ctaChat}
+          </a>
+          <span className="text-xs font-bold text-muted">{copy.perBranchNote}</span>
+        </div>
       </section>
 
       <section id="start" className="mx-auto grid w-full max-w-6xl gap-5 px-4 py-10 sm:px-6 lg:grid-cols-[0.9fr_1.1fr]">
@@ -207,6 +217,24 @@ export default async function SalesPage({
           <h2 className="mt-2 font-display text-[1.9rem] font-semibold leading-tight">{copy.formTitle}</h2>
           <p className="mt-1 text-sm font-semibold leading-relaxed text-muted">{copy.formSub}</p>
           <SalesForm lang={lang} initialPlan={initialPlan} />
+        </div>
+      </section>
+
+      <section className="mx-auto w-full max-w-6xl px-4 pb-10 sm:px-6">
+        <div className="flex flex-col gap-3 rounded-2xl border-2 border-ink bg-cream/70 p-5 shadow-[3px_3px_0_#262321] sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="eyebrow text-tomato">{copy.currentKicker}</p>
+            <h2 className="mt-1 font-display text-xl font-semibold leading-tight">{copy.currentTitle}</h2>
+            <p className="mt-1 max-w-2xl text-xs font-semibold leading-relaxed text-muted">{copy.currentBody}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/login" className="btn btn-primary btn-sm">
+              {copy.currentCta}
+            </Link>
+            <a href={direct} target="_blank" rel="noreferrer" className="btn btn-soft btn-sm">
+              <MessageCircle className="size-3.5" /> {copy.currentChat}
+            </a>
+          </div>
         </div>
       </section>
 

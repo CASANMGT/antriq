@@ -82,12 +82,6 @@ export function PricingGrid({ lang }: { lang: Lang }) {
                   </li>
                 ))}
               </ul>
-              <a
-                href={`/sales?plan=${plan.id}#start`}
-                className={`btn mt-4 w-full ${plan.popular ? "btn-primary" : "btn-soft"}`}
-              >
-                {plan.id === "free" ? copy.freeCta : copy.planCta}
-              </a>
             </article>
           );
         })}

@@ -182,6 +182,12 @@ export interface SalesCopy {
   freeCta: string;
   freeNote: string;
   noWaBlast: string;
+  perBranchNote: string;
+  currentKicker: string;
+  currentTitle: string;
+  currentBody: string;
+  currentCta: string;
+  currentChat: string;
   trialKicker: string;
   trialTitle: string;
   trialBody: string;
@@ -253,6 +259,13 @@ export const SALES_COPY: Record<Lang, SalesCopy> = {
     freeCta: "Coba gratis",
     freeNote: "Gratis untuk mulai — 30 antrian/hari.",
     noWaBlast: "Pure SaaS — tanpa WA blast, tanpa biaya per pesan.",
+    perBranchNote: "Harga per cabang / bulan.",
+    currentKicker: "SUDAH PAKAI ANTRIQ?",
+    currentTitle: "Kelola langganan dan cabang Anda",
+    currentBody:
+      "Masuk ke dashboard untuk mengelola cabang, tim, dan antrean. Butuh upgrade atau cabang baru? Chat tim kami.",
+    currentCta: "Masuk ke dashboard",
+    currentChat: "Chat tim",
     trialKicker: "COBA GRATIS",
     trialTitle: "Mulai dari Free, upgrade saat siap.",
     trialBody:
@@ -325,6 +338,13 @@ export const SALES_COPY: Record<Lang, SalesCopy> = {
     freeCta: "Try for free",
     freeNote: "Free to start — 30 queues/day.",
     noWaBlast: "Pure SaaS — no WA blast, no per-message fees.",
+    perBranchNote: "Pricing per branch / month.",
+    currentKicker: "ALREADY USING ANTRIQ?",
+    currentTitle: "Manage your plan and branches",
+    currentBody:
+      "Sign in to manage branches, staff and queues. Need an upgrade or another branch? Chat our team.",
+    currentCta: "Open dashboard",
+    currentChat: "Chat our team",
     trialKicker: "TRY FOR FREE",
     trialTitle: "Start on Free, upgrade when ready.",
     trialBody:

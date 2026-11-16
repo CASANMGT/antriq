@@ -118,7 +118,7 @@ export function QueueCard({
 
   return (
     <article
-      className={`relative flex min-h-[22rem] min-w-0 flex-col rounded-2xl border-2 border-ink p-3 shadow-[3px_3px_0_#262321] transition sm:min-h-0 sm:p-3.5 ${
+      className={`relative min-w-0 rounded-2xl border-2 border-ink p-3 shadow-[3px_3px_0_#262321] transition sm:p-3.5 ${
         called ? "bg-pink-soft" : next ? "bg-white" : "bg-white/85"
       }`}
     >
@@ -251,7 +251,7 @@ export function QueueCard({
         </div>
       )}
 
-      <div className="mt-auto flex flex-wrap gap-1.5 border-t-2 border-dashed border-ink/15 pt-2.5">
+      <div className="mt-3 flex flex-wrap gap-1.5 border-t-2 border-dashed border-ink/15 pt-2.5">
         {!called && (
           <>
             <button
