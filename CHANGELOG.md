@@ -10,6 +10,16 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.21.9] — 2026-11-17
+
+The **operator-friendly queue cards** release.
+
+### Changed
+- Long guest names clamp to **two lines with an ellipsis**, keeping A/B cards aligned. The full name is always in the detail modal.
+- Waiting cards show **Mulai HH:MM · Menunggu N mnt** and a **WhatsApp** button next to the phone.
+- The detail modal adds a **WhatsApp** action and a **Dipanggil** panel with first call, last call, call count and wait time.
+- The mobile business promo now sits at the **bottom** of the queue page.
+
 ## [0.21.8] — 2026-11-17
 
 The **tighter cards and clearer sales page** release.

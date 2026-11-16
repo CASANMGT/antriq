@@ -112,26 +112,6 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
         </div>
       </header>
 
-      <div className="relative mx-auto w-full max-w-6xl px-5 pb-1 sm:px-8 lg:hidden">
-        <Link
-          href="/sales?ref=queue"
-          className="flex items-center gap-2.5 rounded-2xl border-2 border-ink bg-butter/70 px-3 py-2.5 shadow-[2px_2px_0_#262321]"
-        >
-          <span className="grid size-8 shrink-0 place-items-center rounded-lg border-2 border-ink bg-white text-tomato">
-            <Store className="size-4" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-[0.5625rem] font-extrabold uppercase tracking-[0.12em] text-tomato">
-              {t.promo.kicker}
-            </span>
-            <span className="block truncate text-xs font-extrabold">{t.promo.title}</span>
-          </span>
-          <span className="inline-flex shrink-0 items-center gap-1 text-[0.625rem] font-extrabold text-tomato">
-            {t.promo.price} <ArrowUpRight className="size-3" />
-          </span>
-        </Link>
-      </div>
-
       <section className="relative mx-auto grid max-w-6xl gap-10 px-5 pb-14 pt-3 sm:px-8 lg:grid-cols-[1.02fr_0.98fr] lg:gap-14 lg:pt-8">
         <div className="order-last min-w-0 lg:order-none">
           <div className="flex flex-wrap items-center gap-2">
@@ -377,7 +357,7 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
 
           <Link
             href="/sales?ref=queue"
-            className="group mt-5 hidden items-start gap-3 rounded-2xl border-2 border-ink bg-butter/70 px-4 py-3.5 shadow-[3px_3px_0_#262321] transition hover:-translate-y-0.5 lg:flex"
+            className="group mt-5 flex items-start gap-3 rounded-2xl border-2 border-ink bg-butter/70 px-4 py-3.5 shadow-[3px_3px_0_#262321] transition hover:-translate-y-0.5"
           >
             <span className="grid size-10 shrink-0 place-items-center rounded-xl border-2 border-ink bg-white text-tomato">
               <Store className="size-5" />

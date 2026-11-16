@@ -991,6 +991,7 @@ export function HostBoard({
         onClose={() => setDetailTarget(null)}
         timezone={state.branch.timezone}
         locale={locale}
+        branchName={branch.name}
       />
 
       {/* Seat dialog */}

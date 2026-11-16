@@ -1,10 +1,11 @@
 "use client";
 
-import { Star } from "lucide-react";
+import { MessageCircle, Star } from "lucide-react";
 import { Modal } from "@/components/Modal";
 import { useLang } from "@/components/LanguageProvider";
+import { whatsappHref } from "@/components/host/cards";
 import { format } from "@/lib/i18n";
-import { clockInTz, dayInTz, elapsedMinutes, formatDayLong } from "@/lib/time";
+import { clockInTz, dayInTz, elapsedMinutes, formatDayLong, formatFullDateInTz } from "@/lib/time";
 import type { EntryStatus, QueueEntry } from "@/lib/types";
 
 function statusKey(status: EntryStatus): "waiting" | "called" | "seated" | "completed" | "noShow" | "cancelled" {
@@ -32,11 +33,13 @@ export function QueueDetailModal({
   onClose,
   timezone,
   locale,
+  branchName,
 }: {
   target: { entry: QueueEntry; position: number } | null;
   onClose: () => void;
   timezone: string;
   locale: string;
+  branchName: string;
 }) {
   const { t } = useLang();
   const entry = target?.entry;
@@ -46,6 +49,29 @@ export function QueueDetailModal({
   const source = entry.source === "walkin" ? t.host.walkIn : entry.source === "online" ? "Online" : "QR";
   const firstCall = entry.firstCalledAt ?? entry.calledAt;
   const waitMinutes = firstCall ? elapsedMinutes(entry.joinedAt, firstCall) : entry.waitMinutes;
+  const readyAt = entry.calledAt ?? new Date().toISOString();
+  const waMessage =
+    entry.status === "called"
+      ? format(t.host.waCallMessage, {
+          name: entry.guestName,
+          code: entry.code,
+          count: entry.partySize,
+          branch: branchName,
+          day: formatFullDateInTz(readyAt, timezone, locale),
+          time: clockInTz(readyAt, timezone),
+        })
+      : entry.status === "waiting"
+        ? format(t.host.waQueueMessage, {
+            name: entry.guestName,
+            code: entry.code,
+            count: entry.partySize,
+            branch: branchName,
+          })
+        : format(t.host.waContactMessage, {
+            name: entry.guestName,
+            code: entry.code,
+            branch: branchName,
+          });
 
   return (
     <Modal
@@ -75,25 +101,59 @@ export function QueueDetailModal({
           <p className="eyebrow text-tomato">{t.host.detailKicker}</p>
           <p className="mt-1 break-words font-display text-2xl font-semibold leading-tight">{entry.guestName}</p>
           {entry.phone ? (
-            <a
-              href={`tel:${entry.phone.replace(/\s/g, "")}`}
-              className="num mt-1 inline-flex text-sm font-bold text-muted hover:text-ink"
-            >
-              {entry.phone}
-            </a>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <a href={`tel:${entry.phone.replace(/\s/g, "")}`} className="num text-sm font-bold text-muted hover:text-ink">
+                {entry.phone}
+              </a>
+              <a
+                href={whatsappHref(entry.phone, waMessage)}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-soft btn-sm"
+                title={waMessage}
+              >
+                <MessageCircle className="size-3.5" /> WhatsApp
+              </a>
+            </div>
           ) : (
             <p className="mt-1 text-sm font-semibold text-muted-soft">{t.owner.ratingNoPhone}</p>
           )}
         </div>
+
+        {entry.status === "called" && firstCall && (
+          <div className="rounded-xl border-2 border-tomato/25 bg-pink-soft px-3.5 py-3">
+            <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.12em] text-tomato-dark/70">
+              {t.host.atDoorTitle}
+            </p>
+            <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+              <Detail label={t.host.detailFirstCall} value={clockInTz(firstCall, timezone)} />
+              <Detail
+                label={t.host.detailLastCall}
+                value={entry.calledAt ? clockInTz(entry.calledAt, timezone) : "—"}
+              />
+              <Detail label={t.host.detailCalls} value={`${entry.calledCount}x`} />
+              <Detail
+                label={t.host.detailWaiting}
+                value={format(t.host.detailMinutes, { count: Math.max(1, waitMinutes) })}
+              />
+            </div>
+          </div>
+        )}
 
         <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
           <Detail
             label={t.host.detailStarted}
             value={`${formatDayLong(dayInTz(entry.joinedAt, timezone), locale)} · ${clockInTz(entry.joinedAt, timezone)}`}
           />
-          <Detail label={t.host.detailWaiting} value={format(t.host.detailMinutes, { count: Math.max(1, waitMinutes) })} />
-          {firstCall && <Detail label={t.host.detailFirstCall} value={clockInTz(firstCall, timezone)} />}
-          {entry.calledCount > 0 && <Detail label={t.host.detailCalls} value={`${entry.calledCount}x`} />}
+          {entry.status !== "called" && (
+            <Detail label={t.host.detailWaiting} value={format(t.host.detailMinutes, { count: Math.max(1, waitMinutes) })} />
+          )}
+          {entry.status !== "called" && firstCall && (
+            <Detail label={t.host.detailFirstCall} value={clockInTz(firstCall, timezone)} />
+          )}
+          {entry.status !== "called" && entry.calledCount > 0 && (
+            <Detail label={t.host.detailCalls} value={`${entry.calledCount}x`} />
+          )}
           {entry.seatedAt && <Detail label={t.host.detailSeated} value={clockInTz(entry.seatedAt, timezone)} />}
           {entry.tableLabel && (
             <Detail

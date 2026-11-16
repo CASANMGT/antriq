@@ -107,14 +107,21 @@ export function QueueCard({
   const firstCallAt = entry.firstCalledAt ?? entry.calledAt;
   const firstWaitMinutes = entry.firstCalledAt ? elapsedMinutes(entry.joinedAt, entry.firstCalledAt) : entry.waitMinutes;
   const readyAt = entry.calledAt ?? new Date().toISOString();
-  const waMessage = format(t.host.waCallMessage, {
-    name: entry.guestName,
-    code: entry.code,
-    count: entry.partySize,
-    branch: branchName,
-    day: formatFullDateInTz(readyAt, timezone, locale),
-    time: clockInTz(readyAt, timezone),
-  });
+  const waMessage = called
+    ? format(t.host.waCallMessage, {
+        name: entry.guestName,
+        code: entry.code,
+        count: entry.partySize,
+        branch: branchName,
+        day: formatFullDateInTz(readyAt, timezone, locale),
+        time: clockInTz(readyAt, timezone),
+      })
+    : format(t.host.waQueueMessage, {
+        name: entry.guestName,
+        code: entry.code,
+        count: entry.partySize,
+        branch: branchName,
+      });
 
   return (
     <article
@@ -163,7 +170,7 @@ export function QueueCard({
               type="button"
               onClick={onDetails}
               title={t.host.detailHint}
-              className="min-w-0 flex-1 break-words text-left font-display text-[1.2rem] font-semibold leading-tight tracking-tight decoration-dotted underline-offset-2 hover:text-tomato hover:underline sm:text-[1.45rem]"
+              className="line-clamp-2 min-w-0 flex-1 break-words text-left font-display text-[1.2rem] font-semibold leading-tight tracking-tight decoration-dotted underline-offset-2 hover:text-tomato hover:underline sm:text-[1.45rem]"
             >
               {entry.guestName}
             </button>
@@ -175,7 +182,10 @@ export function QueueCard({
             {!called && (
               <span className="inline-flex items-center gap-1 text-ink/70">
                 <Clock3 className="size-3" />
-                {format(t.host.waitingFor, { minutes: Math.max(1, entry.waitMinutes) })}
+                {format(t.host.waitingSince, {
+                  time: clockInTz(entry.joinedAt, timezone),
+                  minutes: Math.max(1, entry.waitMinutes),
+                })}
               </span>
             )}
             {entry.phone && (
@@ -184,17 +194,15 @@ export function QueueCard({
                   <Phone className="size-3" />
                   {entry.phone}
                 </a>
-                {called && (
-                  <a
-                    href={whatsappHref(entry.phone, waMessage)}
-                    target="_blank"
-                    rel="noreferrer"
-                    title={waMessage}
-                    className="inline-flex items-center gap-1 rounded-full border-2 border-leaf/40 bg-leaf-soft px-2 py-0.5 font-extrabold text-leaf-dark hover:border-leaf"
-                  >
-                    <MessageCircle className="size-3" /> WA
-                  </a>
-                )}
+                <a
+                  href={whatsappHref(entry.phone, waMessage)}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={waMessage}
+                  className="inline-flex items-center gap-1 rounded-full border-2 border-leaf/40 bg-leaf-soft px-2 py-0.5 font-extrabold text-leaf-dark hover:border-leaf"
+                >
+                  <MessageCircle className="size-3" /> WA
+                </a>
               </>
             )}
           </div>

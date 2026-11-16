@@ -16,6 +16,22 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.21.9",
+    date: "2026-11-17",
+    title: "Operator-friendly queue cards",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "Long guest names clamp to two lines with an ellipsis, keeping A/B cards aligned; the full name stays in the detail modal.",
+          "Waiting cards now show the queue start time and waiting duration, plus a WhatsApp button next to the phone.",
+          "The detail modal adds WhatsApp and a Dipanggil panel with first call, last call, call count and wait time.",
+          "The mobile business promo moved to the bottom of the queue page.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.21.8",
     date: "2026-11-17",
     title: "Tighter cards and a clearer sales page",
