@@ -16,6 +16,20 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.21.10",
+    date: "2026-11-17",
+    title: "Cleaner cards, contact in the detail view",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "Queue and called cards no longer show the phone number or WA button; they stay focused on name, party, timing and actions.",
+          "The detail modal now holds the phone with a Call button and a green WhatsApp button, alongside the full operator context.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.21.9",
     date: "2026-11-17",
     title: "Operator-friendly queue cards",

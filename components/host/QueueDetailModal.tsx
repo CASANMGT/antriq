@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageCircle, Star } from "lucide-react";
+import { MessageCircle, Phone, Star } from "lucide-react";
 import { Modal } from "@/components/Modal";
 import { useLang } from "@/components/LanguageProvider";
 import { whatsappHref } from "@/components/host/cards";
@@ -102,14 +102,15 @@ export function QueueDetailModal({
           <p className="mt-1 break-words font-display text-2xl font-semibold leading-tight">{entry.guestName}</p>
           {entry.phone ? (
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <a href={`tel:${entry.phone.replace(/\s/g, "")}`} className="num text-sm font-bold text-muted hover:text-ink">
-                {entry.phone}
+              <span className="num text-sm font-bold text-muted">{entry.phone}</span>
+              <a href={`tel:${entry.phone.replace(/\s/g, "")}`} className="btn btn-soft btn-sm">
+                <Phone className="size-3.5" /> {t.host.detailCall}
               </a>
               <a
                 href={whatsappHref(entry.phone, waMessage)}
                 target="_blank"
                 rel="noreferrer"
-                className="btn btn-soft btn-sm"
+                className="btn btn-sage btn-sm"
                 title={waMessage}
               >
                 <MessageCircle className="size-3.5" /> WhatsApp

@@ -10,6 +10,14 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.21.10] — 2026-11-17
+
+The **cleaner cards, contact in the detail view** release.
+
+### Changed
+- Queue and called cards **no longer show the phone number or WA button**; they stay clean and focused.
+- Tap the guest name to open the detail modal, which now has the phone, a **Call** button and a **green WhatsApp** button plus the full operator context.
+
 ## [0.21.9] — 2026-11-17
 
 The **operator-friendly queue cards** release.
