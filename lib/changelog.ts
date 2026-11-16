@@ -16,6 +16,20 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.21.0",
+    date: "2026-11-17",
+    title: "AntriQ for business",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "A public /sales page with the Rp49.000/month offer, business-type ideas, and a short name/business/type form that opens WhatsApp with a prefilled message.",
+          "Subtle business links on the guest join form and ticket, so interested owners can find the offer without disturbing guests.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.20.2",
     date: "2026-11-17",
     title: "Mobile host stand polish",

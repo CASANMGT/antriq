@@ -736,6 +736,11 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
             v{APP_VERSION}
           </Link>
         </p>
+        <p className="mt-1 text-center text-[0.625rem] font-semibold text-muted-soft">
+          <Link href="/sales?ref=ticket" className="underline decoration-dotted underline-offset-2 hover:text-tomato">
+            {t.ticket.businessCta}
+          </Link>
+        </p>
       </div>
 
       <Modal

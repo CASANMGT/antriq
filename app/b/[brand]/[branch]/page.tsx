@@ -416,6 +416,9 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
           </span>
         </div>
         <div className="flex items-center gap-4">
+          <Link href="/sales?ref=queue" className="text-muted-soft hover:text-tomato">
+            {t.guest.businessCta}
+          </Link>
           <Link href="/changelog" className="text-muted-soft hover:text-muted">
             v{APP_VERSION}
           </Link>

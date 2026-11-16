@@ -134,6 +134,10 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Capability URL + local ticket memory; no account.
 - Mobile-first, installable, reduced-motion aware, Indonesian/English.
 
+### For business
+- Public **`/sales`** page with the **Rp49.000/bulan** offer, business-type ideas (restaurant, clinic, salon, garage, laundry, public services, retail, events), feature list and a short **name / business / type** form that opens WhatsApp to **+62 812-8194-8180** with a prefilled message.
+- Subtle **“Punya bisnis?”** links on the guest join form and ticket lead to the sales page without disturbing the queue flow.
+
 ### Host stand
 - PIN login, 12-hour signed session, branch-scoped access.
 - Three-column board: **Antrean (A/B) / Hadir / Tidak Hadir** — tabs on phones. Called guests sit at the top of the Antrean column, so hosts never switch between Antrean and Dipanggil.

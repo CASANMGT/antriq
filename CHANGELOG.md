@@ -10,6 +10,14 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.21.0] — 2026-11-17
+
+The **AntriQ for business** release.
+
+### Added
+- A public **/sales** page: **Rp49.000/bulan**, business-type ideas, feature list and a short form (name, business name, business type) that opens WhatsApp to `+62 812-8194-8180` with a prefilled message.
+- Subtle business links on the **join form** and **guest ticket** that lead to the sales page without interrupting the guest flow.
+
 ## [0.20.2] — 2026-11-17
 
 The **mobile host stand polish** release.
