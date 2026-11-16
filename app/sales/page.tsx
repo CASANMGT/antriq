@@ -19,7 +19,7 @@ import { Mascot } from "@/components/Mascot";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { SalesForm } from "@/components/sales/SalesForm";
 import { getLang } from "@/lib/lang";
-import { SALES_COPY, SALES_PRICE, SALES_TYPES, salesTypeLabel, salesTypeNote, salesWhatsAppHref } from "@/lib/sales";
+import { SALES_COPY, SALES_PLANS, SALES_TYPES, salesTypeLabel, salesTypeNote, salesWhatsAppHref } from "@/lib/sales";
 
 export const metadata: Metadata = {
   title: SALES_COPY.id.metaTitle,
@@ -78,11 +78,14 @@ export default async function SalesPage() {
           </h1>
           <p className="mt-4 max-w-xl text-sm font-semibold leading-relaxed text-muted sm:text-base">{copy.subtitle}</p>
           <div className="mt-5 flex flex-wrap items-center gap-2">
-            <a href={direct} target="_blank" rel="noreferrer" className="btn btn-primary">
+            <a href="#start" className="btn btn-primary">
+              {copy.ctaFree} <ArrowRight className="size-4" />
+            </a>
+            <a href={direct} target="_blank" rel="noreferrer" className="btn btn-soft">
               <MessageCircle className="size-4" /> {copy.ctaChat}
             </a>
-            <a href="#features" className="btn btn-soft">
-              {copy.ctaSee} <ArrowRight className="size-4" />
+            <a href="#pricing" className="btn btn-ghost text-muted">
+              {copy.ctaSee}
             </a>
           </div>
           <ul className="mt-5 flex flex-wrap gap-x-4 gap-y-2 text-xs font-bold text-ink/65">
@@ -106,14 +109,14 @@ export default async function SalesPage() {
               {copy.priceNote}
             </p>
             <div className="mt-4 space-y-2 border-t-2 border-dashed border-ink/15 pt-4">
-              {copy.included.map((item) => (
+              {copy.bullets.map((item) => (
                 <p key={item} className="flex items-start gap-2 text-xs font-bold">
                   <Check className="mt-0.5 size-3.5 shrink-0 text-leaf-dark" /> {item}
                 </p>
               ))}
             </div>
             <a href="#start" className="btn btn-primary mt-4 w-full">
-              {copy.ctaChat} <ArrowRight className="size-4" />
+              {copy.ctaFree} <ArrowRight className="size-4" />
             </a>
           </div>
         </div>
@@ -160,21 +163,87 @@ export default async function SalesPage() {
         </div>
       </section>
 
+      <section id="pricing" className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
+        <p className="eyebrow text-tomato">{copy.pricingKicker}</p>
+        <h2 className="mt-2 font-display text-[2.1rem] font-semibold leading-tight tracking-tight sm:text-[2.6rem]">
+          {copy.pricingTitle}
+        </h2>
+        <p className="mt-1 max-w-2xl text-sm font-semibold leading-relaxed text-muted">{copy.pricingSub}</p>
+        <p className="mt-2 text-xs font-bold text-ink/55">{copy.noWaBlast}</p>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {SALES_PLANS.map((plan) => {
+            const name = lang === "id" ? plan.idName : plan.enName;
+            const limit = lang === "id" ? plan.idLimit : plan.enLimit;
+            const features = lang === "id" ? plan.idFeatures : plan.enFeatures;
+            return (
+              <article
+                key={plan.id}
+                className={`relative flex flex-col rounded-2xl border-2 border-ink p-4 shadow-[3px_3px_0_#262321] ${
+                  plan.popular ? "bg-butter" : "bg-white"
+                }`}
+              >
+                {plan.popular && (
+                  <span className="absolute -top-2.5 right-3 rounded-full border-2 border-ink bg-tomato px-2 py-0.5 text-[0.5625rem] font-extrabold uppercase tracking-[0.1em] text-white">
+                    {copy.popular}
+                  </span>
+                )}
+                <h3 className="font-display text-lg font-semibold leading-tight">{name}</h3>
+                <p className="mt-0.5 text-[0.625rem] font-bold text-muted">{limit}</p>
+                <div className="mt-3 border-t-2 border-dashed border-ink/15 pt-3">
+                  <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.12em] text-ink/45">
+                    {copy.billingMonthly}
+                  </p>
+                  <p className="num mt-0.5 font-display text-2xl font-semibold leading-none">
+                    {plan.monthly}
+                    <span className="ml-1 text-xs font-bold text-muted">{copy.perMonth}</span>
+                  </p>
+                  {plan.id === "free" ? (
+                    <p className="mt-1 text-[0.6875rem] font-semibold text-muted">{copy.freeNote}</p>
+                  ) : (
+                    <p className="mt-1 text-[0.6875rem] font-semibold text-muted">
+                      {copy.billingAnnual}:{" "}
+                      <span className="font-extrabold text-ink">
+                        {plan.annual}
+                        {copy.perMonth}
+                      </span>{" "}
+                      · {plan.annualYear}
+                      {copy.perYear}
+                    </p>
+                  )}
+                </div>
+                <ul className="mt-3 flex-1 space-y-1.5">
+                  {features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-1.5 text-[0.6875rem] font-semibold leading-snug">
+                      <Check className="mt-0.5 size-3 shrink-0 text-leaf-dark" /> {feature}
+                    </li>
+                  ))}
+                </ul>
+                <a href="#start" className={`btn mt-4 w-full ${plan.popular ? "btn-primary" : "btn-soft"}`}>
+                  {plan.id === "free" ? copy.freeCta : copy.planCta}
+                </a>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
       <section id="start" className="mx-auto grid w-full max-w-6xl gap-5 px-4 py-10 sm:px-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div>
-          <p className="eyebrow text-tomato">{copy.pricingKicker}</p>
-          <h2 className="mt-2 font-display text-[2.1rem] font-semibold leading-tight tracking-tight">{copy.pricingTitle}</h2>
-          <p className="mt-1 text-sm font-semibold leading-relaxed text-muted">{copy.pricingSub}</p>
+          <p className="eyebrow text-tomato">{copy.trialKicker}</p>
+          <h2 className="mt-2 font-display text-[2.1rem] font-semibold leading-tight tracking-tight">{copy.trialTitle}</h2>
+          <p className="mt-1 text-sm font-semibold leading-relaxed text-muted">{copy.trialBody}</p>
           <div className="mt-5 rounded-2xl border-2 border-ink bg-white p-4 shadow-[3px_3px_0_#262321]">
-            <div className="flex items-baseline gap-2">
-              <span className="num font-display text-4xl font-semibold leading-none">{SALES_PRICE}</span>
+            <p className="text-[0.625rem] font-extrabold uppercase tracking-[0.14em] text-ink/45">{copy.pricePrefix}</p>
+            <div className="mt-1 flex flex-wrap items-baseline gap-2">
+              <span className="num font-display text-4xl font-semibold leading-none">{copy.price}</span>
               <span className="text-xs font-extrabold text-muted">{copy.priceSuffix}</span>
             </div>
             <p className="mt-2 text-xs font-semibold leading-relaxed text-muted">{copy.priceNote}</p>
             <div className="mt-3 flex flex-wrap gap-1.5">
-              <span className="pill status-seated">QR</span>
-              <span className="pill status-waiting">A/B</span>
-              <span className="pill status-called">WA</span>
+              <span className="pill status-seated">Free · 30/hari</span>
+              <span className="pill status-waiting">QR</span>
+              <span className="pill status-called">A/B</span>
               <span className="pill status-muted">CSV</span>
             </div>
           </div>

@@ -10,6 +10,20 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.21.4] — 2026-11-17
+
+The **pure-SaaS pricing matrix** release.
+
+### Added
+- Four tiers on `/sales`, per branch per month:
+  - **Free** — Rp0, 30 queues/day, 1 counter, web QR check-in, live tracking, watermark.
+  - **Starter** — Rp79.000 monthly / **Rp65.000 annual** (Rp780rb/year), unlimited queues, 2 counters, sound/chime, daily summary.
+  - **Pro** — Rp149.000 / Rp119.000 (Rp1,42jt/year), TV Display Mode, unlimited counters/categories, Anti-Joki dynamic QR, CSV export.
+  - **Business / Chain** — Rp249.000 / Rp199.000 (Rp2,38jt/year), HQ dashboard, white-label, staff roles, webhook/POS.
+
+### Changed
+- The hero now says **Coba gratis** and **Mulai Rp65.000/bulan per cabang**, with a **no WA blast** note.
+
 ## [0.21.3] — 2026-11-17
 
 The **first-call timing and mobile queue fit** release.

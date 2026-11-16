@@ -1,7 +1,84 @@
 import type { Lang } from "./i18n";
 
 export const SALES_PHONE = "6281281948180";
-export const SALES_PRICE = "Rp49.000";
+export const SALES_PRICE = "Rp65.000";
+
+export interface SalesPlan {
+  id: string;
+  idName: string;
+  enName: string;
+  monthly: string;
+  annual: string;
+  annualYear: string;
+  idLimit: string;
+  enLimit: string;
+  idFeatures: string[];
+  enFeatures: string[];
+  popular?: boolean;
+}
+
+export const SALES_PLANS: SalesPlan[] = [
+  {
+    id: "free",
+    idName: "Free",
+    enName: "Free",
+    monthly: "Rp0",
+    annual: "Rp0",
+    annualYear: "Rp0",
+    idLimit: "30 antrian / hari",
+    enLimit: "30 queues / day",
+    idFeatures: ["1 counter / loket", "Web QR check-in", "Live browser tracking", "AntriQ watermark"],
+    enFeatures: ["1 counter", "Web QR check-in", "Live browser tracking", "AntriQ watermark"],
+  },
+  {
+    id: "starter",
+    idName: "Starter",
+    enName: "Starter",
+    monthly: "Rp79.000",
+    annual: "Rp65.000",
+    annualYear: "Rp780rb",
+    idLimit: "Antrian tanpa batas",
+    enLimit: "Unlimited queues",
+    idFeatures: ["Hapus batas 30/hari", "Hingga 2 counter", "Browser sound / chime", "Ringkasan harian"],
+    enFeatures: ["Removes the 30/day cap", "Up to 2 counters", "Browser sound / chime", "Daily summary"],
+  },
+  {
+    id: "pro",
+    idName: "Pro",
+    enName: "Pro",
+    monthly: "Rp149.000",
+    annual: "Rp119.000",
+    annualYear: "Rp1,42jt",
+    idLimit: "Antrian tanpa batas",
+    enLimit: "Unlimited queues",
+    idFeatures: [
+      "TV Display Mode",
+      "Counter & kategori tanpa batas",
+      "Anti-Joki dynamic QR",
+      "CSV customer export",
+    ],
+    enFeatures: ["TV Display Mode", "Unlimited counters & categories", "Anti-Joki dynamic QR", "CSV customer export"],
+    popular: true,
+  },
+  {
+    id: "business",
+    idName: "Business / Chain",
+    enName: "Business / Chain",
+    monthly: "Rp249.000",
+    annual: "Rp199.000",
+    annualYear: "Rp2,38jt",
+    idLimit: "Antrian tanpa batas",
+    enLimit: "Unlimited queues",
+    idFeatures: [
+      "Multi-cabang HQ dashboard",
+      "Custom logo / white-label",
+      "Staff role permissions",
+      "Webhook / POS integration",
+    ],
+    enFeatures: ["Multi-branch HQ dashboard", "Custom logo / white-label", "Staff role permissions", "Webhook / POS integration"],
+  },
+];
+
 
 export interface SalesType {
   id: string;
@@ -82,6 +159,7 @@ export interface SalesCopy {
   priceSuffix: string;
   priceNote: string;
   ctaChat: string;
+  ctaFree: string;
   ctaSee: string;
   bullets: string[];
   typesKicker: string;
@@ -94,7 +172,19 @@ export interface SalesCopy {
   pricingKicker: string;
   pricingTitle: string;
   pricingSub: string;
-  included: string[];
+  billingMonthly: string;
+  billingAnnual: string;
+  perMonth: string;
+  perYear: string;
+  save: string;
+  popular: string;
+  planCta: string;
+  freeCta: string;
+  freeNote: string;
+  noWaBlast: string;
+  trialKicker: string;
+  trialTitle: string;
+  trialBody: string;
   formKicker: string;
   formTitle: string;
   formSub: string;
@@ -119,9 +209,9 @@ export interface SalesCopy {
 
 export const SALES_COPY: Record<Lang, SalesCopy> = {
   id: {
-    metaTitle: "AntriQ untuk bisnis — Rp49.000/bulan",
+    metaTitle: "AntriQ untuk bisnis — mulai Rp65.000/bulan",
     metaDescription:
-      "Antrean digital untuk restoran, klinik, salon, bengkel, dan bisnis lain. Mulai Rp49.000/bulan. Tamu cukup scan QR, tanpa aplikasi.",
+      "Antrean digital untuk restoran, klinik, salon, bengkel, dan bisnis lain. Mulai Rp65.000/bulan per cabang. Tamu cukup scan QR, tanpa aplikasi.",
     kicker: "ANTRIQ UNTUK BISNIS",
     titleLead: "Antrean rapi.",
     titleAccent: "Tamu tenang.",
@@ -129,11 +219,12 @@ export const SALES_COPY: Record<Lang, SalesCopy> = {
       "Ganti buku antrean dan panggilan manual dengan tiket digital, papan host live, dan laporan harian. Tamu cukup scan QR — tanpa aplikasi.",
     pricePrefix: "Mulai dari",
     price: SALES_PRICE,
-    priceSuffix: "/ bulan",
-    priceNote: "Satu harga sederhana untuk satu cabang. Hubungi kami untuk multi-cabang.",
+    priceSuffix: "/bulan per cabang",
+    priceNote: "Harga tahunan — hemat ~20%. Coba gratis dulu, upgrade saat siap.",
     ctaChat: "Chat tim via WhatsApp",
+    ctaFree: "Coba gratis",
     ctaSee: "Lihat yang Anda dapat",
-    bullets: ["Tanpa aplikasi untuk tamu", "Langsung jalan di browser", "Dibantu setup oleh tim"],
+    bullets: ["Coba gratis 30 antrian/hari", "Mulai Rp65rb/bulan per cabang", "Pure SaaS — tanpa WA blast"],
     typesKicker: "COCOK UNTUK",
     typesTitle: "Bisnis yang punya antrean",
     typesSub: "Dari restoran sampai klinik — siapa pun yang melayani tamu satu per satu.",
@@ -148,17 +239,23 @@ export const SALES_COPY: Record<Lang, SalesCopy> = {
       { title: "Rating tamu", body: "Lihat pengalaman tamu per cabang, tanggal, dan jam." },
       { title: "Laporan owner", body: "Ringkasan harian, per cabang atau semua cabang, plus ekspor CSV." },
     ],
-    pricingKicker: "HARGA SEDERHANA",
-    pricingTitle: "Rp49.000/bulan",
-    pricingSub: "Mulai dari satu cabang. Tanpa biaya tersembunyi.",
-    included: [
-      "Antrean A/B & panggilan",
-      "Tiket tamu + poster QR",
-      "Papan host & selesai massal",
-      "Rating & laporan owner",
-      "Multi-cabang",
-      "Dukungan onboarding",
-    ],
+    pricingKicker: "PAKET",
+    pricingTitle: "Harga per cabang",
+    pricingSub: "Mulai gratis, upgrade saat antrean makin ramai. Harga tahunan lebih hemat ~20%.",
+    billingMonthly: "Bulanan",
+    billingAnnual: "Tahunan",
+    perMonth: "/bln",
+    perYear: "/tahun",
+    save: "Hemat ~20%",
+    popular: "Paling populer",
+    planCta: "Pilih paket",
+    freeCta: "Coba gratis",
+    freeNote: "Gratis untuk mulai — 30 antrian/hari.",
+    noWaBlast: "Pure SaaS — tanpa WA blast, tanpa biaya per pesan.",
+    trialKicker: "COBA GRATIS",
+    trialTitle: "Mulai dari Free, upgrade saat siap.",
+    trialBody:
+      "30 antrian/hari, 1 counter, QR check-in. Naik ke Starter Rp65rb/bulan (tahunan) untuk antrean tanpa batas.",
     formKicker: "MULAI",
     formTitle: "Ceritakan bisnis Anda",
     formSub: "Isi tiga hal ini, lalu kami lanjutkan di WhatsApp.",
@@ -183,9 +280,9 @@ export const SALES_COPY: Record<Lang, SalesCopy> = {
       "Halo tim AntriQ, saya tertarik dengan AntriQ Rp49.000/bulan. Boleh dibantu info dan onboarding-nya?",
   },
   en: {
-    metaTitle: "AntriQ for business — Rp49,000/month",
+    metaTitle: "AntriQ for business — from Rp65,000/month",
     metaDescription:
-      "Digital queues for restaurants, clinics, salons, garages and more. From Rp49,000/month. Guests scan a QR — no app needed.",
+      "Digital queues for restaurants, clinics, salons, garages and more. From Rp65,000/month per branch. Guests scan a QR — no app needed.",
     kicker: "ANTRIQ FOR BUSINESS",
     titleLead: "Calm queues.",
     titleAccent: "Happy guests.",
@@ -193,11 +290,12 @@ export const SALES_COPY: Record<Lang, SalesCopy> = {
       "Replace paper lists and manual calls with digital tickets, a live host board and daily reports. Guests just scan a QR — no app needed.",
     pricePrefix: "From",
     price: SALES_PRICE,
-    priceSuffix: "/ month",
-    priceNote: "One simple price for one branch. Talk to us for multi-branch.",
+    priceSuffix: "/month per branch",
+    priceNote: "Annual pricing — save ~20%. Try free first, upgrade when ready.",
     ctaChat: "Chat our team on WhatsApp",
+    ctaFree: "Try for free",
     ctaSee: "See what you get",
-    bullets: ["No app for guests", "Runs in the browser", "Set up with our team"],
+    bullets: ["Try free with 30 queues/day", "From Rp65k/month per branch", "Pure SaaS — no WA blast"],
     typesKicker: "BUILT FOR",
     typesTitle: "Businesses with a queue",
     typesSub: "From restaurants to clinics — anyone serving guests one at a time.",
@@ -212,17 +310,23 @@ export const SALES_COPY: Record<Lang, SalesCopy> = {
       { title: "Guest ratings", body: "See the guest experience by branch, date and hour." },
       { title: "Owner reports", body: "Daily summaries per branch or all branches, plus CSV export." },
     ],
-    pricingKicker: "SIMPLE PRICING",
-    pricingTitle: "Rp49,000/month",
-    pricingSub: "Starting from one branch. No hidden fees.",
-    included: [
-      "A/B queues & calls",
-      "Guest tickets + QR poster",
-      "Host board & bulk checkout",
-      "Ratings & owner reports",
-      "Multi-branch",
-      "Onboarding support",
-    ],
+    pricingKicker: "PLANS",
+    pricingTitle: "Pricing per branch",
+    pricingSub: "Start free, upgrade when the queue gets busy. Annual billing saves ~20%.",
+    billingMonthly: "Monthly",
+    billingAnnual: "Annual",
+    perMonth: "/mo",
+    perYear: "/yr",
+    save: "Save ~20%",
+    popular: "Most popular",
+    planCta: "Choose plan",
+    freeCta: "Try for free",
+    freeNote: "Free to start — 30 queues/day.",
+    noWaBlast: "Pure SaaS — no WA blast, no per-message fees.",
+    trialKicker: "TRY FOR FREE",
+    trialTitle: "Start on Free, upgrade when ready.",
+    trialBody:
+      "30 queues/day, 1 counter, QR check-in. Move to Starter at Rp65k/month (annual) for unlimited queues.",
     formKicker: "GET STARTED",
     formTitle: "Tell us about your business",
     formSub: "Fill these three things in and we'll continue on WhatsApp.",

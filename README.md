@@ -135,7 +135,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Mobile-first, installable, reduced-motion aware, Indonesian/English.
 
 ### For business
-- Public **`/sales`** page with the **Rp49.000/bulan** offer, business-type ideas (restaurant, clinic, salon, garage, laundry, public services, retail, events), feature list and a short **name / business / type** form that opens WhatsApp to **+62 812-8194-8180** with a prefilled message.
+- Public **`/sales`** page with a **pure-SaaS pricing matrix** per branch: Free (Rp0, 30 queues/day), Starter (Rp79rb monthly / Rp65rb annual), Pro (Rp149rb / Rp119rb), Business/Chain (Rp249rb / Rp199rb), plus business-type ideas, feature list and a short **name / business / type** form that opens WhatsApp to **+62 812-8194-8180** with a prefilled message. No WA blast.
 - A visible **business card** on the queue page and a compact **business banner near the top of the ticket** link to `/sales`, so guests who run their own business can find the Rp49rb/bulan offer.
 
 ### Host stand

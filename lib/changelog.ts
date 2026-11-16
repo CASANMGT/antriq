@@ -16,6 +16,26 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.21.4",
+    date: "2026-11-17",
+    title: "Pure-SaaS pricing matrix",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "The sales page now shows four tiers: Free, Starter, Pro and Business/Chain, with monthly and annual prices per branch.",
+          "Free starts at 30 queues/day; Starter annual is Rp65.000/month (Rp780rb/year); Pro is the highlighted plan.",
+        ],
+      },
+      {
+        label: "Changed",
+        items: [
+          "The hero now leads with Coba gratis and Mulai Rp65.000/bulan per cabang, and notes that this is pure SaaS with no WA blast.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.21.3",
     date: "2026-11-17",
     title: "First-call timing and mobile queue fit",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SALES_PHONE, SALES_TYPES, salesWhatsAppHref } from "@/lib/sales";
+import { SALES_PHONE, SALES_PLANS, SALES_TYPES, salesWhatsAppHref } from "@/lib/sales";
 
 describe("sales WhatsApp link", () => {
   it("uses the sales number and a generic message", () => {
@@ -18,5 +18,14 @@ describe("sales WhatsApp link", () => {
     expect(text).toContain("Klinik Sehat");
     expect(text).toContain("Klinik");
     expect(SALES_TYPES.length).toBeGreaterThan(5);
+  });
+
+  it("offers the SaaS matrix with a free tier and 65k annual entry", () => {
+    expect(SALES_PLANS.map((plan) => plan.id)).toEqual(["free", "starter", "pro", "business"]);
+    expect(SALES_PLANS[0].monthly).toBe("Rp0");
+    expect(SALES_PLANS[1].monthly).toBe("Rp79.000");
+    expect(SALES_PLANS[1].annual).toBe("Rp65.000");
+    expect(SALES_PLANS[1].annualYear).toBe("Rp780rb");
+    expect(SALES_PLANS.find((plan) => plan.popular)?.id).toBe("pro");
   });
 });
