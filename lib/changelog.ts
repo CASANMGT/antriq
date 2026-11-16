@@ -16,6 +16,19 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.21.2",
+    date: "2026-11-17",
+    title: "Clearer business promotion",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "The business offer now appears as a visible card on the queue page and near the top of the waiting ticket, with a direct link to /sales.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.21.1",
     date: "2026-11-17",
     title: "Subtle call timing and mobile A/B queues",

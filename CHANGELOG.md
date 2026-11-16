@@ -10,6 +10,13 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.21.2] — 2026-11-17
+
+The **clearer business promotion** release.
+
+### Changed
+- The business offer is now a visible card with the **Rp49rb/bulan** price and CTA on the **queue page**, and a compact banner near the top of the **waiting ticket**, linking to `/sales`.
+
 ## [0.21.1] — 2026-11-17
 
 The **subtle call timing and mobile A/B queues** release.

@@ -136,7 +136,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 
 ### For business
 - Public **`/sales`** page with the **Rp49.000/bulan** offer, business-type ideas (restaurant, clinic, salon, garage, laundry, public services, retail, events), feature list and a short **name / business / type** form that opens WhatsApp to **+62 812-8194-8180** with a prefilled message.
-- Subtle **“Punya bisnis?”** links on the guest join form and ticket lead to the sales page without disturbing the queue flow.
+- A visible **business card** on the queue page and a compact **business banner near the top of the ticket** link to `/sales`, so guests who run their own business can find the Rp49rb/bulan offer.
 
 ### Host stand
 - PIN login, 12-hour signed session, branch-scoped access.

@@ -354,6 +354,26 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
             </span>
             <p className="text-xs font-semibold leading-relaxed text-ink/70">{t.guest.keepOpen}</p>
           </div>
+
+          <Link
+            href="/sales?ref=queue"
+            className="group mt-5 flex items-start gap-3 rounded-2xl border-2 border-ink bg-butter/70 px-4 py-3.5 shadow-[3px_3px_0_#262321] transition hover:-translate-y-0.5"
+          >
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl border-2 border-ink bg-white text-tomato">
+              <Store className="size-5" />
+            </span>
+            <span className="min-w-0">
+              <span className="flex flex-wrap items-center gap-1.5">
+                <span className="eyebrow text-tomato">{t.promo.kicker}</span>
+                <span className="pill status-muted">{t.promo.price}</span>
+              </span>
+              <span className="mt-1 block font-display text-lg font-semibold leading-tight">{t.promo.title}</span>
+              <span className="mt-0.5 block text-xs font-semibold leading-relaxed text-ink/65">{t.promo.body}</span>
+              <span className="mt-1.5 inline-flex items-center gap-1 text-xs font-extrabold text-tomato">
+                {t.promo.cta} <ArrowUpRight className="size-3.5" />
+              </span>
+            </span>
+          </Link>
         </div>
       </section>
 
@@ -416,9 +436,6 @@ export default async function BranchGuestPage({ params }: { params: Params }) {
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/sales?ref=queue" className="text-muted-soft hover:text-tomato">
-            {t.guest.businessCta}
-          </Link>
           <Link href="/changelog" className="text-muted-soft hover:text-muted">
             v{APP_VERSION}
           </Link>

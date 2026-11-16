@@ -13,6 +13,7 @@ import {
   MapPin,
   Phone,
   Star,
+  Store,
   Ticket,
   X,
 } from "lucide-react";
@@ -374,6 +375,27 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
               </div>
             </div>
 
+            <Link
+              href="/sales?ref=ticket"
+              className="group mb-4 flex items-center gap-2.5 rounded-xl border-2 border-ink/15 bg-butter/70 px-3 py-2.5 transition hover:border-ink/40"
+            >
+              <span className="grid size-8 shrink-0 place-items-center rounded-lg border-2 border-ink bg-white text-tomato">
+                <Store className="size-4" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[0.5625rem] font-extrabold uppercase tracking-[0.12em] text-tomato">
+                  {t.promo.kicker}
+                </span>
+                <span className="block text-xs font-extrabold leading-tight">{t.promo.title}</span>
+                <span className="block text-[0.625rem] font-semibold text-muted">{t.promo.price}</span>
+              </span>
+              <span className="inline-flex shrink-0 items-center gap-1 text-[0.625rem] font-extrabold text-tomato">
+                <span className="sm:hidden">{t.promo.ctaShort}</span>
+                <span className="hidden sm:inline">{t.promo.cta}</span>
+                <ArrowRight className="size-3" />
+              </span>
+            </Link>
+
             {entry.status === "waiting" && (
               <div>
                 <p className="eyebrow text-ink/50">{t.ticket.placeLabel}</p>
@@ -734,11 +756,6 @@ export function TicketScreen({ token, initial }: { token: string; initial: Ticke
           {t.ticket.footerNote} ·{" "}
           <Link href="/changelog" className="underline decoration-dotted underline-offset-2 hover:text-muted">
             v{APP_VERSION}
-          </Link>
-        </p>
-        <p className="mt-1 text-center text-[0.625rem] font-semibold text-muted-soft">
-          <Link href="/sales?ref=ticket" className="underline decoration-dotted underline-offset-2 hover:text-tomato">
-            {t.ticket.businessCta}
           </Link>
         </p>
       </div>
