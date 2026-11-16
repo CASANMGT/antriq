@@ -65,7 +65,10 @@ export default async function ReportsPage({
 
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <Link href={`/dashboard?branch=${active.id}`} className="inline-flex items-center gap-1.5 text-xs font-extrabold text-muted hover:text-ink">
+          <Link
+            href={showAll ? "/dashboard?branch=all" : `/dashboard?branch=${active.id}`}
+            className="inline-flex items-center gap-1.5 text-xs font-extrabold text-muted hover:text-ink"
+          >
             <ArrowLeft className="size-3.5" /> {t.owner.overview}
           </Link>
           <p className="eyebrow mt-3 text-tomato">{t.owner.reportsKicker}</p>
@@ -87,12 +90,24 @@ export default async function ReportsPage({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {canSeeAll && (
-            <Link
-              href={`/dashboard/reports?days=${days}&branch=all`}
-              className={`btn btn-sm ${showAll ? "btn-primary" : "btn-soft"}`}
-            >
-              {t.owner.allBranches}
-            </Link>
+            <div className="flex rounded-full border-2 border-ink bg-white p-1">
+              <Link
+                href={`/dashboard/reports?days=${days}&branch=${active.id}`}
+                className={`rounded-full px-3 py-1.5 text-xs font-extrabold transition ${
+                  showAll ? "text-muted hover:text-ink" : "bg-ink text-paper"
+                }`}
+              >
+                {t.owner.thisBranch}
+              </Link>
+              <Link
+                href={`/dashboard/reports?days=${days}&branch=all`}
+                className={`rounded-full px-3 py-1.5 text-xs font-extrabold transition ${
+                  showAll ? "bg-ink text-paper" : "text-muted hover:text-ink"
+                }`}
+              >
+                {t.owner.allBranches}
+              </Link>
+            </div>
           )}
           <div className="flex rounded-full border-2 border-ink bg-white p-1">
             {RANGES.map((range) => (
@@ -158,7 +173,13 @@ export default async function ReportsPage({
         </section>
       </div>
 
-      <RatingAnalytics records={ratingRecords} branches={showAll ? branches : [active]} />
+      <RatingAnalytics
+        records={ratingRecords}
+        branches={showAll ? branches : [active]}
+        allBranches={showAll}
+        branchName={active.name}
+        days={days}
+      />
 
       <section className="card overflow-hidden">
         <div className="flex items-center justify-between gap-3 border-b-2 border-ink px-4 py-3 sm:px-5">

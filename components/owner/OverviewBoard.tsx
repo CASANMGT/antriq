@@ -35,19 +35,38 @@ import type { ActivityItem, OwnerOverview } from "@/lib/types";
 
 type ActivityKey = keyof ReturnType<typeof useLang>["t"]["owner"]["overviewActivity"];
 
-export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
+export function OverviewBoard({
+  initial,
+  allBranches = false,
+  activeBranchId,
+  canSeeAll = false,
+  branchCount = 0,
+  branchNames,
+}: {
+  initial: OwnerOverview;
+  allBranches?: boolean;
+  activeBranchId?: number;
+  canSeeAll?: boolean;
+  branchCount?: number;
+  branchNames?: Record<number, string>;
+}) {
   const router = useRouter();
   const { lang, t } = useLang();
   const [data, setData] = useState(initial);
   const [notice, setNotice] = useState<NoticeState | null>(null);
   const [pending, startTransition] = useTransition();
-  const branchId = initial.branch.id;
+  const branchId = activeBranchId ?? initial.branch.id;
+  const overviewScope = allBranches ? "all" : String(branchId);
+
+  useEffect(() => {
+    setData(initial);
+  }, [initial]);
 
   useEffect(() => {
     const timer = window.setInterval(async () => {
       if (document.hidden) return;
       try {
-        const response = await fetch(`/api/owner/overview?days=7&branch=${branchId}`, { cache: "no-store" });
+        const response = await fetch(`/api/owner/overview?days=7&branch=${overviewScope}`, { cache: "no-store" });
         if (response.status === 401) {
           router.push("/login?next=/dashboard");
           return;
@@ -58,11 +77,11 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
       }
     }, 8000);
     return () => window.clearInterval(timer);
-  }, [branchId, router]);
+  }, [overviewScope, router]);
 
   const { branch, brand, stats, today, week, hourly, activity, tables, waiting } = data;
   const status = branch.waitlistStatus;
-  const showFloor = branch.seatingMode === "plan";
+  const showFloor = !allBranches && branch.seatingMode === "plan";
   const locale = lang === "id" ? "id-ID" : "en-GB";
   const now = new Date(data.serverNow);
   const todayLabel = formatDayLong(dayInTz(now, branch.timezone), locale);
@@ -108,45 +127,81 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
             {t.owner.overviewTitle}
           </h1>
           <p className="mt-2 text-sm font-semibold text-muted">
-            {brand?.name ? `${brand.name} · ` : ""}
-            {branch.name} · {format(t.owner.overviewSub, {
-              date: todayLabel,
-              open: branch.openTime,
-              close: branch.closeTime,
-            })}
+            {allBranches ? (
+              format(t.owner.overviewAllSub, {
+                count: branchCount,
+                date: todayLabel,
+                open: branch.openTime,
+                close: branch.closeTime,
+              })
+            ) : (
+              <>
+                {brand?.name ? `${brand.name} · ` : ""}
+                {branch.name} ·{" "}
+                {format(t.owner.overviewSub, {
+                  date: todayLabel,
+                  open: branch.openTime,
+                  close: branch.closeTime,
+                })}
+              </>
+            )}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span
-            className={`pill ${
-              status === "open" ? "status-seated" : status === "paused" ? "status-waiting" : "status-muted"
-            }`}
-          >
-            {status === "open" && <span className="live-dot" />}
-            {status === "open"
-              ? t.owner.waitlistOpen
-              : status === "paused"
-                ? t.owner.waitlistPaused
-                : t.owner.waitlistClosed}
-          </span>
-          <button
-            type="button"
-            onClick={toggleQueue}
-            disabled={pending}
-            className={`btn btn-sm ${status === "open" ? "btn-soft" : "btn-sage"}`}
-          >
-            {pending ? (
-              <Loader2 className="size-3.5 animate-spin" />
-            ) : status === "open" ? (
-              <PauseCircle className="size-3.5" />
-            ) : (
-              <PlayCircle className="size-3.5" />
-            )}
-            {status === "open" ? t.owner.pauseJoins : t.owner.reopen}
-          </button>
-          <Link href={`/host?branch=${branch.id}`} className="btn btn-primary btn-sm">
-            <DoorOpen className="size-3.5" /> {t.owner.openHost}
-          </Link>
+          {canSeeAll && (
+            <div className="flex rounded-full border-2 border-ink bg-white p-1">
+              <Link
+                href={`/dashboard?branch=${branchId}`}
+                className={`rounded-full px-3 py-1.5 text-xs font-extrabold transition ${
+                  allBranches ? "text-muted hover:text-ink" : "bg-ink text-paper"
+                }`}
+              >
+                {t.owner.thisBranch}
+              </Link>
+              <Link
+                href="/dashboard?branch=all"
+                className={`rounded-full px-3 py-1.5 text-xs font-extrabold transition ${
+                  allBranches ? "bg-ink text-paper" : "text-muted hover:text-ink"
+                }`}
+              >
+                {t.owner.allBranches}
+              </Link>
+            </div>
+          )}
+          {!allBranches && (
+            <>
+              <span
+                className={`pill ${
+                  status === "open" ? "status-seated" : status === "paused" ? "status-waiting" : "status-muted"
+                }`}
+              >
+                {status === "open" && <span className="live-dot" />}
+                {status === "open"
+                  ? t.owner.waitlistOpen
+                  : status === "paused"
+                    ? t.owner.waitlistPaused
+                    : t.owner.waitlistClosed}
+              </span>
+              <button
+                type="button"
+                onClick={toggleQueue}
+                disabled={pending}
+                className={`btn btn-sm ${status === "open" ? "btn-soft" : "btn-sage"}`}
+              >
+                {pending ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : status === "open" ? (
+                  <PauseCircle className="size-3.5" />
+                ) : (
+                  <PlayCircle className="size-3.5" />
+                )}
+                {status === "open" ? t.owner.pauseJoins : t.owner.reopen}
+              </button>
+              <Link href={`/host?branch=${branch.id}`} className="btn btn-primary btn-sm">
+                <DoorOpen className="size-3.5" /> {t.owner.openHost}
+              </Link>
+            </>
+          )}
         </div>
       </header>
 
@@ -293,9 +348,11 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
                 {format(t.owner.inLineSub, { count: waiting.length })}
               </p>
             </div>
-            <Link href={`/host?branch=${branch.id}`} className="btn btn-soft btn-sm">
-              {t.owner.workLine} <ArrowUpRight className="size-3.5" />
-            </Link>
+            {!allBranches && (
+              <Link href={`/host?branch=${branch.id}`} className="btn btn-soft btn-sm">
+                {t.owner.workLine} <ArrowUpRight className="size-3.5" />
+              </Link>
+            )}
           </div>
 
           <div className="mt-3">
@@ -316,6 +373,7 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
                       <p className="truncate text-sm font-extrabold">{entry.guestName}</p>
                       <p className="text-[0.6875rem] font-semibold text-muted">
                         {entry.code} · {entry.partySize} {t.guest.guestUnit}
+                        {branchNames?.[entry.branchId] ? ` · ${branchNames[entry.branchId]}` : ""}
                       </p>
                     </div>
                     {index === 0 && <span className="pill status-waiting">{t.owner.next}</span>}
@@ -372,7 +430,10 @@ export function OverviewBoard({ initial }: { initial: OwnerOverview }) {
                 {format(t.owner.last7Summary, { joined: weekTotals.joined, seated: weekTotals.seated })}
               </p>
             </div>
-            <Link href={`/dashboard/reports?branch=${branch.id}`} className="btn btn-ghost btn-sm">
+            <Link
+              href={allBranches ? "/dashboard/reports?branch=all" : `/dashboard/reports?branch=${branch.id}`}
+              className="btn btn-ghost btn-sm"
+            >
               {t.owner.fullReports} <ArrowUpRight className="size-3.5" />
             </Link>
           </div>

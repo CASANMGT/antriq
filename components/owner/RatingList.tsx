@@ -9,7 +9,7 @@ import type { RatingRecord } from "@/lib/types";
 
 const PAGE_SIZE = 10;
 
-export function RatingList({ records }: { records: RatingRecord[] }) {
+export function RatingList({ records, showBranch = true }: { records: RatingRecord[]; showBranch?: boolean }) {
   const { lang, t } = useLang();
   const [filter, setFilter] = useState<number | null>(null);
   const [dateFilter, setDateFilter] = useState("");
@@ -104,7 +104,7 @@ export function RatingList({ records }: { records: RatingRecord[] }) {
                 <div className="flex flex-wrap items-center gap-1.5">
                   <p className="truncate text-sm font-extrabold">{record.guestName}</p>
                   <span className="pill status-muted">{record.code}</span>
-                  <span className="pill status-muted">{record.branchName}</span>
+                  {showBranch && <span className="pill status-muted">{record.branchName}</span>}
                   {record.visitNumber > 1 && (
                     <span className="pill status-waiting">
                       {format(t.common.visitNumber, { count: record.visitNumber })}

@@ -20,6 +20,7 @@ import {
   getCustomerList,
   getHostState,
   getOwnerOverview,
+  getOwnerOverviewForBranches,
   getOwnerWeekForBranches,
   getPublicSnapshot,
   getRatingAnalysis,
@@ -595,6 +596,24 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(history).toHaveLength(2);
     expect(history.map((item) => item.branchName).sort()).toEqual(["Nikumaru Blok M", "Nikumaru Tebet"]);
     expect(await getCustomerHistory([tebet], { phone })).toHaveLength(1);
+  });
+
+  it("builds a combined overview for all branches", async () => {
+    const blokM = await primaryBranchId();
+    const tebetBranch = await getBranchBySlugs("nikumaru", "tebet");
+    expect(tebetBranch).toBeTruthy();
+    const tebet = tebetBranch!.branch.id;
+
+    const blok = await getOwnerOverview(blokM, 7);
+    const teb = await getOwnerOverview(tebet, 7);
+    const combined = await getOwnerOverviewForBranches([blokM, tebet], 7);
+
+    expect(combined.branch.id).toBe(0);
+    expect(combined.week).toHaveLength(7);
+    expect(combined.stats.totalTables).toBe(blok.stats.totalTables + teb.stats.totalTables);
+    expect(combined.stats.joinedToday).toBe(blok.stats.joinedToday + teb.stats.joinedToday);
+    expect(combined.stats.waiting).toBe(blok.stats.waiting + teb.stats.waiting);
+    expect(combined.waiting).toHaveLength(blok.waiting.length + teb.waiting.length);
   });
 
   it("stars a guest phone number globally", async () => {

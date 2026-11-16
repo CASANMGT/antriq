@@ -11,12 +11,19 @@ import type { RatingRecord } from "@/lib/types";
 export function RatingAnalytics({
   records,
   branches,
+  allBranches = false,
+  branchName,
+  days,
 }: {
   records: RatingRecord[];
   branches: { id: number; name: string }[];
+  allBranches?: boolean;
+  branchName?: string;
+  days?: number;
 }) {
   const { lang, t } = useLang();
   const locale = lang === "id" ? "id-ID" : "en-GB";
+  const scopeLabel = allBranches ? t.owner.allBranches : branchName;
 
   const summary = useMemo(() => {
     const total = records.reduce((sum, record) => sum + record.rating, 0);
@@ -83,6 +90,10 @@ export function RatingAnalytics({
             <p className="eyebrow text-tomato">{t.owner.ratingAnalyticsTitle}</p>
             <h2 className="mt-1 font-display text-[1.7rem] font-semibold leading-tight">{t.owner.ratingTitle}</h2>
             <p className="mt-0.5 text-xs font-semibold text-muted">{t.owner.ratingAnalyticsSub}</p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              {scopeLabel && <span className="pill status-muted">{scopeLabel}</span>}
+              {days ? <span className="pill status-muted">{days}d</span> : null}
+            </div>
           </div>
           <div className="text-right">
             <p className="num font-display text-3xl font-semibold leading-none">
@@ -153,29 +164,31 @@ export function RatingAnalytics({
         </div>
       )}
 
-      <section className="card p-4 sm:p-5">
-        <h3 className="font-display text-[1.4rem] font-semibold leading-tight">{t.owner.ratingByBranch}</h3>
-        <p className="mt-0.5 text-xs font-semibold text-muted">{t.owner.ratingByBranchSub}</p>
-        <div className="mt-3 space-y-2">
-          {perBranch.map((branch) => (
-            <div key={branch.id} className="flex items-center gap-3">
-              <p className="w-36 shrink-0 truncate text-xs font-extrabold">{branch.name}</p>
-              <span className="h-2 flex-1 overflow-hidden rounded-full bg-cream">
-                <span
-                  className="block h-2 rounded-full bg-gold"
-                  style={{ width: `${branch.average ? (branch.average / 5) * 100 : 0}%` }}
-                />
-              </span>
-              <span className="num w-8 text-right text-xs font-extrabold">
-                {branch.count ? branch.average.toFixed(1) : "—"}
-              </span>
-              <span className="w-10 text-right text-[0.625rem] font-bold text-muted">({branch.count})</span>
-            </div>
-          ))}
-        </div>
-      </section>
+      {branches.length > 1 && (
+        <section className="card p-4 sm:p-5">
+          <h3 className="font-display text-[1.4rem] font-semibold leading-tight">{t.owner.ratingByBranch}</h3>
+          <p className="mt-0.5 text-xs font-semibold text-muted">{t.owner.ratingByBranchSub}</p>
+          <div className="mt-3 space-y-2">
+            {perBranch.map((branch) => (
+              <div key={branch.id} className="flex items-center gap-3">
+                <p className="w-36 shrink-0 truncate text-xs font-extrabold">{branch.name}</p>
+                <span className="h-2 flex-1 overflow-hidden rounded-full bg-cream">
+                  <span
+                    className="block h-2 rounded-full bg-gold"
+                    style={{ width: `${branch.average ? (branch.average / 5) * 100 : 0}%` }}
+                  />
+                </span>
+                <span className="num w-8 text-right text-xs font-extrabold">
+                  {branch.count ? branch.average.toFixed(1) : "—"}
+                </span>
+                <span className="w-10 text-right text-[0.625rem] font-bold text-muted">({branch.count})</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
-      <RatingList records={records} />
+      <RatingList records={records} showBranch={branches.length > 1} />
     </div>
   );
 }

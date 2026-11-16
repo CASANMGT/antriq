@@ -1989,8 +1989,11 @@ export async function deleteTable(branchId: number, id: number, actor: string): 
 export async function getOwnerWeekForBranches(branchIds: number[], days = 7): Promise<DayPoint[]> {
   const wanted = Array.from(new Set(branchIds.filter((id) => Number.isInteger(id) && id > 0)));
   if (wanted.length === 0) return [];
-
   const overviews = await Promise.all(wanted.map((id) => getOwnerOverview(id, days)));
+  return mergeWeek(overviews);
+}
+
+function mergeWeek(overviews: OwnerOverview[]): DayPoint[] {
   const byDay = new Map<string, DayPoint>();
   const waitWeight = new Map<string, { total: number; count: number }>();
   const turnWeight = new Map<string, { total: number; count: number }>();
@@ -2164,6 +2167,151 @@ function safeJson(value: string): Row {
   } catch {
     return {};
   }
+}
+
+export async function getOwnerOverviewForBranches(branchIds: number[], days = 7): Promise<OwnerOverview> {
+  const wanted = Array.from(new Set(branchIds.filter((id) => Number.isInteger(id) && id > 0)));
+  if (wanted.length === 0) throw new AppError("Choose at least one branch.");
+  const overviews = await Promise.all(wanted.map((id) => getOwnerOverview(id, days)));
+  const first = overviews[0];
+
+  const stats: OwnerOverview["stats"] = {
+    waiting: 0,
+    called: 0,
+    seated: 0,
+    availableTables: 0,
+    dirtyTables: 0,
+    blockedTables: 0,
+    totalTables: 0,
+    joinedToday: 0,
+    seatedToday: 0,
+    noShowToday: 0,
+    avgWaitMinutes: 0,
+    longestWaitMinutes: 0,
+  };
+  let waitTotal = 0;
+  let waitCount = 0;
+  let turnTotal = 0;
+  let turnCount = 0;
+
+  const hourMap = new Map<number, { joined: number; seated: number }>();
+  const slotMap = new Map<number, { total: number; count: number }>();
+  const distribution = [0, 0, 0, 0, 0];
+  let ratingCount = 0;
+  let ratingTotal = 0;
+
+  for (const overview of overviews) {
+    stats.waiting += overview.stats.waiting;
+    stats.called += overview.stats.called;
+    stats.seated += overview.stats.seated;
+    stats.availableTables += overview.stats.availableTables;
+    stats.dirtyTables += overview.stats.dirtyTables;
+    stats.blockedTables += overview.stats.blockedTables;
+    stats.totalTables += overview.stats.totalTables;
+    stats.joinedToday += overview.stats.joinedToday;
+    stats.seatedToday += overview.stats.seatedToday;
+    stats.noShowToday += overview.stats.noShowToday;
+    stats.longestWaitMinutes = Math.max(stats.longestWaitMinutes, overview.stats.longestWaitMinutes);
+    waitTotal += overview.stats.avgWaitMinutes * overview.stats.seatedToday;
+    waitCount += overview.stats.seatedToday;
+
+    const completed = Math.max(1, overview.today.completed);
+    turnTotal += overview.today.avgTurnMinutes * completed;
+    turnCount += completed;
+
+    for (const point of overview.hourly) {
+      const slot = hourMap.get(point.hour) ?? { joined: 0, seated: 0 };
+      slot.joined += point.joined;
+      slot.seated += point.seated;
+      hourMap.set(point.hour, slot);
+    }
+
+    ratingCount += overview.ratings.count;
+    ratingTotal += overview.ratings.average * overview.ratings.count;
+    overview.ratings.distribution.forEach((count, index) => {
+      distribution[index] += count;
+    });
+    for (const slot of overview.ratings.slots) {
+      const current = slotMap.get(slot.hour) ?? { total: 0, count: 0 };
+      current.total += slot.average * slot.count;
+      current.count += slot.count;
+      slotMap.set(slot.hour, current);
+    }
+  }
+
+  stats.avgWaitMinutes = waitCount ? Math.round(waitTotal / waitCount) : 0;
+  const attendance = stats.seatedToday + stats.noShowToday;
+  const hourly = [...hourMap.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([hour, slot]) => ({ hour, joined: slot.joined, seated: slot.seated }));
+
+  const ratings: RatingSummary = {
+    average: ratingCount ? Math.round((ratingTotal / ratingCount) * 10) / 10 : 0,
+    count: ratingCount,
+    distribution,
+    slots: [...slotMap.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([hour, slot]) => ({
+        hour,
+        count: slot.count,
+        average: Math.round((slot.total / slot.count) * 10) / 10,
+      })),
+    recent: overviews
+      .flatMap((overview) => overview.ratings.recent)
+      .sort((a, b) => new Date(b.ratedAt).getTime() - new Date(a.ratedAt).getTime())
+      .slice(0, 5),
+  };
+
+  const openTime = overviews.map((overview) => overview.branch.openTime).sort()[0] ?? first.branch.openTime;
+  const closeTime = overviews.map((overview) => overview.branch.closeTime).sort().at(-1) ?? first.branch.closeTime;
+  const branch: Branch = {
+    ...first.branch,
+    id: 0,
+    name: "All branches",
+    tagline: null,
+    address: null,
+    phone: null,
+    latitude: null,
+    longitude: null,
+    announcement: null,
+    openTime,
+    closeTime,
+    seatingMode: "queue",
+    pauseReason: null,
+    avgTurnMinutes: turnCount ? Math.round(turnTotal / turnCount) : first.branch.avgTurnMinutes,
+  };
+  const singleBrand = overviews.every((overview) => overview.brand?.id === first.brand?.id);
+
+  return {
+    branch,
+    brand: singleBrand ? first.brand : null,
+    stats,
+    today: {
+      avgWaitMinutes: stats.avgWaitMinutes,
+      avgTurnMinutes: Math.round(turnTotal / Math.max(1, turnCount)),
+      noShowRate: attendance ? Math.round((stats.noShowToday / attendance) * 100) : 0,
+      completed: overviews.reduce((sum, overview) => sum + overview.today.completed, 0),
+      cancelled: overviews.reduce((sum, overview) => sum + overview.today.cancelled, 0),
+      utilization: stats.totalTables ? Math.min(100, Math.round((stats.seated / stats.totalTables) * 100)) : 0,
+      walkIns: overviews.reduce((sum, overview) => sum + overview.today.walkIns, 0),
+      remote: overviews.reduce((sum, overview) => sum + overview.today.remote, 0),
+    },
+    hourly,
+    week: mergeWeek(overviews),
+    ratings,
+    activity: overviews
+      .flatMap((overview) => overview.activity)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 14),
+    tables: [],
+    waiting: overviews
+      .flatMap((overview) => overview.waiting)
+      .sort((a, b) => new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime()),
+    called: overviews
+      .flatMap((overview) => overview.called)
+      .sort((a, b) => new Date(a.calledAt ?? a.joinedAt).getTime() - new Date(b.calledAt ?? b.joinedAt).getTime()),
+    serverNow: first.serverNow,
+  };
 }
 
 export async function getRatingAnalysis(branchIds: number[], days = 30): Promise<BranchRatingSummary[]> {

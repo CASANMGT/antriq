@@ -10,6 +10,17 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.19.0] — 2026-11-16
+
+The **per-branch and all-branch views** release.
+
+### Added
+- The dashboard summary has an explicit **Cabang ini / Semua cabang** switch. The all-branch view combines queue counts, service pulse, activity and the 7-day trend across every branch the owner manages.
+
+### Fixed
+- **Rating analytics follows the selected scope.** A branch view shows only that branch's ratings and hides the cross-branch comparison; the all-branch view shows all ratings plus the per-branch breakdown.
+- Reports use the same **Cabang ini / Semua cabang** switch so the active scope is never ambiguous.
+
 ## [0.18.8] — 2026-11-11
 
 The **restaurant names in history** release.

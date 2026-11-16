@@ -8,7 +8,7 @@ npm test         # 45 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **11 Nov 2026** — lint clean, 48/48 tests passing, production build green (v0.18.8 restaurant names in history, Antrean column).
+Last run: **16 Nov 2026** — lint clean, 49/49 tests passing, production build green (v0.19.0 per-branch and all-branch views).
 
 ### Notification delivery QA
 

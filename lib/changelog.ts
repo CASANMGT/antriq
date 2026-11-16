@@ -16,6 +16,26 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.19.0",
+    date: "2026-11-16",
+    title: "Per-branch and all-branch views",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "The dashboard summary now has an explicit Cabang ini / Semua cabang switch; the all-branch view combines queue, service pulse, activity and the 7-day trend.",
+        ],
+      },
+      {
+        label: "Fixed",
+        items: [
+          "Rating analytics now follows the selected scope: a branch view shows only that branch's ratings, while the all-branch view shows every branch plus the per-branch comparison.",
+          "Reports use the same Cabang ini / Semua cabang switch so the branch scope is always visible.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.18.8",
     date: "2026-11-11",
     title: "Restaurant names in history",
