@@ -188,6 +188,7 @@ export interface SalesCopy {
   formKicker: string;
   formTitle: string;
   formSub: string;
+  planLabel: string;
   nameLabel: string;
   namePlaceholder: string;
   businessLabel: string;
@@ -259,6 +260,7 @@ export const SALES_COPY: Record<Lang, SalesCopy> = {
     formKicker: "MULAI",
     formTitle: "Ceritakan bisnis Anda",
     formSub: "Isi tiga hal ini, lalu kami lanjutkan di WhatsApp.",
+    planLabel: "Paket",
     nameLabel: "Nama Anda",
     namePlaceholder: "Nama lengkap",
     businessLabel: "Nama bisnis",
@@ -275,9 +277,9 @@ export const SALES_COPY: Record<Lang, SalesCopy> = {
     backHome: "Kembali ke AntriQ",
     footer: "AntriQ — antrean digital untuk bisnis yang sibuk.",
     waMessage:
-      "Halo tim AntriQ, saya {name} dari {business} ({type}). Saya tertarik dengan AntriQ Rp49.000/bulan. Boleh dibantu info dan onboarding-nya?",
+      "Halo tim AntriQ, saya {name} dari {business} ({type}). Saya tertarik dengan paket {plan} AntriQ. Boleh dibantu info dan onboarding-nya?",
     waMessageGeneric:
-      "Halo tim AntriQ, saya tertarik dengan AntriQ Rp49.000/bulan. Boleh dibantu info dan onboarding-nya?",
+      "Halo tim AntriQ, saya tertarik dengan AntriQ mulai Rp65.000/bulan per cabang. Boleh dibantu info dan onboarding-nya?",
   },
   en: {
     metaTitle: "AntriQ for business — from Rp65,000/month",
@@ -330,6 +332,7 @@ export const SALES_COPY: Record<Lang, SalesCopy> = {
     formKicker: "GET STARTED",
     formTitle: "Tell us about your business",
     formSub: "Fill these three things in and we'll continue on WhatsApp.",
+    planLabel: "Plan",
     nameLabel: "Your name",
     namePlaceholder: "Full name",
     businessLabel: "Business name",
@@ -346,9 +349,9 @@ export const SALES_COPY: Record<Lang, SalesCopy> = {
     backHome: "Back to AntriQ",
     footer: "AntriQ — digital queues for busy businesses.",
     waMessage:
-      "Hi AntriQ team, I'm {name} from {business} ({type}). I'm interested in AntriQ at Rp49,000/month. Could you help with info and onboarding?",
+      "Hi AntriQ team, I'm {name} from {business} ({type}). I'm interested in the {plan} plan for AntriQ. Could you help with info and onboarding?",
     waMessageGeneric:
-      "Hi AntriQ team, I'm interested in AntriQ at Rp49,000/month. Could you help with info and onboarding?",
+      "Hi AntriQ team, I'm interested in AntriQ from Rp65,000/month per branch. Could you help with info and onboarding?",
   },
 };
 
@@ -364,11 +367,13 @@ export function salesWhatsAppHref({
   name,
   business,
   type,
+  plan,
   lang = "id",
 }: {
   name?: string;
   business?: string;
   type?: string;
+  plan?: string;
   lang?: Lang;
 }): string {
   const copy = SALES_COPY[lang];
@@ -379,6 +384,7 @@ export function salesWhatsAppHref({
           .replace("{name}", name?.trim() || "—")
           .replace("{business}", business?.trim() || "—")
           .replace("{type}", type?.trim() || "—")
+          .replace("{plan}", plan?.trim() || "Starter")
       : copy.waMessageGeneric;
   return `https://api.whatsapp.com/send?phone=${SALES_PHONE}&text=${encodeURIComponent(message)}`;
 }

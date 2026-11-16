@@ -16,6 +16,21 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.21.7",
+    date: "2026-11-17",
+    title: "Billing toggle and working plan buttons",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "Pricing now has a Bulanan / Tahunan toggle, defaulting to annual and showing the ~20% saving.",
+          "Pilih paket now selects that plan in the form and includes it in the WhatsApp message instead of doing nothing.",
+          "Every business promo now says mulai Rp65rb/bulan per cabang.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.21.6",
     date: "2026-11-17",
     title: "Full guest details from the queue card",

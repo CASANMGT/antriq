@@ -100,10 +100,10 @@ const id = {
   promo: {
     kicker: "UNTUK BISNIS",
     title: "Punya bisnis dengan antrean?",
-    body: "AntriQ bisa dipakai untuk restoran, klinik, salon, bengkel, dan bisnis lain. Mulai Rp49rb/bulan.",
+    body: "AntriQ bisa dipakai untuk restoran, klinik, salon, bengkel, dan bisnis lain. Mulai Rp65rb/bulan.",
     cta: "Lihat AntriQ untuk bisnis",
     ctaShort: "Lihat",
-    price: "Rp49rb/bulan",
+    price: "Mulai Rp65rb/bulan",
   },
   guest: {
     staff: "Staf",
@@ -970,10 +970,10 @@ const en: Messages = {
   promo: {
     kicker: "FOR BUSINESS",
     title: "Run a business with a queue?",
-    body: "AntriQ works for restaurants, clinics, salons, garages and more. From Rp49k/month.",
+    body: "AntriQ works for restaurants, clinics, salons, garages and more. From Rp65k/month.",
     cta: "See AntriQ for business",
     ctaShort: "See",
-    price: "Rp49k/month",
+    price: "From Rp65k/month",
   },
   guest: {
     staff: "Staff",

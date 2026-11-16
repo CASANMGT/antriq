@@ -8,15 +8,16 @@ describe("sales WhatsApp link", () => {
     expect(url.host).toBe("api.whatsapp.com");
     expect(url.pathname).toBe("/send");
     expect(url.searchParams.get("phone")).toBe(SALES_PHONE);
-    expect(url.searchParams.get("text")).toContain("Rp49.000/bulan");
+    expect(url.searchParams.get("text")).toContain("Rp65.000/bulan");
   });
 
-  it("prefills the name, business and type", () => {
-    const href = salesWhatsAppHref({ name: "Ayu", business: "Klinik Sehat", type: "Klinik", lang: "id" });
+  it("prefills the name, business, type and plan", () => {
+    const href = salesWhatsAppHref({ name: "Ayu", business: "Klinik Sehat", type: "Klinik", plan: "Starter", lang: "id" });
     const text = new URL(href).searchParams.get("text") ?? "";
     expect(text).toContain("Ayu");
     expect(text).toContain("Klinik Sehat");
     expect(text).toContain("Klinik");
+    expect(text).toContain("paket Starter");
     expect(SALES_TYPES.length).toBeGreaterThan(5);
   });
 

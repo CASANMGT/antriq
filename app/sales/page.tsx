@@ -18,6 +18,7 @@ import { Logo } from "@/components/Logo";
 import { Mascot } from "@/components/Mascot";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { SalesForm } from "@/components/sales/SalesForm";
+import { PricingGrid } from "@/components/sales/PricingGrid";
 import { getLang } from "@/lib/lang";
 import { SALES_COPY, SALES_PLANS, SALES_TYPES, salesTypeLabel, salesTypeNote, salesWhatsAppHref } from "@/lib/sales";
 
@@ -33,10 +34,16 @@ export const metadata: Metadata = {
 
 const TYPE_ICONS = [UtensilsCrossed, Stethoscope, Scissors, Car, Sparkles, Landmark, Store, Ticket];
 
-export default async function SalesPage() {
+export default async function SalesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ plan?: string }>;
+}) {
+  const params = await searchParams;
   const lang = await getLang();
   const copy = SALES_COPY[lang];
   const direct = salesWhatsAppHref({ lang });
+  const initialPlan = SALES_PLANS.some((plan) => plan.id === params.plan) ? params.plan : "starter";
 
   return (
     <main className="paper grain min-h-[100dvh]">
@@ -78,7 +85,7 @@ export default async function SalesPage() {
           </h1>
           <p className="mt-4 max-w-xl text-sm font-semibold leading-relaxed text-muted sm:text-base">{copy.subtitle}</p>
           <div className="mt-5 flex flex-wrap items-center gap-2">
-            <a href="#start" className="btn btn-primary">
+            <a href="/sales?plan=free#start" className="btn btn-primary">
               {copy.ctaFree} <ArrowRight className="size-4" />
             </a>
             <a href={direct} target="_blank" rel="noreferrer" className="btn btn-soft">
@@ -115,7 +122,7 @@ export default async function SalesPage() {
                 </p>
               ))}
             </div>
-            <a href="#start" className="btn btn-primary mt-4 w-full">
+            <a href="/sales?plan=free#start" className="btn btn-primary mt-4 w-full">
               {copy.ctaFree} <ArrowRight className="size-4" />
             </a>
           </div>
@@ -171,61 +178,7 @@ export default async function SalesPage() {
         <p className="mt-1 max-w-2xl text-sm font-semibold leading-relaxed text-muted">{copy.pricingSub}</p>
         <p className="mt-2 text-xs font-bold text-ink/55">{copy.noWaBlast}</p>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {SALES_PLANS.map((plan) => {
-            const name = lang === "id" ? plan.idName : plan.enName;
-            const limit = lang === "id" ? plan.idLimit : plan.enLimit;
-            const features = lang === "id" ? plan.idFeatures : plan.enFeatures;
-            return (
-              <article
-                key={plan.id}
-                className={`relative flex flex-col rounded-2xl border-2 border-ink p-4 shadow-[3px_3px_0_#262321] ${
-                  plan.popular ? "bg-butter" : "bg-white"
-                }`}
-              >
-                {plan.popular && (
-                  <span className="absolute -top-2.5 right-3 rounded-full border-2 border-ink bg-tomato px-2 py-0.5 text-[0.5625rem] font-extrabold uppercase tracking-[0.1em] text-white">
-                    {copy.popular}
-                  </span>
-                )}
-                <h3 className="font-display text-lg font-semibold leading-tight">{name}</h3>
-                <p className="mt-0.5 text-[0.625rem] font-bold text-muted">{limit}</p>
-                <div className="mt-3 border-t-2 border-dashed border-ink/15 pt-3">
-                  <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.12em] text-ink/45">
-                    {copy.billingMonthly}
-                  </p>
-                  <p className="num mt-0.5 font-display text-2xl font-semibold leading-none">
-                    {plan.monthly}
-                    <span className="ml-1 text-xs font-bold text-muted">{copy.perMonth}</span>
-                  </p>
-                  {plan.id === "free" ? (
-                    <p className="mt-1 text-[0.6875rem] font-semibold text-muted">{copy.freeNote}</p>
-                  ) : (
-                    <p className="mt-1 text-[0.6875rem] font-semibold text-muted">
-                      {copy.billingAnnual}:{" "}
-                      <span className="font-extrabold text-ink">
-                        {plan.annual}
-                        {copy.perMonth}
-                      </span>{" "}
-                      · {plan.annualYear}
-                      {copy.perYear}
-                    </p>
-                  )}
-                </div>
-                <ul className="mt-3 flex-1 space-y-1.5">
-                  {features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-1.5 text-[0.6875rem] font-semibold leading-snug">
-                      <Check className="mt-0.5 size-3 shrink-0 text-leaf-dark" /> {feature}
-                    </li>
-                  ))}
-                </ul>
-                <a href="#start" className={`btn mt-4 w-full ${plan.popular ? "btn-primary" : "btn-soft"}`}>
-                  {plan.id === "free" ? copy.freeCta : copy.planCta}
-                </a>
-              </article>
-            );
-          })}
-        </div>
+        <PricingGrid lang={lang} />
       </section>
 
       <section id="start" className="mx-auto grid w-full max-w-6xl gap-5 px-4 py-10 sm:px-6 lg:grid-cols-[0.9fr_1.1fr]">
@@ -253,7 +206,7 @@ export default async function SalesPage() {
           <p className="eyebrow text-tomato">{copy.formKicker}</p>
           <h2 className="mt-2 font-display text-[1.9rem] font-semibold leading-tight">{copy.formTitle}</h2>
           <p className="mt-1 text-sm font-semibold leading-relaxed text-muted">{copy.formSub}</p>
-          <SalesForm lang={lang} />
+          <SalesForm lang={lang} initialPlan={initialPlan} />
         </div>
       </section>
 

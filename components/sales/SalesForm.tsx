@@ -2,23 +2,27 @@
 
 import { useState } from "react";
 import { Check, MessageCircle } from "lucide-react";
-import { SALES_COPY, SALES_TYPES, salesTypeLabel, salesTypeNote, salesWhatsAppHref } from "@/lib/sales";
+import { SALES_COPY, SALES_PLANS, SALES_TYPES, salesTypeLabel, salesTypeNote, salesWhatsAppHref } from "@/lib/sales";
 import type { Lang } from "@/lib/i18n";
 
-export function SalesForm({ lang }: { lang: Lang }) {
+export function SalesForm({ lang, initialPlan }: { lang: Lang; initialPlan?: string }) {
   const copy = SALES_COPY[lang];
+  const defaultPlan = SALES_PLANS.some((plan) => plan.id === initialPlan) ? initialPlan : "starter";
   const [name, setName] = useState("");
   const [business, setBusiness] = useState("");
   const [type, setType] = useState("");
   const [customType, setCustomType] = useState("");
+  const [plan, setPlan] = useState(defaultPlan);
   const [sent, setSent] = useState(false);
   const selected = SALES_TYPES.find((item) => item.id === type);
   const custom = type === "other";
   const label = custom ? customType.trim() : selected ? salesTypeLabel(selected, lang) : "";
+  const selectedPlan = SALES_PLANS.find((item) => item.id === plan) ?? SALES_PLANS[1];
+  const planLabel = lang === "id" ? selectedPlan.idName : selectedPlan.enName;
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const href = salesWhatsAppHref({ name, business, type: label, lang });
+    const href = salesWhatsAppHref({ name, business, type: label, plan: planLabel, lang });
     window.open(href, "_blank", "noopener,noreferrer");
     setSent(true);
   }
@@ -97,6 +101,19 @@ export function SalesForm({ lang }: { lang: Lang }) {
             />
           </div>
         )}
+      </div>
+
+      <div>
+        <label className="label" htmlFor="sales-plan">
+          {copy.planLabel}
+        </label>
+        <select id="sales-plan" className="input" value={plan} onChange={(event) => setPlan(event.target.value)}>
+          {SALES_PLANS.map((item) => (
+            <option key={item.id} value={item.id}>
+              {lang === "id" ? item.idName : item.enName}
+            </option>
+          ))}
+        </select>
       </div>
 
       <button type="submit" className="btn btn-primary btn-lg w-full">

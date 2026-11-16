@@ -10,6 +10,15 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.21.7] — 2026-11-17
+
+The **billing toggle and working plan buttons** release.
+
+### Changed
+- The pricing matrix has a **Bulanan / Tahunan toggle**, defaulting to annual and showing the ~20% saving.
+- **Pilih paket** now opens the form with that plan selected; the plan is included in the WhatsApp message.
+- Every business promo on the queue page, ticket and sales page now says **mulai Rp65rb/bulan per cabang**.
+
 ## [0.21.6] — 2026-11-17
 
 The **full guest details** release.
