@@ -35,6 +35,7 @@ import {
   markNoShow,
   rateTicket,
   recallEntry,
+  releaseSeatedEntries,
   requeueEntry,
   resetGuestDevice,
   seatEntry,
@@ -500,6 +501,56 @@ describe("store integration (PGlite + demo seed)", () => {
     );
     expect(released[0]?.status).toBe("completed");
     expect(released[0]?.released_by).toBe("Sari Kasir");
+  });
+
+  it("completes selected seated guests in one action", async () => {
+    const branchId = await primaryBranchId();
+    const ids: number[] = [];
+    for (const guestName of ["Bulk One", "Bulk Two"]) {
+      const joined = await joinQueue(branchId, { guestName, partySize: 2 });
+      const view = await getTicketView(joined.token);
+      const seated = await seatEntry(branchId, view!.entry.id, null, "Wuri", 2, null);
+      expect(seated.ok).toBe(true);
+      ids.push(view!.entry.id);
+    }
+
+    const result = await releaseSeatedEntries(branchId, ids, "Wuri", 2);
+    expect(result.ok).toBe(true);
+    const state = await getHostState(branchId);
+    expect(state.seated.some((entry) => ids.includes(entry.id))).toBe(false);
+    const rows = await q<{ status: string }>("select status from queue_entries where id = any($1::int[])", [ids]);
+    expect(rows.every((row) => row.status === "completed")).toBe(true);
+  });
+
+  it("auto-completes a seated guest after 60 minutes", async () => {
+    const branchId = await primaryBranchId();
+    const joined = await joinQueue(branchId, { guestName: "Auto Complete", partySize: 2 });
+    const view = await getTicketView(joined.token);
+    const seated = await seatEntry(branchId, view!.entry.id, null, "Wuri", 2, null);
+    expect(seated.ok).toBe(true);
+
+    await q("update queue_entries set seated_at = now() - interval '61 minutes' where id = $1", [view!.entry.id]);
+    const state = await getHostState(branchId);
+    expect(state.seated.some((entry) => entry.id === view!.entry.id)).toBe(false);
+    const rows = await q<{ status: string; released_by: string | null }>(
+      "select status, released_by from queue_entries where id = $1",
+      [view!.entry.id],
+    );
+    expect(rows[0]?.status).toBe("completed");
+    expect(rows[0]?.released_by).toBe("Auto");
+  });
+
+  it("caps recalls at three calls", async () => {
+    const branchId = await primaryBranchId();
+    const joined = await joinQueue(branchId, { guestName: "Call Cap", partySize: 2 });
+    const view = await getTicketView(joined.token);
+    await callEntry(branchId, view!.entry.id, "Wuri");
+    expect((await recallEntry(branchId, view!.entry.id, "Wuri")).ok).toBe(true);
+    expect((await recallEntry(branchId, view!.entry.id, "Wuri")).ok).toBe(true);
+    const blocked = await recallEntry(branchId, view!.entry.id, "Wuri");
+    expect(blocked.ok).toBe(false);
+    const after = await getTicketView(joined.token);
+    expect(after?.entry.calledCount).toBe(3);
   });
 
   it("saves and reads brand logo and menu assets", async () => {

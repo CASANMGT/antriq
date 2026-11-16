@@ -11,6 +11,7 @@ import {
   markNoShow,
   recallEntry,
   releaseEntry,
+  releaseSeatedEntries,
   requeueEntry,
   seatEntry,
   setTableStatus,
@@ -111,6 +112,15 @@ export async function POST(request: Request) {
             session.name,
             session.staffId,
             body.reason ? String(body.reason) : null,
+          ),
+        );
+      case "releaseMany":
+        return json(
+          await releaseSeatedEntries(
+            branchId,
+            Array.isArray(body.entryIds) ? body.entryIds.map((id: unknown) => Number(id)) : [],
+            session.name,
+            session.staffId,
           ),
         );
       case "tableStatus": {

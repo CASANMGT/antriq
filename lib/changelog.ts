@@ -16,6 +16,27 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.20.0",
+    date: "2026-11-16",
+    title: "Faster host stand checkout and one queue",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "Tamu Hadir has checkboxes, Pilih semua, and one Selesai button for bulk checkout.",
+          "Seated parties automatically complete after 60 minutes; their table becomes dirty. Cards show Hadir time and how long they have been seated.",
+        ],
+      },
+      {
+        label: "Changed",
+        items: [
+          "Antrean and Dipanggil are now one column: called guests sit at the top, with a Dipanggil 1x/2x/3x badge. Hosts no longer switch tabs.",
+          "Recall is capped at three calls. Rombongan hadir moved into the Tamu Hadir column.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.19.0",
     date: "2026-11-16",
     title: "Per-branch and all-branch views",

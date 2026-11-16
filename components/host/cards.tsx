@@ -19,7 +19,7 @@ import { TablePill } from "@/components/Pills";
 import { Countdown } from "@/components/Countdown";
 import { useLang } from "@/components/LanguageProvider";
 import { format } from "@/lib/i18n";
-import { clockInTz, formatFullDateInTz } from "@/lib/time";
+import { clockInTz, elapsedMinutes, formatFullDateInTz } from "@/lib/time";
 import type { DiningTable, HostStats, QueueEntry } from "@/lib/types";
 
 const sourceLabel: Record<string, string> = {
@@ -100,6 +100,7 @@ export function QueueCard({
   const { t, lang } = useLang();
   const locale = lang === "id" ? "id-ID" : "en-GB";
   const called = entry.status === "called";
+  const callLimitReached = called && entry.calledCount >= 3;
   const rating = entry.rating;
   const readyAt = entry.calledAt ?? new Date().toISOString();
   const waMessage = format(t.host.waCallMessage, {
@@ -134,6 +135,9 @@ export function QueueCard({
               </span>
             )}
             <span className="pill status-muted">{sourceLabel[entry.source] ?? entry.source}</span>
+            {called && (
+              <span className="pill status-called">{format(t.host.calledTimes, { count: entry.calledCount })}</span>
+            )}
             {entry.visitNumber > 1 && (
               <span className="pill status-waiting">
                 {format(t.common.visitNumber, { count: entry.visitNumber })}
@@ -256,7 +260,8 @@ export function QueueCard({
               type="button"
               className={`btn btn-sm ${groupTone === "B" ? "btn-gold" : "btn-soft"}`}
               onClick={onRecall}
-              disabled={busy}
+              disabled={busy || callLimitReached}
+              title={callLimitReached ? t.host.callLimitReached : undefined}
             >
               <BellRing className="size-3.5" /> {t.host.callAgain}
             </button>
@@ -375,19 +380,31 @@ export function SeatedCard({
   onRelease,
   showCategory = true,
   timezone,
+  selected = false,
+  onToggle,
 }: {
   entry: QueueEntry;
   busy: boolean;
   onRelease: () => void;
   showCategory?: boolean;
   timezone: string;
+  selected?: boolean;
+  onToggle?: () => void;
 }) {
   const { t } = useLang();
   const rating = entry.rating;
+  const seatedMinutes = entry.seatedAt ? elapsedMinutes(entry.seatedAt) : 0;
   return (
     <article className="min-w-0 rounded-2xl border-2 border-ink bg-leaf-soft/60 p-3.5 shadow-[3px_3px_0_#262321]">
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onToggle}
+          className="mt-1 size-4 shrink-0 accent-[#2E7D4F]"
+          aria-label={format(t.host.selectGuest, { code: entry.code })}
+        />
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="num rounded-md border-2 border-ink bg-ink px-1.5 py-0.5 text-[0.6875rem] font-extrabold tracking-wide text-paper">
               {entry.code}
@@ -411,16 +428,15 @@ export function SeatedCard({
               ? ` · ${entry.tableLabel}${entry.seatNumber !== null ? ` / ${format(t.host.seatValue, { seat: entry.seatNumber })}` : ""}`
               : ` · ${t.host.manualSeat}`}
           </p>
-          <p className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-muted">
+          <p className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-leaf-dark">
             <Clock3 className="size-3" />
-            {format(t.host.waitingFor, { minutes: Math.max(1, entry.waitMinutes) })}
+            {entry.seatedAt
+              ? format(t.host.seatedFor, {
+                  time: clockInTz(entry.seatedAt, timezone),
+                  minutes: Math.max(1, seatedMinutes),
+                })
+              : format(t.host.waitingFor, { minutes: Math.max(1, entry.waitMinutes) })}
           </p>
-          {entry.seatedAt && (
-            <p className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-leaf-dark">
-              <Clock3 className="size-3" />
-              {format(t.host.hadirAt, { time: clockInTz(entry.seatedAt, timezone) })}
-            </p>
-          )}
           {rating !== null && (
             <div className="mt-1.5 rounded-lg border-2 border-ink/10 bg-white/70 px-2 py-1.5">
               <div className="flex items-center gap-0.5 text-gold">

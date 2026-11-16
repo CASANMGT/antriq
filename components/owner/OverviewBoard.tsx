@@ -513,7 +513,7 @@ function Legend({ className, label }: { className: string; label: string }) {
 function activityTone(type: string): string {
   if (type === "join" || type === "walkin" || type === "requeue") return "bg-butter text-gold";
   if (type === "call" || type === "extend" || type === "acknowledge" || type === "recall") return "bg-pink text-tomato-dark";
-  if (type === "seat" || type === "complete" || type === "release" || type === "ready" || type === "rating") return "bg-leaf-soft text-leaf-dark";
+  if (type === "seat" || type === "complete" || type === "release" || type === "auto_complete" || type === "ready" || type === "rating") return "bg-leaf-soft text-leaf-dark";
   if (type === "no_show") return "bg-pink text-tomato-dark";
   if (type === "clear") return "bg-cream text-ink/70";
   return "bg-cream text-ink/60";
@@ -536,6 +536,7 @@ function activityIcon(type: string) {
       return <UtensilsCrossed className={className} />;
     case "complete":
     case "release":
+    case "auto_complete":
       return <CheckCircle2 className={className} />;
     case "no_show":
       return <UserX className={className} />;

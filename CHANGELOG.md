@@ -10,6 +10,19 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.20.0] — 2026-11-16
+
+The **faster host stand checkout and one queue** release.
+
+### Added
+- **Tamu Hadir bulk checkout:** check individual guests or **Pilih semua**, then press **Selesai** once. Releases every selected seat and marks its table dirty.
+- **Auto-complete after 60 minutes:** seated parties are completed automatically and their table becomes dirty. Hadir cards show `Hadir HH:MM · N menit`.
+
+### Changed
+- **Antrean and Dipanggil are one column.** Called guests appear at the top of Antrean with a **Dipanggil 1x/2x/3x** badge, all called actions intact. The separate Dipanggil column and tab are gone.
+- **Recall is capped at 3 calls.**
+- **Rombongan hadir** now appears in the Tamu Hadir/Meja column.
+
 ## [0.19.0] — 2026-11-16
 
 The **per-branch and all-branch views** release.

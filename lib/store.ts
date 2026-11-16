@@ -1016,6 +1016,7 @@ export async function getHostState(branchId: number): Promise<HostState> {
   const branch = await getBranch(branchId);
   const brand = await getBrand(branch.brandId);
   await expireHolds(branchId);
+  await autoCompleteSeated(branchId);
   await reconcileFloor(branchId);
   const now = new Date();
   const today = dayInTz(now, branch.timezone);
@@ -1304,6 +1305,14 @@ export async function cancelTicket(token: string): Promise<ActionResult> {
 export async function recallEntry(branchId: number, entryId: number, actor: string): Promise<ActionResult> {
   const branch = await getBranch(branchId);
   return tx(async (db) => {
+    const current = await db.query<Row>(
+      "select called_count from queue_entries where id = $1 and branch_id = $2 and status = 'called' for update",
+      [entryId, branchId],
+    );
+    if (!current[0]) return { ok: false, message: "That guest is not at the door right now." };
+    if (toNumber(current[0].called_count) >= 3) {
+      return { ok: false, message: "This guest has already been called 3 times." };
+    }
     const rows = await db.query<Row>(
       `update queue_entries
        set called_at = now(), called_count = called_count + 1, acknowledged = false,
@@ -1822,6 +1831,81 @@ export async function releaseEntry(
   });
 }
 
+const AUTO_COMPLETE_SEATED_MINUTES = 60;
+
+async function autoCompleteSeated(branchId: number): Promise<void> {
+  const rows = await q<Row>(
+    `update queue_entries
+     set status = 'completed', closed_at = now(), released_by = 'Auto', released_by_staff_id = null
+     where branch_id = $1 and status = 'seated' and seated_at is not null
+       and seated_at < now() - interval '${AUTO_COMPLETE_SEATED_MINUTES} minutes'
+     returning id, code, guest_name, party_size, table_id, seat_number`,
+    [branchId],
+  );
+  if (rows.length === 0) return;
+  const tableIds = Array.from(
+    new Set(rows.map((row) => toNumber(row.table_id)).filter((id) => Number.isInteger(id) && id > 0)),
+  );
+  if (tableIds.length > 0) {
+    await q("update dining_tables set status='dirty', status_changed_at=now() where branch_id=$1 and id = any($2::int[])", [
+      branchId,
+      tableIds,
+    ]);
+  }
+  for (const row of rows) {
+    await logActivity(null, branchId, "auto_complete", "System", {
+      entryId: toNumber(row.id),
+      tableId: row.table_id ? toNumber(row.table_id) : null,
+      code: String(row.code),
+      name: String(row.guest_name),
+      partySize: toNumber(row.party_size),
+      seatNumber: row.seat_number ? toNumber(row.seat_number) : null,
+      note: `Auto-completed after ${AUTO_COMPLETE_SEATED_MINUTES} minutes`,
+    });
+  }
+}
+
+export async function releaseSeatedEntries(
+  branchId: number,
+  entryIds: number[],
+  actor: string,
+  staffId: number | null = null,
+): Promise<ActionResult> {
+  const ids = Array.from(new Set(entryIds.filter((id) => Number.isInteger(id) && id > 0)));
+  if (ids.length === 0) return { ok: false, message: "Select at least one guest." };
+  return tx(async (db) => {
+    const rows = await db.query<Row>(
+      `update queue_entries
+       set status='completed', closed_at=now(), released_by=$3, released_by_staff_id=$4
+       where branch_id=$1 and id = any($2::int[]) and status='seated'
+       returning id, code, guest_name, party_size, table_id, seat_number`,
+      [branchId, ids, actor, staffId],
+    );
+    if (rows.length === 0) return { ok: false, message: "Those guests are no longer seated." };
+    const tableIds = Array.from(
+      new Set(rows.map((row) => toNumber(row.table_id)).filter((id) => Number.isInteger(id) && id > 0)),
+    );
+    if (tableIds.length > 0) {
+      await db.query("update dining_tables set status='dirty', status_changed_at=now() where branch_id=$1 and id = any($2::int[])", [
+        branchId,
+        tableIds,
+      ]);
+    }
+    for (const row of rows) {
+      await logActivity(db, branchId, "release", actor, {
+        entryId: toNumber(row.id),
+        tableId: row.table_id ? toNumber(row.table_id) : null,
+        code: String(row.code),
+        name: String(row.guest_name),
+        partySize: toNumber(row.party_size),
+        seatNumber: row.seat_number ? toNumber(row.seat_number) : null,
+        note: "Seat released (bulk)",
+      });
+    }
+    return { ok: true, message: `${rows.length} ${rows.length === 1 ? "guest" : "guests"} completed.` };
+  });
+}
+
 export async function setTableStatus(
   branchId: number,
   tableId: number,
@@ -2038,6 +2122,7 @@ export async function getOwnerOverview(branchId: number, days = 7): Promise<Owne
   const branch = await getBranch(branchId);
   const brand = await getBrand(branch.brandId);
   await expireHolds(branchId);
+  await autoCompleteSeated(branchId);
   await reconcileFloor(branchId);
   const now = new Date();
   const today = dayInTz(now, branch.timezone);

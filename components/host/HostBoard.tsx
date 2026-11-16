@@ -39,7 +39,7 @@ import type { ActionResult, BranchSummary, DiningTable, HostState, QueueEntry, R
 
 const WAITING_PAGE_SIZE = 4;
 
-type Tab = "queue" | "called" | "tables" | "seated" | "noShow";
+type Tab = "queue" | "tables" | "seated" | "noShow";
 
 export function HostBoard({
   initial,
@@ -69,6 +69,7 @@ export function HostBoard({
   const [noShowTarget, setNoShowTarget] = useState<QueueEntry | null>(null);
   const [noShowReason, setNoShowReason] = useState("noResponse");
   const [noShowCustom, setNoShowCustom] = useState("");
+  const [selectedSeated, setSelectedSeated] = useState<Set<number>>(new Set());
   const [releaseTarget, setReleaseTarget] = useState<DiningTable | null>(null);
   const [releaseEntryTarget, setReleaseEntryTarget] = useState<QueueEntry | null>(null);
   const [query, setQuery] = useState("");
@@ -79,6 +80,14 @@ export function HostBoard({
   useEffect(() => {
     setWaitingPages({});
   }, [query]);
+
+  useEffect(() => {
+    setSelectedSeated((current) => {
+      const valid = new Set(state.seated.map((entry) => entry.id));
+      const next = new Set([...current].filter((id) => valid.has(id)));
+      return next.size === current.size ? current : next;
+    });
+  }, [state.seated]);
 
   const { branch, brand, stats } = state;
   const plan = branch.seatingMode === "plan";
@@ -300,6 +309,30 @@ export function HostBoard({
     setNoShowTarget(entry);
   }
 
+  function toggleSeated(id: number) {
+    setSelectedSeated((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAllSeated() {
+    setSelectedSeated((current) =>
+      current.size === state.seated.length ? new Set() : new Set(state.seated.map((entry) => entry.id)),
+    );
+  }
+
+  function completeSelectedSeated() {
+    const ids = [...selectedSeated];
+    if (ids.length === 0) return;
+    run(
+      () => hostAction("releaseMany", { entryIds: ids }),
+      () => setSelectedSeated(new Set()),
+    );
+  }
+
   function openSeat(entry: QueueEntry) {
     const table = state.tables
       .filter((item) => item.status === "available" && item.capacity >= entry.partySize)
@@ -360,6 +393,7 @@ export function HostBoard({
     { id: "other", label: t.host.noShowReasonOther },
   ];
   const canMarkNoShow = noShowReason !== "other" || noShowCustom.trim().length > 0;
+  const allSeatedSelected = state.seated.length > 0 && selectedSeated.size === state.seated.length;
 
   return (
     <div className="min-h-[100dvh] bg-paper">
@@ -500,14 +534,19 @@ export function HostBoard({
           </div>
         </div>
 
-        <div className="grid min-w-0 gap-4 lg:grid-cols-[1.12fr_0.94fr_1fr] xl:grid-cols-[1.08fr_0.92fr_0.92fr_0.88fr]">
+        <div className="grid min-w-0 gap-4 lg:grid-cols-3 xl:grid-cols-[1.15fr_0.95fr_0.9fr]">
           {/* Waiting */}
           <section className={`min-w-0 ${tab === "queue" ? "block" : "hidden lg:block"}`}>
             <div className="mb-2.5 flex items-start justify-between gap-2">
               <div>
                 <h2 className="font-display text-[1.7rem] font-semibold leading-tight">{t.host.waitlistTitle}</h2>
                 <p className="text-xs font-semibold text-muted">
-                  {format(t.host.waitingSummary, { count: state.waiting.length })}
+                  {state.called.length > 0
+                    ? format(t.host.waitingSummaryWithCalled, {
+                        waiting: state.waiting.length,
+                        called: state.called.length,
+                      })
+                    : format(t.host.waitingSummary, { count: state.waiting.length })}
                 </p>
               </div>
               <div className="flex flex-col items-end gap-1">
@@ -545,12 +584,46 @@ export function HostBoard({
             </div>
 
             <div className="space-y-4">
-              {filteredWaiting.length === 0 ? (
+              {filteredCalled.length > 0 && (
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between gap-2">
+                    <h3 className="text-[0.6875rem] font-extrabold uppercase tracking-[0.14em] text-tomato">
+                      {t.host.atDoorTitle}
+                    </h3>
+                    <span className="pill status-called">{filteredCalled.length}</span>
+                  </div>
+                  <div className="space-y-2.5">
+                    {filteredCalled.map((entry, index) => (
+                      <QueueCard
+                        key={entry.id}
+                        entry={entry}
+                        position={index + 1}
+                        next={false}
+                        busy={pending}
+                        branchName={branch.name}
+                        timezone={branch.timezone}
+                        groupTone={state.branch.queueMode === "split" ? (entry.category === "B" ? "B" : "A") : null}
+                        onCall={() => run(() => hostAction("callEntry", { entryId: entry.id }))}
+                        onRecall={() => run(() => hostAction("recall", { entryId: entry.id }))}
+                        onSeat={() => chooseSeat(entry)}
+                        onOpenSeat={() => openSeat(entry)}
+                        onNoShow={() => openNoShow(entry)}
+                        onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
+                        manualMode={manual}
+                        showCategory={state.branch.queueMode === "split"}
+                        showCountdown={state.branch.holdEnabled}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {filteredWaiting.length === 0 && filteredCalled.length === 0 ? (
                 <EmptyBoard
                   title={query ? t.host.noMatch : t.host.emptyLine}
                   note={query ? t.host.noMatchNote : t.host.emptyLineNote}
                 />
-              ) : (
+              ) : null}
+              {filteredWaiting.length > 0 ? (
                 waitingGroups.map((group) => {
                   const total = group.entries.length;
                   const maxPage = Math.max(1, Math.ceil(total / WAITING_PAGE_SIZE));
@@ -651,59 +724,7 @@ export function HostBoard({
                     </div>
                   );
                 })
-              )}
-            </div>
-          </section>
-
-          {/* Called */}
-          <section className={`min-w-0 ${tab === "called" ? "block" : "hidden lg:block"}`}>
-            <div className="mb-2.5 flex items-start justify-between gap-2">
-              <div>
-                <h2 className="font-display text-[1.7rem] font-semibold leading-tight">{t.host.atDoorTitle}</h2>
-                <p className="text-xs font-semibold text-muted">
-                  {format(t.host.atDoorSummary, { count: state.called.length })}
-                </p>
-              </div>
-              <span className="pill status-called">{state.called.length}</span>
-            </div>
-
-            <div className="space-y-2.5">
-              {filteredCalled.length === 0 ? (
-                <EmptyBoard title={t.host.noDoor} note={t.host.noDoorNote} />
-              ) : (
-                filteredCalled.map((entry, index) => (
-                  <QueueCard
-                    key={entry.id}
-                    entry={entry}
-                    position={index + 1}
-                    next={false}
-                    busy={pending}
-                    branchName={branch.name}
-                    timezone={branch.timezone}
-                    groupTone={state.branch.queueMode === "split" ? (entry.category === "B" ? "B" : "A") : null}
-                    onCall={() => run(() => hostAction("callEntry", { entryId: entry.id }))}
-                    onRecall={() => run(() => hostAction("recall", { entryId: entry.id }))}
-                    onSeat={() => chooseSeat(entry)}
-                    onOpenSeat={() => openSeat(entry)}
-                    onNoShow={() => openNoShow(entry)}
-                    onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
-                    manualMode={manual}
-                    showCategory={state.branch.queueMode === "split"}
-                    showCountdown={state.branch.holdEnabled}
-                  />
-                ))
-              )}
-            </div>
-
-            <div className="mt-4 rounded-2xl border-2 border-ink bg-cream p-4 shadow-[3px_3px_0_#262321]">
-              <p className="eyebrow text-ink/45">{t.host.seatedToday}</p>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className="stat-number text-4xl">{state.stats.seatedToday}</span>
-                <span className="text-xs font-bold text-muted">{t.host.partiesUnit}</span>
-              </div>
-              <p className="mt-1.5 text-xs font-semibold leading-relaxed text-muted">
-                {format(t.host.atTables, { count: state.stats.seated })}
-              </p>
+              ) : null}
             </div>
           </section>
 
@@ -716,9 +737,37 @@ export function HostBoard({
                   <p className="text-xs font-semibold text-muted">
                     {format(t.host.seatedSummary, { count: state.seated.length })}
                   </p>
+                  <p className="mt-0.5 text-[0.625rem] font-semibold text-muted">{t.host.autoCompleteNote}</p>
                 </div>
                 <span className="pill status-seated">{state.seated.length}</span>
               </div>
+
+              {state.seated.length > 0 && (
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <label className="inline-flex items-center gap-1.5 text-xs font-bold">
+                    <input
+                      type="checkbox"
+                      checked={allSeatedSelected}
+                      onChange={toggleAllSeated}
+                      className="size-4 accent-[#2E7D4F]"
+                    />
+                    {t.host.selectAll}
+                  </label>
+                  {selectedSeated.size > 0 && (
+                    <span className="pill status-seated">
+                      {format(t.host.selectedCount, { count: selectedSeated.size })}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    className="btn btn-sage btn-sm ml-auto"
+                    disabled={pending || selectedSeated.size === 0}
+                    onClick={completeSelectedSeated}
+                  >
+                    <Check className="size-3.5" /> {format(t.host.completeSelected, { count: selectedSeated.size })}
+                  </button>
+                </div>
+              )}
 
               <div className="space-y-2.5">
                 {state.seated.length === 0 ? (
@@ -732,9 +781,22 @@ export function HostBoard({
                       onRelease={() => setReleaseEntryTarget(entry)}
                       showCategory={state.branch.queueMode === "split"}
                       timezone={state.branch.timezone}
+                      selected={selectedSeated.has(entry.id)}
+                      onToggle={() => toggleSeated(entry.id)}
                     />
                   ))
                 )}
+              </div>
+
+              <div className="mt-4 rounded-2xl border-2 border-ink bg-cream p-4 shadow-[3px_3px_0_#262321]">
+                <p className="eyebrow text-ink/45">{t.host.seatedToday}</p>
+                <div className="mt-2 flex items-baseline gap-2">
+                  <span className="stat-number text-4xl">{state.stats.seatedToday}</span>
+                  <span className="text-xs font-bold text-muted">{t.host.partiesUnit}</span>
+                </div>
+                <p className="mt-1.5 text-xs font-semibold leading-relaxed text-muted">
+                  {format(t.host.atTables, { count: state.stats.seated })}
+                </p>
               </div>
             </section>
           )}
@@ -811,6 +873,17 @@ export function HostBoard({
                 </div>
               ))}
             </div>
+
+            <div className="mt-4 rounded-2xl border-2 border-ink bg-cream p-4 shadow-[3px_3px_0_#262321]">
+              <p className="eyebrow text-ink/45">{t.host.seatedToday}</p>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="stat-number text-4xl">{state.stats.seatedToday}</span>
+                <span className="text-xs font-bold text-muted">{t.host.partiesUnit}</span>
+              </div>
+              <p className="mt-1.5 text-xs font-semibold leading-relaxed text-muted">
+                {format(t.host.atTables, { count: state.stats.seated })}
+              </p>
+            </div>
           </section>
           )}
         </div>
@@ -821,8 +894,7 @@ export function HostBoard({
         <div className="mx-auto flex max-w-md items-center gap-1 sm:gap-1.5">
           {(
             [
-              { id: "queue" as const, label: t.host.waitlistTitle, count: state.waiting.length },
-              { id: "called" as const, label: t.host.atDoorTitle, count: state.called.length },
+              { id: "queue" as const, label: t.host.waitlistTitle, count: state.waiting.length + state.called.length },
               manual
                 ? { id: "seated" as const, label: t.host.seated, count: state.seated.length }
                 : { id: "tables" as const, label: t.host.floorTitle, count: stats.availableTables },
