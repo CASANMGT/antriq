@@ -16,6 +16,19 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.21.6",
+    date: "2026-11-17",
+    title: "Full guest details from the queue card",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "Tap a guest's name on a queue or called card to open full details: full name, phone, source, position, start and wait time, first call, call count, seated/closed time, table, notes, no-show reason and rating.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.21.5",
     date: "2026-11-17",
     title: "Mobile header and smoother queue cards",

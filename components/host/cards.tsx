@@ -76,6 +76,7 @@ export function QueueCard({
   onOpenSeat,
   onNoShow,
   onUndo,
+  onDetails,
   manualMode = false,
   showCategory = true,
   showCountdown = true,
@@ -93,6 +94,7 @@ export function QueueCard({
   onOpenSeat: () => void;
   onNoShow: () => void;
   onUndo: () => void;
+  onDetails: () => void;
   manualMode?: boolean;
   showCategory?: boolean;
   showCountdown?: boolean;
@@ -157,9 +159,14 @@ export function QueueCard({
             <span className="grid size-7 shrink-0 place-items-center rounded-full border-2 border-ink bg-cream font-display text-xs font-semibold">
               {position}
             </span>
-            <h3 className="min-w-0 break-words font-display text-[1.2rem] leading-tight tracking-tight sm:text-[1.45rem]">
+            <button
+              type="button"
+              onClick={onDetails}
+              title={t.host.detailHint}
+              className="min-w-0 flex-1 break-words text-left font-display text-[1.2rem] font-semibold leading-tight tracking-tight decoration-dotted underline-offset-2 hover:text-tomato hover:underline sm:text-[1.45rem]"
+            >
               {entry.guestName}
-            </h3>
+            </button>
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 pl-1 text-xs font-semibold text-muted sm:gap-x-3 sm:pl-9">
             <span className="text-ink/75">

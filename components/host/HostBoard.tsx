@@ -28,6 +28,7 @@ import { Notice, type NoticeState } from "@/components/Notice";
 import { NotificationPrompt } from "@/components/Notifications";
 import { EmptyBoard, NoShowCard, QueueCard, SeatedCard, StatsStrip, TableCard } from "@/components/host/cards";
 import { BranchQrModal } from "@/components/host/BranchQrModal";
+import { QueueDetailModal } from "@/components/host/QueueDetailModal";
 import { useLang } from "@/components/LanguageProvider";
 import { APP_VERSION } from "@/lib/version";
 import { logoutAction } from "@/app/actions/auth";
@@ -74,6 +75,7 @@ export function HostBoard({
   const [releaseTarget, setReleaseTarget] = useState<DiningTable | null>(null);
   const [releaseEntryTarget, setReleaseEntryTarget] = useState<QueueEntry | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
+  const [detailTarget, setDetailTarget] = useState<{ entry: QueueEntry; position: number } | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const scrolledRef = useRef(false);
   const [query, setQuery] = useState("");
@@ -639,6 +641,7 @@ export function HostBoard({
                         onOpenSeat={() => openSeat(entry)}
                         onNoShow={() => openNoShow(entry)}
                         onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
+                        onDetails={() => setDetailTarget({ entry, position: index + 1 })}
                         manualMode={manual}
                         showCategory={state.branch.queueMode === "split"}
                         showCountdown={state.branch.holdEnabled}
@@ -745,6 +748,7 @@ export function HostBoard({
                               onOpenSeat={() => openSeat(entry)}
                               onNoShow={() => openNoShow(entry)}
                               onUndo={() => run(() => hostAction("undoCall", { entryId: entry.id }))}
+                              onDetails={() => setDetailTarget({ entry, position: start + index + 1 })}
                               manualMode={manual}
                               showCategory={state.branch.queueMode === "split"}
                               showCountdown={state.branch.holdEnabled}
@@ -980,6 +984,13 @@ export function HostBoard({
         brandSlug={brand?.slug ?? branch.brandSlug ?? ""}
         branchName={branch.name}
         branchSlug={branch.slug}
+      />
+
+      <QueueDetailModal
+        target={detailTarget}
+        onClose={() => setDetailTarget(null)}
+        timezone={state.branch.timezone}
+        locale={locale}
       />
 
       {/* Seat dialog */}

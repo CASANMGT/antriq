@@ -10,6 +10,13 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.21.6] — 2026-11-17
+
+The **full guest details** release.
+
+### Added
+- Tapping a guest's **name** on an Antrean/Dipanggil card opens a detail modal with the untruncated full name, phone, source, position, start and wait time, first call, call count, seated/closed time, table, notes, no-show reason and rating. Long names no longer lose information when A/B cards sit side by side.
+
 ## [0.21.5] — 2026-11-17
 
 The **mobile header and smoother queue cards** release.
