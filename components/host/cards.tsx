@@ -100,7 +100,6 @@ export function QueueCard({
   const { t, lang } = useLang();
   const locale = lang === "id" ? "id-ID" : "en-GB";
   const called = entry.status === "called";
-  const callLimitReached = called && entry.calledCount >= 3;
   const rating = entry.rating;
   const readyAt = entry.calledAt ?? new Date().toISOString();
   const waMessage = format(t.host.waCallMessage, {
@@ -136,7 +135,11 @@ export function QueueCard({
             )}
             <span className="pill status-muted">{sourceLabel[entry.source] ?? entry.source}</span>
             {called && (
-              <span className="pill status-called">{format(t.host.calledTimes, { count: entry.calledCount })}</span>
+              <span className={`pill ${entry.calledCount >= 3 ? "bg-tomato text-white" : "status-called"}`}>
+                {entry.calledCount >= 3
+                  ? format(t.host.calledWarning, { count: entry.calledCount })
+                  : format(t.host.calledTimes, { count: entry.calledCount })}
+              </span>
             )}
             {entry.visitNumber > 1 && (
               <span className="pill status-waiting">
@@ -166,10 +169,12 @@ export function QueueCard({
             <span className="text-ink/75">
               {entry.partySize} {t.guest.guestUnit}
             </span>
-            <span className="inline-flex items-center gap-1 text-ink/70">
-              <Clock3 className="size-3" />
-              {format(t.host.waitingFor, { minutes: Math.max(1, entry.waitMinutes) })}
-            </span>
+            {!called && (
+              <span className="inline-flex items-center gap-1 text-ink/70">
+                <Clock3 className="size-3" />
+                {format(t.host.waitingFor, { minutes: Math.max(1, entry.waitMinutes) })}
+              </span>
+            )}
             {entry.phone && (
               <>
                 <a href={`tel:${entry.phone}`} className="inline-flex items-center gap-1 hover:text-ink">
@@ -190,6 +195,15 @@ export function QueueCard({
               </>
             )}
           </div>
+          {called && (
+            <p className="mt-1.5 rounded-lg border-2 border-tomato/20 bg-white/80 px-2 py-1 text-[0.6875rem] font-bold text-tomato-dark">
+              {format(t.host.calledTimeline, {
+                start: clockInTz(entry.joinedAt, timezone),
+                called: entry.calledAt ? clockInTz(entry.calledAt, timezone) : "—",
+                minutes: Math.max(1, entry.waitMinutes),
+              })}
+            </p>
+          )}
           {called && showCountdown && (
             <div
               className={`mt-2 flex items-center justify-between gap-2 rounded-lg border-2 px-2.5 py-1.5 text-xs font-bold ${
@@ -260,8 +274,7 @@ export function QueueCard({
               type="button"
               className={`btn btn-sm ${groupTone === "B" ? "btn-gold" : "btn-soft"}`}
               onClick={onRecall}
-              disabled={busy || callLimitReached}
-              title={callLimitReached ? t.host.callLimitReached : undefined}
+              disabled={busy}
             >
               <BellRing className="size-3.5" /> {t.host.callAgain}
             </button>
@@ -428,15 +441,22 @@ export function SeatedCard({
               ? ` · ${entry.tableLabel}${entry.seatNumber !== null ? ` / ${format(t.host.seatValue, { seat: entry.seatNumber })}` : ""}`
               : ` · ${t.host.manualSeat}`}
           </p>
-          <p className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-leaf-dark">
+          <p className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-muted">
             <Clock3 className="size-3" />
-            {entry.seatedAt
-              ? format(t.host.seatedFor, {
-                  time: clockInTz(entry.seatedAt, timezone),
-                  minutes: Math.max(1, seatedMinutes),
-                })
-              : format(t.host.waitingFor, { minutes: Math.max(1, entry.waitMinutes) })}
+            {format(t.host.seatedTimeline, {
+              start: clockInTz(entry.joinedAt, timezone),
+              here: entry.seatedAt ? clockInTz(entry.seatedAt, timezone) : "—",
+            })}
           </p>
+          {entry.seatedAt && (
+            <p className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-leaf-dark">
+              <Clock3 className="size-3" />
+              {format(t.host.seatedDurations, {
+                wait: Math.max(1, entry.waitMinutes),
+                here: Math.max(1, seatedMinutes),
+              })}
+            </p>
+          )}
           {rating !== null && (
             <div className="mt-1.5 rounded-lg border-2 border-ink/10 bg-white/70 px-2 py-1.5">
               <div className="flex items-center gap-0.5 text-gold">

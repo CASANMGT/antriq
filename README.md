@@ -137,14 +137,15 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 ### Host stand
 - PIN login, 12-hour signed session, branch-scoped access.
 - Three-column board: **Antrean (A/B) / Hadir / Tidak Hadir** — tabs on phones. Called guests sit at the top of the Antrean column, so hosts never switch between Antrean and Dipanggil.
-- Queue groups are **A/B by default**: Antrean A for 1–2 guests, Antrean B for 3+; hosts see each group separately with its own positions, counts and **pagination (4 cards per page)**.
+- Queue groups are **A/B by default**: Antrean A for 1–2 guests, Antrean B for 3+; on wide screens the two groups sit **side by side**, each with its own positions, counts and **pagination (4 cards per page)**.
 - Branch switcher for owners and brand owners.
 - Queue positions on every card, not waiting-time guesses.
 - **Call next** selects the first party a free table can physically seat; suggests the smallest fitting table.
-- **Panggil lagi** recalls a called guest and sends another ticket notification, up to **3 calls**, shown as a **Dipanggil 2x/3x** badge; when a phone number exists, called cards offer a **WhatsApp** shortcut using `api.whatsapp.com/send` with a pre-filled “your queue is ready, please come to the gate” message including the code, party size, restaurant, and the day, date and time the table became ready; the message is also shown on hover.
+- **Panggil lagi** recalls a called guest and sends another ticket notification, with the call count shown as a **Dipanggil 2x/3x** badge; from the 3rd call onward a warning shows how many times the guest has been called (no hard cap). When a phone number exists, called cards offer a **WhatsApp** shortcut using `api.whatsapp.com/send` with a pre-filled “your queue is ready, please come to the gate” message including the code, party size, restaurant, and the day, date and time the table became ready; the message is also shown on hover.
 - Guests who have been seen before are labelled **Visit 2**, **Visit 3**, and so on on host cards and the rating list.
 - Mark a guest **Hadir** from waiting or called at a specific table with an optional seat number, or use **Hadir cepat** to skip the number entirely.
-- **Hadir** list shows `Hadir HH:MM · N menit`, sorts the newest check-ins first, and shows the guest's rating/review; phone and WhatsApp are hidden on this list.
+- **Hadir** list shows `Mulai HH:MM · Hadir HH:MM` plus wait and seated durations, sorts the newest check-ins first, and shows the guest's rating/review; phone and WhatsApp are hidden on this list.
+- Called cards show `Mulai HH:MM · Panggil HH:MM · Tunggu N menit` so hosts see how long the guest waited before the call.
 - **Tidak Hadir** column lists today's no-shows with start time, wait duration and the host's reason; **Masukkan lagi** puts the guest back into the queue at the end with a new code while keeping the same ticket link.
 - **Queue-only mode** (default): tap **Hadir** once, no table or seat number, then release from the **Hadir** list.
 - Manual mode adds a Hadir list without table numbers; Table plan adds tables + optional seat numbers.

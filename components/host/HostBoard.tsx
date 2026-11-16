@@ -534,7 +534,7 @@ export function HostBoard({
           </div>
         </div>
 
-        <div className="grid min-w-0 gap-4 lg:grid-cols-3 xl:grid-cols-[1.15fr_0.95fr_0.9fr]">
+        <div className="grid min-w-0 gap-4 lg:grid-cols-3 xl:grid-cols-[1.5fr_0.85fr_0.8fr]">
           {/* Waiting */}
           <section className={`min-w-0 ${tab === "queue" ? "block" : "hidden lg:block"}`}>
             <div className="mb-2.5 flex items-start justify-between gap-2">
@@ -624,7 +624,8 @@ export function HostBoard({
                 />
               ) : null}
               {filteredWaiting.length > 0 ? (
-                waitingGroups.map((group) => {
+                <div className={state.branch.queueMode === "split" ? "grid gap-4 xl:grid-cols-2" : "space-y-4"}>
+                  {waitingGroups.map((group) => {
                   const total = group.entries.length;
                   const maxPage = Math.max(1, Math.ceil(total / WAITING_PAGE_SIZE));
                   const page = Math.min(Math.max(1, waitingPages[group.key] ?? 1), maxPage);
@@ -723,7 +724,8 @@ export function HostBoard({
                       </div>
                     </div>
                   );
-                })
+                  })}
+                </div>
               ) : null}
             </div>
           </section>

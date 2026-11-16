@@ -10,6 +10,16 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.20.1] — 2026-11-16
+
+The **queue timing details** release.
+
+### Changed
+- **Queue A and Queue B sit side by side** on wide screens, reducing vertical scrolling.
+- **Hadir cards** show `Mulai` (queue start), `Hadir` (seated time), wait duration and seated duration.
+- **Called cards** show `Mulai`, `Panggil` and the total wait time.
+- **Calls are no longer capped at 3.** From the 3rd call onward a warning badge shows how many times the guest has been called.
+
 ## [0.20.0] — 2026-11-16
 
 The **faster host stand checkout and one queue** release.

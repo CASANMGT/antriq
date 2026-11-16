@@ -1305,14 +1305,6 @@ export async function cancelTicket(token: string): Promise<ActionResult> {
 export async function recallEntry(branchId: number, entryId: number, actor: string): Promise<ActionResult> {
   const branch = await getBranch(branchId);
   return tx(async (db) => {
-    const current = await db.query<Row>(
-      "select called_count from queue_entries where id = $1 and branch_id = $2 and status = 'called' for update",
-      [entryId, branchId],
-    );
-    if (!current[0]) return { ok: false, message: "That guest is not at the door right now." };
-    if (toNumber(current[0].called_count) >= 3) {
-      return { ok: false, message: "This guest has already been called 3 times." };
-    }
     const rows = await db.query<Row>(
       `update queue_entries
        set called_at = now(), called_count = called_count + 1, acknowledged = false,

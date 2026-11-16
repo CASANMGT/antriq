@@ -8,7 +8,7 @@ npm test         # 45 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **16 Nov 2026** — lint clean, 52/52 tests passing, production build green (v0.20.0 host bulk checkout, 60-minute auto-complete, one queue column).
+Last run: **16 Nov 2026** — lint clean, 52/52 tests passing, production build green (v0.20.1 queue timing details, side-by-side queues).
 
 ### Notification delivery QA
 

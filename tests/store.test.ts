@@ -540,17 +540,16 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(rows[0]?.released_by).toBe("Auto");
   });
 
-  it("caps recalls at three calls", async () => {
+  it("keeps counting recalls past three calls", async () => {
     const branchId = await primaryBranchId();
-    const joined = await joinQueue(branchId, { guestName: "Call Cap", partySize: 2 });
+    const joined = await joinQueue(branchId, { guestName: "Call Count", partySize: 2 });
     const view = await getTicketView(joined.token);
     await callEntry(branchId, view!.entry.id, "Wuri");
     expect((await recallEntry(branchId, view!.entry.id, "Wuri")).ok).toBe(true);
     expect((await recallEntry(branchId, view!.entry.id, "Wuri")).ok).toBe(true);
-    const blocked = await recallEntry(branchId, view!.entry.id, "Wuri");
-    expect(blocked.ok).toBe(false);
+    expect((await recallEntry(branchId, view!.entry.id, "Wuri")).ok).toBe(true);
     const after = await getTicketView(joined.token);
-    expect(after?.entry.calledCount).toBe(3);
+    expect(after?.entry.calledCount).toBe(4);
   });
 
   it("saves and reads brand logo and menu assets", async () => {

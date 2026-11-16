@@ -16,6 +16,21 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.20.1",
+    date: "2026-11-16",
+    title: "Queue timing details and side-by-side queues",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "Queue A and Queue B sit side by side on wide screens so hosts scroll less.",
+          "Hadir cards show Mulai, Hadir, wait duration and seated duration.",
+          "Called cards show Mulai, Panggil and total wait time. Calling is no longer capped; after 3 calls a warning shows the count.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.20.0",
     date: "2026-11-16",
     title: "Faster host stand checkout and one queue",
