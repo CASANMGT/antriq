@@ -16,6 +16,20 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.21.3",
+    date: "2026-11-17",
+    title: "First-call timing and mobile queue fit",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "Called cards now show the first call only: Mulai 12:44 (9 mnt) · Dipanggil 12:53. The call count sits next to Panggil lagi and is highlighted from 3x.",
+          "Queue A/B cards on phones wrap long names, phone numbers and wait text instead of clipping, and the queue page gets a mobile business banner.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.21.2",
     date: "2026-11-17",
     title: "Clearer business promotion",

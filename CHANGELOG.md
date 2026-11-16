@@ -10,6 +10,16 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.21.3] — 2026-11-17
+
+The **first-call timing and mobile queue fit** release.
+
+### Changed
+- Called cards show the **first call** only: `Mulai 12:44 (9 mnt) · Dipanggil 12:53`. Recalls no longer extend the waiting duration.
+- The call count now sits **next to Panggil lagi**; from the 3rd call it is highlighted.
+- Queue A/B cards on phones wrap names, phone numbers and wait text instead of clipping.
+- The queue page gets a compact business banner on mobile.
+
 ## [0.21.2] — 2026-11-17
 
 The **clearer business promotion** release.

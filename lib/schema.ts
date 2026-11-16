@@ -101,6 +101,7 @@ export const SCHEMA_STATEMENTS: string[] = [
     released_by_staff_id integer references staff(id) on delete set null,
     called_count integer not null default 0,
     acknowledged boolean not null default false,
+    first_called_at timestamptz,
     rating integer,
     rating_note text,
     rated_at timestamptz,
@@ -171,6 +172,7 @@ export const SCHEMA_STATEMENTS: string[] = [
   `alter table queue_entries add column if not exists rating_note text`,
   `alter table queue_entries add column if not exists rated_at timestamptz`,
   `alter table queue_entries add column if not exists no_show_reason text`,
+  `alter table queue_entries add column if not exists first_called_at timestamptz`,
   `alter table queue_entries drop constraint if exists queue_entries_rating_check`,
   `alter table queue_entries add constraint queue_entries_rating_check check (rating is null or rating between 1 and 5)`,
 

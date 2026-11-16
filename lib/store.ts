@@ -68,7 +68,7 @@ const ENTRY_COLUMNS = `
   qe.category, qe.guest_name, qe.phone, qe.party_size, qe.notes, qe.source, qe.status,
   qe.table_id, qe.seat_number, qe.opened_by, qe.opened_by_staff_id,
   qe.released_by, qe.released_by_staff_id,
-  qe.called_count, qe.acknowledged,
+  qe.called_count, qe.acknowledged, qe.first_called_at,
   (select count(*)::int + 1 from queue_entries qv
    where qe.phone is not null and qv.phone is not null
      and regexp_replace(regexp_replace(qv.phone, '[^0-9]', '', 'g'), '^0', '62')
@@ -194,6 +194,7 @@ function mapEntry(row: Row, tablesById: Map<number, string>, now = new Date()): 
     releasedByStaffId: row.released_by_staff_id ? toNumber(row.released_by_staff_id) : null,
     calledCount: toNumber(row.called_count),
     acknowledged: Boolean(row.acknowledged),
+    firstCalledAt: toIso(row.first_called_at),
     visitNumber: toNumber(row.visit_number, 1),
     rating: row.rating === null || row.rating === undefined ? null : toNumber(row.rating),
     ratingNote: row.rating_note ?? null,
@@ -1523,7 +1524,7 @@ export async function callEntry(
   return tx(async (db) => {
     const rows = await db.query<Row>(
       `update queue_entries
-       set status = 'called', called_at = now(),
+       set status = 'called', called_at = now(), first_called_at = coalesce(first_called_at, now()),
            hold_expires_at = case when $4::boolean then now() + ($3 || ' minutes')::interval else null end,
            called_count = called_count + 1, acknowledged = false
        where id = $1 and branch_id = $2 and status = 'waiting'
@@ -1561,7 +1562,7 @@ export async function callNext(
       : null;
     const updated = await db.query<Row>(
       `update queue_entries
-       set status = 'called', called_at = now(), hold_expires_at = $3,
+       set status = 'called', called_at = now(), first_called_at = coalesce(first_called_at, now()), hold_expires_at = $3,
            called_count = called_count + 1, acknowledged = false
        where id = $1 and branch_id = $2 and status = 'waiting'
        returning id, code, guest_name, party_size`,

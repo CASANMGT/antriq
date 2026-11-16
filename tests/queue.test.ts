@@ -35,6 +35,7 @@ function entry(overrides: Partial<QueueEntry> & { id: number; joinedAt: string }
     releasedByStaffId: null,
     calledCount: 0,
     acknowledged: false,
+    firstCalledAt: null,
     visitNumber: 1,
     rating: null,
     ratingNote: null,

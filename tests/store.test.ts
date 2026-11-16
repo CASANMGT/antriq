@@ -545,11 +545,14 @@ describe("store integration (PGlite + demo seed)", () => {
     const joined = await joinQueue(branchId, { guestName: "Call Count", partySize: 2 });
     const view = await getTicketView(joined.token);
     await callEntry(branchId, view!.entry.id, "Wuri");
+    const firstCall = await getTicketView(joined.token);
+    expect(firstCall?.entry.firstCalledAt).toBeTruthy();
     expect((await recallEntry(branchId, view!.entry.id, "Wuri")).ok).toBe(true);
     expect((await recallEntry(branchId, view!.entry.id, "Wuri")).ok).toBe(true);
     expect((await recallEntry(branchId, view!.entry.id, "Wuri")).ok).toBe(true);
     const after = await getTicketView(joined.token);
     expect(after?.entry.calledCount).toBe(4);
+    expect(after?.entry.firstCalledAt).toBe(firstCall?.entry.firstCalledAt);
   });
 
   it("saves and reads brand logo and menu assets", async () => {

@@ -149,7 +149,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Guests who have been seen before are labelled **Visit 2**, **Visit 3**, and so on on host cards and the rating list.
 - Mark a guest **Hadir** from waiting or called at a specific table with an optional seat number, or use **Hadir cepat** to skip the number entirely.
 - **Hadir** list shows `Mulai HH:MM · Hadir HH:MM` plus wait and seated durations, sorts the newest check-ins first, and shows the guest's rating/review; phone and WhatsApp are hidden on this list.
-- Called cards show `Mulai HH:MM · Panggil HH:MM · Tunggu N menit` so hosts see how long the guest waited before the call.
+- Called cards show `Mulai HH:MM (N mnt) · Dipanggil HH:MM` using the **first call**, so recalls never inflate the wait. The call count sits next to **Panggil lagi** and is highlighted from 3x.
 - **Tidak Hadir** column lists today's no-shows with start time, wait duration and the host's reason; **Masukkan lagi** puts the guest back into the queue at the end with a new code while keeping the same ticket link.
 - **Queue-only mode** (default): tap **Hadir** once, no table or seat number, then release from the **Hadir** list.
 - Manual mode adds a Hadir list without table numbers; Table plan adds tables + optional seat numbers.

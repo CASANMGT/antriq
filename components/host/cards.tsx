@@ -103,6 +103,8 @@ export function QueueCard({
   const locale = lang === "id" ? "id-ID" : "en-GB";
   const called = entry.status === "called";
   const rating = entry.rating;
+  const firstCallAt = entry.firstCalledAt ?? entry.calledAt;
+  const firstWaitMinutes = entry.firstCalledAt ? elapsedMinutes(entry.joinedAt, entry.firstCalledAt) : entry.waitMinutes;
   const readyAt = entry.calledAt ?? new Date().toISOString();
   const waMessage = format(t.host.waCallMessage, {
     name: entry.guestName,
@@ -136,13 +138,6 @@ export function QueueCard({
               </span>
             )}
             <span className="pill status-muted hidden sm:inline-flex">{sourceLabel[entry.source] ?? entry.source}</span>
-            {called && (
-              <span className={`pill ${entry.calledCount >= 3 ? "bg-tomato text-white" : "status-called"}`}>
-                {entry.calledCount >= 3
-                  ? format(t.host.calledWarning, { count: entry.calledCount })
-                  : format(t.host.calledTimes, { count: entry.calledCount })}
-              </span>
-            )}
             {entry.visitNumber > 1 && (
               <span className="pill status-waiting">
                 {format(t.common.visitNumber, { count: entry.visitNumber })}
@@ -163,23 +158,23 @@ export function QueueCard({
             <span className="grid size-7 shrink-0 place-items-center rounded-full border-2 border-ink bg-cream font-display text-xs font-semibold">
               {position}
             </span>
-            <h3 className="min-w-0 truncate font-display text-[1.2rem] leading-tight tracking-tight sm:text-[1.45rem]">
+            <h3 className="min-w-0 break-words font-display text-[1.2rem] leading-tight tracking-tight sm:text-[1.45rem]">
               {entry.guestName}
             </h3>
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 pl-9 text-xs font-semibold text-muted sm:gap-x-3">
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 pl-1 text-xs font-semibold text-muted sm:gap-x-3 sm:pl-9">
             <span className="text-ink/75">
               {entry.partySize} {t.guest.guestUnit}
             </span>
             {!called && (
-              <span className="inline-flex items-center gap-1 whitespace-nowrap text-ink/70">
+              <span className="inline-flex items-center gap-1 text-ink/70">
                 <Clock3 className="size-3" />
                 {format(t.host.waitingFor, { minutes: Math.max(1, entry.waitMinutes) })}
               </span>
             )}
             {entry.phone && (
               <>
-                <a href={`tel:${entry.phone}`} className="inline-flex items-center gap-1 whitespace-nowrap hover:text-ink">
+                <a href={`tel:${entry.phone}`} className="inline-flex items-center gap-1 break-all hover:text-ink">
                   <Phone className="size-3" />
                   {entry.phone}
                 </a>
@@ -198,12 +193,12 @@ export function QueueCard({
             )}
           </div>
           {called && (
-            <p className="mt-1 inline-flex items-center gap-1 pl-9 text-[0.6875rem] font-semibold text-muted">
+            <p className="mt-1 inline-flex max-w-full items-center gap-1 pl-1 text-[0.6875rem] font-semibold leading-snug text-muted sm:pl-9">
               <Clock3 className="size-3 shrink-0 text-muted-soft" />
               {format(t.host.calledTimeline, {
                 start: clockInTz(entry.joinedAt, timezone),
-                called: entry.calledAt ? clockInTz(entry.calledAt, timezone) : "—",
-                minutes: Math.max(1, entry.waitMinutes),
+                called: firstCallAt ? clockInTz(firstCallAt, timezone) : "—",
+                minutes: Math.max(1, firstWaitMinutes),
               })}
             </p>
           )}
@@ -281,6 +276,16 @@ export function QueueCard({
             >
               <BellRing className="size-3.5" /> {t.host.callAgain}
             </button>
+            <span
+              className={`pill ${entry.calledCount >= 3 ? "bg-tomato text-white" : "status-muted"}`}
+              title={
+                entry.calledCount >= 3
+                  ? format(t.host.calledWarning, { count: entry.calledCount })
+                  : format(t.host.calledTimes, { count: entry.calledCount })
+              }
+            >
+              {entry.calledCount}x
+            </span>
             <button type="button" className="btn btn-sage btn-sm" onClick={onSeat} disabled={busy}>
               <Utensils className="size-3.5" /> {t.host.seat}
             </button>

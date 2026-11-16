@@ -97,6 +97,7 @@ export interface QueueEntry {
   releasedByStaffId: number | null;
   calledCount: number;
   acknowledged: boolean;
+  firstCalledAt: string | null;
   visitNumber: number;
   rating: number | null;
   ratingNote: string | null;

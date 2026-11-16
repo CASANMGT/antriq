@@ -141,6 +141,17 @@ async function runDataMigrations(db: Queryable) {
     );
   }
 
+  const firstCall = await db.query<{ key: string }>(
+    `insert into app_meta (key, value) values ('first_called_at_v1', 'done')
+     on conflict (key) do nothing returning key`,
+  );
+  if (firstCall.length > 0) {
+    // The wait time should stop at the first call, not the latest recall.
+    await db.query(
+      "update queue_entries set first_called_at = called_at where called_count > 0 and first_called_at is null",
+    );
+  }
+
   const brandStructure = await db.query<{ key: string }>(
     `insert into app_meta (key, value) values ('brand_structure_v2', 'done')
      on conflict (key) do nothing returning key`,
