@@ -16,6 +16,20 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.20.2",
+    date: "2026-11-17",
+    title: "Mobile host stand polish",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "The mobile stats strip hides once the board is scrolled, giving hosts more room for the queue.",
+          "The QR button now lives in the fixed bottom navigation and opens the branch's guest QR directly, for hosts and owners.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.20.1",
     date: "2026-11-16",
     title: "Queue timing details and side-by-side queues",

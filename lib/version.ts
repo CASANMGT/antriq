@@ -2,5 +2,5 @@
  * In-app version. Keep this in sync with package.json;
  * tests/version.test.ts fails if they drift.
  */
-export const APP_VERSION = "0.20.1";
-export const RELEASE_DATE = "2026-11-16";
+export const APP_VERSION = "0.20.2";
+export const RELEASE_DATE = "2026-11-17";

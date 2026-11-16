@@ -51,11 +51,13 @@ export function StatsStrip({ stats, showTables = true }: { stats: HostStats; sho
   ];
 
   return (
-    <div className={`grid grid-cols-3 border-t-2 border-ink bg-cream ${showTables ? "sm:grid-cols-6" : "sm:grid-cols-5"}`}>
+    <div className={`grid ${showTables ? "grid-cols-6" : "grid-cols-5"} border-t-2 border-ink bg-cream`}>
       {items.map((item) => (
-        <div key={item.label} className="border-b border-r border-ink/15 px-3 py-2.5 last:border-r-0 sm:border-b-0">
-          <p className={`num font-display text-xl font-semibold leading-none ${item.tone}`}>{item.value}</p>
-          <p className="mt-1 text-[0.5625rem] font-extrabold uppercase tracking-[0.1em] text-ink/55">{item.label}</p>
+        <div key={item.label} className="border-r border-ink/15 px-1.5 py-2 last:border-r-0 sm:px-3 sm:py-2.5">
+          <p className={`num font-display text-base font-semibold leading-none sm:text-xl ${item.tone}`}>{item.value}</p>
+          <p className="mt-0.5 text-[0.5rem] font-extrabold uppercase tracking-[0.08em] text-ink/55 sm:mt-1 sm:text-[0.5625rem] sm:tracking-[0.1em]">
+            {item.label}
+          </p>
         </div>
       ))}
     </div>

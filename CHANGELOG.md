@@ -10,6 +10,14 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.20.2] — 2026-11-17
+
+The **mobile host stand polish** release.
+
+### Changed
+- The mobile stats strip now hides as soon as the board is scrolled, so the queue gets the screen.
+- The bottom-nav **QR** button is fixed to the bottom bar and opens the branch's guest QR in a modal, available to hosts and owners.
+
 ## [0.20.1] — 2026-11-16
 
 The **queue timing details** release.

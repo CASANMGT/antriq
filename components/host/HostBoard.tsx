@@ -27,6 +27,7 @@ import { Modal } from "@/components/Modal";
 import { Notice, type NoticeState } from "@/components/Notice";
 import { NotificationPrompt } from "@/components/Notifications";
 import { EmptyBoard, NoShowCard, QueueCard, SeatedCard, StatsStrip, TableCard } from "@/components/host/cards";
+import { BranchQrModal } from "@/components/host/BranchQrModal";
 import { useLang } from "@/components/LanguageProvider";
 import { APP_VERSION } from "@/lib/version";
 import { logoutAction } from "@/app/actions/auth";
@@ -72,6 +73,8 @@ export function HostBoard({
   const [selectedSeated, setSelectedSeated] = useState<Set<number>>(new Set());
   const [releaseTarget, setReleaseTarget] = useState<DiningTable | null>(null);
   const [releaseEntryTarget, setReleaseEntryTarget] = useState<QueueEntry | null>(null);
+  const [qrOpen, setQrOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [query, setQuery] = useState("");
   const [muted, setMuted] = useState(false);
   const [waitingPages, setWaitingPages] = useState<Record<string, number>>({});
@@ -80,6 +83,13 @@ export function HostBoard({
   useEffect(() => {
     setWaitingPages({});
   }, [query]);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     setSelectedSeated((current) => {
@@ -504,7 +514,9 @@ export function HostBoard({
             </form>
           </div>
         </div>
-        <StatsStrip stats={stats} showTables={plan} />
+        <div className={scrolled ? "hidden lg:block" : "block"}>
+          <StatsStrip stats={stats} showTables={plan} />
+        </div>
       </header>
 
       <main className="mx-auto max-w-[1500px] px-3 pb-28 pt-4 sm:px-5 lg:pb-8">
@@ -922,28 +934,35 @@ export function HostBoard({
               </span>
             </button>
           ))}
-          {(staff.role === "owner") && (
-            <>
-              <Link
-                href={`/dashboard?branch=${activeBranchId}`}
-                className="flex shrink-0 items-center justify-center rounded-full p-1.5 text-ink/60 transition hover:bg-white sm:p-2"
-                aria-label={t.owner.overview}
-                title={t.owner.overview}
-              >
-                <LayoutDashboard className="size-4" />
-              </Link>
-              <Link
-                href={`/dashboard/qr?branch=${activeBranchId}`}
-                className="flex shrink-0 items-center justify-center rounded-full p-1.5 text-ink/60 transition hover:bg-white sm:p-2"
-                aria-label={t.owner.qrTitle}
-                title={t.owner.qrTitle}
-              >
-                <QrCode className="size-4" />
-              </Link>
-            </>
+          {staff.role === "owner" && (
+            <Link
+              href={`/dashboard?branch=${activeBranchId}`}
+              className="flex shrink-0 items-center justify-center rounded-full p-1.5 text-ink/60 transition hover:bg-white sm:p-2"
+              aria-label={t.owner.overview}
+              title={t.owner.overview}
+            >
+              <LayoutDashboard className="size-4" />
+            </Link>
           )}
+          <button
+            type="button"
+            onClick={() => setQrOpen(true)}
+            className="flex shrink-0 items-center justify-center rounded-full p-1.5 text-ink/60 transition hover:bg-white sm:p-2"
+            aria-label={t.host.qrTitle}
+            title={t.host.qrTitle}
+          >
+            <QrCode className="size-4" />
+          </button>
         </div>
       </nav>
+
+      <BranchQrModal
+        open={qrOpen}
+        onClose={() => setQrOpen(false)}
+        brandSlug={brand?.slug ?? branch.brandSlug ?? ""}
+        branchName={branch.name}
+        branchSlug={branch.slug}
+      />
 
       {/* Seat dialog */}
       <Modal

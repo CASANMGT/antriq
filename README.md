@@ -152,6 +152,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 - Live stats: waiting, called, here, here today, no-shows. The table stat is hidden in queue-only mode. The **Rombongan hadir** stat sits in the Hadir/Meja column.
 - When the countdown is enabled, called cards show the live countdown; it pauses when the guest confirms they are on the way if the branch enables the button.
 - Browser notification prompt, plus a hidden-tab notification when a guest is called from another device.
+- On phones, the stats strip hides once the board is scrolled. The fixed bottom bar keeps the queue tabs, the owner dashboard shortcut, and a **QR** button that opens the branch's guest QR in a modal.
 - **Selesai** after payment or when a visit ends; records the staff member who released it. Select individual Hadir cards or **Pilih semua**, then press **Selesai** once for a bulk checkout. Seated parties auto-complete after **60 minutes** and their table becomes dirty.
 - No-show with confirmation, undo call, walk-in add, search.
 - Table lifecycle: here → dirty → ready, plus blocked. Hadir cards show seat, PIC and the guest's rating/review.
