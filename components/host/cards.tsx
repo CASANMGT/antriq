@@ -115,7 +115,7 @@ export function QueueCard({
 
   return (
     <article
-      className={`min-w-0 rounded-2xl border-2 border-ink p-3.5 shadow-[3px_3px_0_#262321] transition ${
+      className={`min-w-0 rounded-2xl border-2 border-ink p-3 shadow-[3px_3px_0_#262321] transition sm:p-3.5 ${
         called ? "bg-pink-soft" : next ? "bg-white" : "bg-white/85"
       }`}
     >
@@ -135,7 +135,7 @@ export function QueueCard({
                 {entry.category}
               </span>
             )}
-            <span className="pill status-muted">{sourceLabel[entry.source] ?? entry.source}</span>
+            <span className="pill status-muted hidden sm:inline-flex">{sourceLabel[entry.source] ?? entry.source}</span>
             {called && (
               <span className={`pill ${entry.calledCount >= 3 ? "bg-tomato text-white" : "status-called"}`}>
                 {entry.calledCount >= 3
@@ -163,23 +163,23 @@ export function QueueCard({
             <span className="grid size-7 shrink-0 place-items-center rounded-full border-2 border-ink bg-cream font-display text-xs font-semibold">
               {position}
             </span>
-            <h3 className="min-w-0 truncate font-display text-[1.45rem] leading-tight tracking-tight">
+            <h3 className="min-w-0 truncate font-display text-[1.2rem] leading-tight tracking-tight sm:text-[1.45rem]">
               {entry.guestName}
             </h3>
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 pl-9 text-xs font-semibold text-muted">
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 pl-9 text-xs font-semibold text-muted sm:gap-x-3">
             <span className="text-ink/75">
               {entry.partySize} {t.guest.guestUnit}
             </span>
             {!called && (
-              <span className="inline-flex items-center gap-1 text-ink/70">
+              <span className="inline-flex items-center gap-1 whitespace-nowrap text-ink/70">
                 <Clock3 className="size-3" />
                 {format(t.host.waitingFor, { minutes: Math.max(1, entry.waitMinutes) })}
               </span>
             )}
             {entry.phone && (
               <>
-                <a href={`tel:${entry.phone}`} className="inline-flex items-center gap-1 hover:text-ink">
+                <a href={`tel:${entry.phone}`} className="inline-flex items-center gap-1 whitespace-nowrap hover:text-ink">
                   <Phone className="size-3" />
                   {entry.phone}
                 </a>
@@ -198,7 +198,8 @@ export function QueueCard({
             )}
           </div>
           {called && (
-            <p className="mt-1.5 rounded-lg border-2 border-tomato/20 bg-white/80 px-2 py-1 text-[0.6875rem] font-bold text-tomato-dark">
+            <p className="mt-1 inline-flex items-center gap-1 pl-9 text-[0.6875rem] font-semibold text-muted">
+              <Clock3 className="size-3 shrink-0 text-muted-soft" />
               {format(t.host.calledTimeline, {
                 start: clockInTz(entry.joinedAt, timezone),
                 called: entry.calledAt ? clockInTz(entry.calledAt, timezone) : "—",

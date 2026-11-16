@@ -16,6 +16,20 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.21.1",
+    date: "2026-11-17",
+    title: "Subtle call timing and mobile A/B queues",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "The Mulai/Panggil/Tunggu line on called cards is now a quiet grey timestamp instead of a red box.",
+          "Queue A and Queue B stay side by side on phones too, with tighter cards for the narrow columns.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.21.0",
     date: "2026-11-17",
     title: "AntriQ for business",

@@ -141,7 +141,7 @@ Chunky 2px outlines, sticker shadows, red brush accents, the toast mascot, and w
 ### Host stand
 - PIN login, 12-hour signed session, branch-scoped access.
 - Three-column board: **Antrean (A/B) / Hadir / Tidak Hadir** — tabs on phones. Called guests sit at the top of the Antrean column, so hosts never switch between Antrean and Dipanggil.
-- Queue groups are **A/B by default**: Antrean A for 1–2 guests, Antrean B for 3+; on wide screens the two groups sit **side by side**, each with its own positions, counts and **pagination (4 cards per page)**.
+- Queue groups are **A/B by default**: Antrean A for 1–2 guests, Antrean B for 3+; the two groups sit **side by side on every screen size**, each with its own positions, counts and **pagination (4 cards per page)**.
 - Branch switcher for owners and brand owners.
 - Queue positions on every card, not waiting-time guesses.
 - **Call next** selects the first party a free table can physically seat; suggests the smallest fitting table.

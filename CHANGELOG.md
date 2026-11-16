@@ -10,6 +10,14 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.21.1] — 2026-11-17
+
+The **subtle call timing and mobile A/B queues** release.
+
+### Changed
+- The `Mulai · Panggil · Tunggu` line on called cards now uses a quiet grey clock and muted text, with no red highlight.
+- **Queue A and Queue B stay side by side on mobile**, with slightly tighter cards for the narrow columns.
+
 ## [0.21.0] — 2026-11-17
 
 The **AntriQ for business** release.

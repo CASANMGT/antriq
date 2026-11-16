@@ -8,7 +8,7 @@ npm test         # 45 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **17 Nov 2026** — lint clean, 54/54 tests passing, production build green (v0.21.0 AntriQ for business).
+Last run: **17 Nov 2026** — lint clean, 54/54 tests passing, production build green (v0.21.1 subtle call timing, mobile A/B queues).
 
 ### Notification delivery QA
 

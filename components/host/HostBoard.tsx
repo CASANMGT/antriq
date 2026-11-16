@@ -636,7 +636,7 @@ export function HostBoard({
                 />
               ) : null}
               {filteredWaiting.length > 0 ? (
-                <div className={state.branch.queueMode === "split" ? "grid gap-4 xl:grid-cols-2" : "space-y-4"}>
+                <div className={state.branch.queueMode === "split" ? "grid grid-cols-2 gap-2 sm:gap-4" : "space-y-4"}>
                   {waitingGroups.map((group) => {
                   const total = group.entries.length;
                   const maxPage = Math.max(1, Math.ceil(total / WAITING_PAGE_SIZE));
@@ -646,7 +646,7 @@ export function HostBoard({
                   return (
                     <div key={group.key}>
                       {(state.branch.queueMode === "split" || total > WAITING_PAGE_SIZE) && (
-                        <div className="mb-1.5 flex items-center justify-between gap-2">
+                        <div className="mb-1.5 flex flex-wrap items-center justify-between gap-1 sm:gap-2">
                           {state.branch.queueMode === "split" ? (
                             <h3 className="flex items-center gap-1.5 text-[0.6875rem] font-extrabold uppercase tracking-[0.14em] text-ink/50">
                               <span className={`size-2 rounded-full ${group.key === "B" ? "bg-gold" : "bg-tomato"}`} />
