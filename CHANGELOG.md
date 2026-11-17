@@ -10,6 +10,14 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.22.1] — 2026-11-17
+
+The **repeat by different days** release.
+
+### Changed
+- The **Pelanggan** report counts **one visit per calendar day**. Multiple visits on the same day no longer make a repeat.
+- Repeat starts at **2 different days** (`Hanya ≥2x`), and the count pills name the scope, e.g. `2x KAMAJA`, `3x Tenka`, `5x All`.
+
 ## [0.22.0] — 2026-11-17
 
 The **repeat customer report** release.

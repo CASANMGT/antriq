@@ -16,6 +16,20 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.22.1",
+    date: "2026-11-17",
+    title: "Repeat by different days",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "The Pelanggan report counts one visit per calendar day; multiple visits on the same day no longer create a repeat.",
+          "Repeat now starts at 2 different days (Hanya ≥2x), with labels like 2x KAMAJA · 3x Tenka · 5x All.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.22.0",
     date: "2026-11-17",
     title: "Repeat customer report",

@@ -255,9 +255,9 @@ export interface CustomerProfile {
   key: string;
   phone: string;
   name: string;
-  branchVisits: number;
-  brandVisits: number;
-  allVisits: number;
+  branchDays: number;
+  brandDays: number;
+  allDays: number;
   lastVisitAt: string;
   lastBranchName: string;
   branches: string[];

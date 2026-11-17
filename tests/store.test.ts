@@ -48,6 +48,7 @@ import {
   verifyStaffPin,
 } from "@/lib/store";
 import { AppError } from "@/lib/validation";
+import { addDaysToDay, dayInTz } from "@/lib/time";
 
 async function primaryBranchId(): Promise<number> {
   const found = await getBranchBySlugs("nikumaru", "blok-m");
@@ -659,8 +660,12 @@ describe("store integration (PGlite + demo seed)", () => {
     const tebet = (await getBranchBySlugs("nikumaru", "tebet"))!.branch.id;
     const kamaja = (await getBranchBySlugs("tenka", "kamaja"))!.branch.id;
     const phone = "081299990081";
+    const today = dayInTz(new Date(), "Asia/Jakarta");
+    const yesterday = addDaysToDay(today, -1);
+    const twoDaysAgo = addDaysToDay(today, -2);
+    const threeDaysAgo = addDaysToDay(today, -3);
 
-    async function visit(branchId: number) {
+    async function visit(branchId: number, day: string) {
       const joined = await joinQueue(
         branchId,
         { guestName: "Repeat Profile", partySize: 2, phone, source: "walkin", actor: "Wuri" },
@@ -669,12 +674,21 @@ describe("store integration (PGlite + demo seed)", () => {
       const view = await getTicketView(joined.token);
       await seatEntry(branchId, view!.entry.id, null, "Wuri", 2, null);
       await releaseEntry(branchId, view!.entry.id, "Wuri", 2);
+      await q(
+        `update queue_entries
+         set day = $2::date, joined_at = $2::date + time '12:00',
+             seated_at = $2::date + time '12:30', closed_at = $2::date + time '13:30'
+         where id = $1`,
+        [view!.entry.id, day],
+      );
     }
 
-    await visit(blokM);
-    await visit(blokM);
-    await visit(tebet);
-    await visit(kamaja);
+    // Same-day visits must count once; different days build the repeat count.
+    await visit(blokM, today);
+    await visit(blokM, today);
+    await visit(blokM, yesterday);
+    await visit(tebet, twoDaysAgo);
+    await visit(kamaja, threeDaysAgo);
     const cancelled = await joinQueue(
       blokM,
       { guestName: "Repeat Profile", partySize: 2, phone, source: "walkin", actor: "Wuri" },
@@ -684,9 +698,9 @@ describe("store integration (PGlite + demo seed)", () => {
 
     const profiles = await getCustomerProfiles([blokM, tebet, kamaja], 30, blokM, blokMBranch!.branch.brandId);
     const profile = profiles.find((item) => item.key === "6281299990081");
-    expect(profile?.branchVisits).toBe(2);
-    expect(profile?.brandVisits).toBe(3);
-    expect(profile?.allVisits).toBe(4);
+    expect(profile?.branchDays).toBe(2);
+    expect(profile?.brandDays).toBe(3);
+    expect(profile?.allDays).toBe(4);
     expect(profile?.branches.sort()).toEqual(["Nikumaru Blok M", "Nikumaru Tebet", "Tenka KAMAJA"]);
   });
 
