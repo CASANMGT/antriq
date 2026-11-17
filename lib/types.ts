@@ -251,6 +251,19 @@ export interface RatingRecord {
   visitNumber: number;
 }
 
+export interface CustomerProfile {
+  key: string;
+  phone: string;
+  name: string;
+  branchVisits: number;
+  brandVisits: number;
+  allVisits: number;
+  lastVisitAt: string;
+  lastBranchName: string;
+  branches: string[];
+  rating: number | null;
+}
+
 export interface CustomerHistoryItem {
   id: number;
   code: string;

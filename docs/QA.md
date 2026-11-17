@@ -8,7 +8,7 @@ npm test         # 45 domain + integration + version tests on PGlite
 npm run build    # production build
 ```
 
-Last run: **17 Nov 2026** — lint clean, 55/55 tests passing, production build green (v0.21.11 called-card contact, mobile sales fit).
+Last run: **17 Nov 2026** — lint clean, 56/56 tests passing, production build green (v0.22.0 repeat customer report).
 
 ### Notification delivery QA
 

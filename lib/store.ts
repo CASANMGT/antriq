@@ -26,6 +26,7 @@ import type {
   BranchRatingSummary,
   BranchSummary,
   CustomerHistoryItem,
+  CustomerProfile,
   DayPoint,
   DiningTable,
   EntryStatus,
@@ -2556,6 +2557,68 @@ export async function getCustomerHistory(
     notes: row.notes ?? null,
     noShowReason: row.no_show_reason ?? null,
   }));
+}
+
+export async function getCustomerProfiles(
+  branchIds: number[],
+  days = 30,
+  activeBranchId: number,
+  activeBrandId: number,
+): Promise<CustomerProfile[]> {
+  const wanted = Array.from(new Set(branchIds.filter((id) => Number.isInteger(id) && id > 0)));
+  if (wanted.length === 0) return [];
+  const branch = await getBranch(activeBranchId);
+  const windowDays = Math.min(90, Math.max(1, Math.round(days)));
+  const today = dayInTz(new Date(), branch.timezone);
+  const startDay = addDaysToDay(today, -(windowDays - 1));
+  const rows = await q<Row>(
+    `select qe.branch_id, br.name as branch_name, br.brand_id, qe.guest_name, qe.phone,
+            qe.joined_at, qe.seated_at, qe.closed_at, qe.rating
+     from queue_entries qe
+     join branches br on br.id = qe.branch_id
+     where qe.branch_id = any($1::int[]) and qe.day >= $2::date
+       and qe.status in ('seated','completed') and qe.phone is not null
+     order by coalesce(qe.closed_at, qe.seated_at, qe.joined_at) desc`,
+    [wanted, startDay],
+  );
+
+  type Accumulator = CustomerProfile & { branchesSet: Set<string> };
+  const map = new Map<string, Accumulator>();
+  for (const row of rows) {
+    const key = phoneKey(row.phone);
+    if (!key) continue;
+    const branchId = toNumber(row.branch_id);
+    const brandId = toNumber(row.brand_id);
+    let profile = map.get(key);
+    if (!profile) {
+      profile = {
+        key,
+        phone: String(row.phone),
+        name: String(row.guest_name),
+        branchVisits: 0,
+        brandVisits: 0,
+        allVisits: 0,
+        lastVisitAt:
+          toIso(row.closed_at) ?? toIso(row.seated_at) ?? toIso(row.joined_at) ?? new Date().toISOString(),
+        lastBranchName: String(row.branch_name),
+        branches: [],
+        branchesSet: new Set<string>(),
+        rating: null,
+      };
+      map.set(key, profile);
+    }
+    profile.allVisits += 1;
+    if (branchId === activeBranchId) profile.branchVisits += 1;
+    if (brandId === activeBrandId) profile.brandVisits += 1;
+    profile.branchesSet.add(String(row.branch_name));
+    if (profile.rating === null && row.rating !== null && row.rating !== undefined) {
+      profile.rating = toNumber(row.rating);
+    }
+  }
+
+  return [...map.values()]
+    .map(({ branchesSet, ...profile }) => ({ ...profile, branches: [...branchesSet].sort() }))
+    .sort((a, b) => b.allVisits - a.allVisits || new Date(b.lastVisitAt).getTime() - new Date(a.lastVisitAt).getTime());
 }
 
 export async function getCustomerList(branchId: number, days = 1): Promise<QueueEntry[]> {

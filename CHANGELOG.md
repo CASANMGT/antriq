@@ -10,6 +10,16 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.22.0] — 2026-11-17
+
+The **repeat customer report** release.
+
+### Added
+- **Daftar Tamu** now has a **Daftar antrean / Pelanggan** switch.
+- The **Pelanggan** view lists one row per customer (phone) with visits at the **current branch**, across the **brand**, and across **all brands** — only Hadir/Selesai count.
+- **Hanya ≥3x** filters repeat customers, rows are highlighted, and scope tabs switch which count is used.
+- Each customer row keeps **Riwayat** (all branches), phone starring, and pagination.
+
 ## [0.21.11] — 2026-11-17
 
 The **called-card contact and mobile sales fit** release.

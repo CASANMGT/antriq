@@ -18,6 +18,7 @@ import {
   getBrandAsset,
   getCustomerHistory,
   getCustomerList,
+  getCustomerProfiles,
   getHostState,
   getOwnerOverview,
   getOwnerOverviewForBranches,
@@ -35,6 +36,7 @@ import {
   markNoShow,
   rateTicket,
   recallEntry,
+  releaseEntry,
   releaseSeatedEntries,
   requeueEntry,
   resetGuestDevice,
@@ -649,6 +651,43 @@ describe("store integration (PGlite + demo seed)", () => {
     expect(history).toHaveLength(2);
     expect(history.map((item) => item.branchName).sort()).toEqual(["Nikumaru Blok M", "Nikumaru Tebet"]);
     expect(await getCustomerHistory([tebet], { phone })).toHaveLength(1);
+  });
+
+  it("builds repeat customer profiles per branch, brand and all brands", async () => {
+    const blokM = await primaryBranchId();
+    const blokMBranch = await getBranchBySlugs("nikumaru", "blok-m");
+    const tebet = (await getBranchBySlugs("nikumaru", "tebet"))!.branch.id;
+    const kamaja = (await getBranchBySlugs("tenka", "kamaja"))!.branch.id;
+    const phone = "081299990081";
+
+    async function visit(branchId: number) {
+      const joined = await joinQueue(
+        branchId,
+        { guestName: "Repeat Profile", partySize: 2, phone, source: "walkin", actor: "Wuri" },
+        true,
+      );
+      const view = await getTicketView(joined.token);
+      await seatEntry(branchId, view!.entry.id, null, "Wuri", 2, null);
+      await releaseEntry(branchId, view!.entry.id, "Wuri", 2);
+    }
+
+    await visit(blokM);
+    await visit(blokM);
+    await visit(tebet);
+    await visit(kamaja);
+    const cancelled = await joinQueue(
+      blokM,
+      { guestName: "Repeat Profile", partySize: 2, phone, source: "walkin", actor: "Wuri" },
+      true,
+    );
+    await cancelTicket(cancelled.token);
+
+    const profiles = await getCustomerProfiles([blokM, tebet, kamaja], 30, blokM, blokMBranch!.branch.brandId);
+    const profile = profiles.find((item) => item.key === "6281299990081");
+    expect(profile?.branchVisits).toBe(2);
+    expect(profile?.brandVisits).toBe(3);
+    expect(profile?.allVisits).toBe(4);
+    expect(profile?.branches.sort()).toEqual(["Nikumaru Blok M", "Nikumaru Tebet", "Tenka KAMAJA"]);
   });
 
   it("builds a combined overview for all branches", async () => {

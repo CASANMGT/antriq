@@ -16,6 +16,21 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.22.0",
+    date: "2026-11-17",
+    title: "Repeat customer report",
+    sections: [
+      {
+        label: "Added",
+        items: [
+          "Daftar Tamu has a Daftar antrean / Pelanggan switch.",
+          "The Pelanggan view lists unique customers with visits per branch, per brand and across all brands, counted from Hadir/Selesai only.",
+          "Filter Hanya ≥3x highlights repeat customers, with scope tabs and history.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.21.11",
     date: "2026-11-17",
     title: "Called-card contact and mobile sales fit",
