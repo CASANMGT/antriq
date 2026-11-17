@@ -46,7 +46,7 @@ export default async function SalesPage({
   const initialPlan = SALES_PLANS.some((plan) => plan.id === params.plan) ? params.plan : "starter";
 
   return (
-    <main className="paper grain min-h-[100dvh]">
+    <main className="paper grain min-h-[100dvh] overflow-x-clip">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -69,8 +69,9 @@ export default async function SalesPage({
         <Logo href="/" />
         <div className="flex items-center gap-2">
           <LanguageToggle compact />
-          <a href={direct} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm">
-            <MessageCircle className="size-3.5" /> {copy.ctaChat}
+          <a href={direct} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm" aria-label={copy.ctaChat}>
+            <MessageCircle className="size-3.5" />
+            <span className="hidden sm:inline">{copy.ctaChat}</span>
           </a>
         </div>
       </header>

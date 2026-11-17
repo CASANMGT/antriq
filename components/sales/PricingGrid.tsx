@@ -37,7 +37,7 @@ export function PricingGrid({ lang }: { lang: Lang }) {
         <span className="pill status-seated">{copy.save}</span>
       </div>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-5 grid gap-3 lg:grid-cols-2 xl:grid-cols-4">
         {SALES_PLANS.map((plan) => {
           const name = lang === "id" ? plan.idName : plan.enName;
           const limit = lang === "id" ? plan.idLimit : plan.enLimit;
@@ -46,7 +46,7 @@ export function PricingGrid({ lang }: { lang: Lang }) {
           return (
             <article
               key={plan.id}
-              className={`relative flex flex-col rounded-2xl border-2 border-ink p-4 shadow-[3px_3px_0_#262321] ${
+              className={`relative flex min-w-0 flex-col rounded-2xl border-2 border-ink p-4 shadow-[3px_3px_0_#262321] ${
                 plan.popular ? "bg-butter" : "bg-white"
               }`}
             >
@@ -55,8 +55,8 @@ export function PricingGrid({ lang }: { lang: Lang }) {
                   {copy.popular}
                 </span>
               )}
-              <h3 className="font-display text-lg font-semibold leading-tight">{name}</h3>
-              <p className="mt-0.5 text-[0.625rem] font-bold text-muted">{limit}</p>
+              <h3 className="break-words font-display text-lg font-semibold leading-tight">{name}</h3>
+              <p className="mt-0.5 break-words text-[0.625rem] font-bold text-muted">{limit}</p>
               <div className="mt-3 border-t-2 border-dashed border-ink/15 pt-3">
                 <p className="text-[0.5625rem] font-extrabold uppercase tracking-[0.12em] text-ink/45">
                   {billing === "annual" ? copy.billingAnnual : copy.billingMonthly}
@@ -77,8 +77,8 @@ export function PricingGrid({ lang }: { lang: Lang }) {
               </div>
               <ul className="mt-3 flex-1 space-y-1.5">
                 {features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-1.5 text-[0.6875rem] font-semibold leading-snug">
-                    <Check className="mt-0.5 size-3 shrink-0 text-leaf-dark" /> {feature}
+                  <li key={feature} className="flex min-w-0 items-start gap-1.5 text-[0.6875rem] font-semibold leading-snug">
+                    <Check className="mt-0.5 size-3 shrink-0 text-leaf-dark" /> <span className="break-words">{feature}</span>
                   </li>
                 ))}
               </ul>

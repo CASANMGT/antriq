@@ -1,6 +1,6 @@
 {
   "name": "antriq",
-  "version": "0.21.10",
+  "version": "0.21.11",
   "private": true,
   "type": "module",
   "description": "AntriQ — multi-brand, multi-branch restaurant waitlist, table, seat and guest flow.",

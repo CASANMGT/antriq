@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Clock3,
   CornerUpLeft,
+  MessageCircle,
   Phone,
   RotateCcw,
   Sparkles,
@@ -17,7 +18,7 @@ import { TablePill } from "@/components/Pills";
 import { Countdown } from "@/components/Countdown";
 import { useLang } from "@/components/LanguageProvider";
 import { format } from "@/lib/i18n";
-import { clockInTz, elapsedMinutes } from "@/lib/time";
+import { clockInTz, elapsedMinutes, formatFullDateInTz } from "@/lib/time";
 import type { DiningTable, HostStats, QueueEntry } from "@/lib/types";
 
 const sourceLabel: Record<string, string> = {
@@ -67,6 +68,7 @@ export function QueueCard({
   position,
   next,
   busy,
+  branchName,
   timezone,
   onCall,
   onRecall,
@@ -84,6 +86,7 @@ export function QueueCard({
   position: number;
   next: boolean;
   busy: boolean;
+  branchName: string;
   timezone: string;
   onCall: () => void;
   onRecall: () => void;
@@ -97,11 +100,23 @@ export function QueueCard({
   showCountdown?: boolean;
   groupTone?: "A" | "B" | null;
 }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const locale = lang === "id" ? "id-ID" : "en-GB";
   const called = entry.status === "called";
   const rating = entry.rating;
   const firstCallAt = entry.firstCalledAt ?? entry.calledAt;
   const firstWaitMinutes = entry.firstCalledAt ? elapsedMinutes(entry.joinedAt, entry.firstCalledAt) : entry.waitMinutes;
+  const readyAt = entry.calledAt ?? new Date().toISOString();
+  const waMessage = called
+    ? format(t.host.waCallMessage, {
+        name: entry.guestName,
+        code: entry.code,
+        count: entry.partySize,
+        branch: branchName,
+        day: formatFullDateInTz(readyAt, timezone, locale),
+        time: clockInTz(readyAt, timezone),
+      })
+    : "";
 
   return (
     <article
@@ -167,6 +182,23 @@ export function QueueCard({
                   minutes: Math.max(1, entry.waitMinutes),
                 })}
               </span>
+            )}
+            {called && entry.phone && (
+              <>
+                <a href={`tel:${entry.phone}`} className="inline-flex items-center gap-1 break-all hover:text-ink">
+                  <Phone className="size-3" />
+                  {entry.phone}
+                </a>
+                <a
+                  href={whatsappHref(entry.phone, waMessage)}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={waMessage}
+                  className="inline-flex items-center gap-1 rounded-full border-2 border-leaf/40 bg-leaf-soft px-2 py-0.5 font-extrabold text-leaf-dark hover:border-leaf"
+                >
+                  <MessageCircle className="size-3" /> WA
+                </a>
+              </>
             )}
           </div>
           {called && (

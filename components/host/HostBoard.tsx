@@ -632,6 +632,7 @@ export function HostBoard({
                         position={index + 1}
                         next={false}
                         busy={pending}
+                        branchName={branch.name}
                         timezone={branch.timezone}
                         groupTone={state.branch.queueMode === "split" ? (entry.category === "B" ? "B" : "A") : null}
                         onCall={() => run(() => hostAction("callEntry", { entryId: entry.id }))}
@@ -738,6 +739,7 @@ export function HostBoard({
                               position={start + index + 1}
                               next={entry.id === nextWaitingId && !query}
                               busy={pending}
+                              branchName={branch.name}
                               timezone={branch.timezone}
                               groupTone={state.branch.queueMode === "split" ? (group.key === "B" ? "B" : "A") : null}
                               onCall={() => run(() => hostAction("callEntry", { entryId: entry.id }))}

@@ -16,6 +16,20 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.21.11",
+    date: "2026-11-17",
+    title: "Called-card contact and mobile sales fit",
+    sections: [
+      {
+        label: "Changed",
+        items: [
+          "Called cards show the phone number and WA button again; waiting cards stay clean.",
+          "The sales page stacks pricing into one column below desktop and uses an icon-only chat CTA on phones, with no sideways scrolling.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.21.10",
     date: "2026-11-17",
     title: "Cleaner cards, contact in the detail view",

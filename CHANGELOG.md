@@ -10,6 +10,14 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.21.11] — 2026-11-17
+
+The **called-card contact and mobile sales fit** release.
+
+### Changed
+- **Called cards** show the phone number and WA button again, where the larger card has room. Waiting cards stay clean.
+- The sales page pricing stacks in **one column below desktop**; the top chat CTA becomes icon-only on phones, preventing sideways scrolling.
+
 ## [0.21.10] — 2026-11-17
 
 The **cleaner cards, contact in the detail view** release.
