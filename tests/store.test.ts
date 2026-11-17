@@ -698,9 +698,10 @@ describe("store integration (PGlite + demo seed)", () => {
 
     const profiles = await getCustomerProfiles([blokM, tebet, kamaja], 30, blokM, blokMBranch!.branch.brandId);
     const profile = profiles.find((item) => item.key === "6281299990081");
-    expect(profile?.branchDays).toBe(2);
-    expect(profile?.brandDays).toBe(3);
-    expect(profile?.allDays).toBe(4);
+    // Every Hadir/Selesai visit counts, including two on the same day.
+    expect(profile?.branchVisits).toBe(3);
+    expect(profile?.brandVisits).toBe(4);
+    expect(profile?.allVisits).toBe(5);
     expect(profile?.branches.sort()).toEqual(["Nikumaru Blok M", "Nikumaru Tebet", "Tenka KAMAJA"]);
   });
 

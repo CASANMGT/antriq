@@ -16,6 +16,19 @@ export interface Release {
  */
 export const RELEASES: Release[] = [
   {
+    version: "0.22.2",
+    date: "2026-11-17",
+    title: "Every Hadir confirmation counts",
+    sections: [
+      {
+        label: "Fixed",
+        items: [
+          "The Pelanggan report now counts every Hadir/Selesai confirmation, including two visits on the same day, so a guest with two completed visits shows 2x KAMAJA · 2x Tenka · 2x Semua.",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.22.1",
     date: "2026-11-17",
     title: "Repeat by different days",

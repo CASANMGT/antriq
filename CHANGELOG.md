@@ -10,6 +10,13 @@ All notable changes to AntriQ are documented here. The format follows [Keep a Ch
 - SSE for call events (polling remains a fallback).
 - Push notifications and PWA install prompt.
 
+## [0.22.2] — 2026-11-17
+
+The **every Hadir confirmation counts** release.
+
+### Fixed
+- The **Pelanggan** report counts every Hadir/Selesai confirmation, including two visits on the same day. A guest with two completed visits now shows `2x KAMAJA · 2x Tenka · 2x Semua`.
+
 ## [0.22.1] — 2026-11-17
 
 The **repeat by different days** release.

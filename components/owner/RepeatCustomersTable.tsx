@@ -25,9 +25,9 @@ function statusTone(status: EntryStatus): string {
 }
 
 function countFor(profile: CustomerProfile, scope: Scope): number {
-  if (scope === "branch") return profile.branchDays;
-  if (scope === "brand") return profile.brandDays;
-  return profile.allDays;
+  if (scope === "branch") return profile.branchVisits;
+  if (scope === "brand") return profile.brandVisits;
+  return profile.allVisits;
 }
 
 export function RepeatCustomersTable({
@@ -68,7 +68,7 @@ export function RepeatCustomersTable({
       .sort(
         (a, b) =>
           countFor(b, scope) - countFor(a, scope) ||
-          b.allDays - a.allDays ||
+          b.allVisits - a.allVisits ||
           new Date(b.lastVisitAt).getTime() - new Date(a.lastVisitAt).getTime(),
       );
     return rows;
@@ -125,11 +125,8 @@ export function RepeatCustomersTable({
     });
   }
 
-  const hadirDays = new Set(
-    (history?.items ?? [])
-      .filter((item) => item.status === "seated" || item.status === "completed")
-      .map((item) => dayInTz(item.joinedAt, timezone)),
-  ).size;
+  const hadirVisits =
+    history?.items.filter((item) => item.status === "seated" || item.status === "completed").length ?? 0;
   const shortBranch = branchName.startsWith(brandName)
     ? branchName.slice(brandName.length).trim() || branchName
     : branchName;
@@ -236,13 +233,13 @@ export function RepeatCustomersTable({
                       <td className="px-3 py-2.5">
                         <div className="flex flex-wrap gap-1">
                           <span className={`pill ${scope === "branch" ? "status-called" : "status-muted"}`}>
-                            {format(t.owner.repeatCountLabel, { count: profile.branchDays, name: shortBranch })}
+                            {format(t.owner.repeatCountLabel, { count: profile.branchVisits, name: shortBranch })}
                           </span>
                           <span className={`pill ${scope === "brand" ? "status-called" : "status-muted"}`}>
-                            {format(t.owner.repeatCountLabel, { count: profile.brandDays, name: brandName })}
+                            {format(t.owner.repeatCountLabel, { count: profile.brandVisits, name: brandName })}
                           </span>
                           <span className={`pill ${scope === "all" ? "status-called" : "status-muted"}`}>
-                            {format(t.owner.repeatCountLabel, { count: profile.allDays, name: t.owner.repeatAllShort })}
+                            {format(t.owner.repeatCountLabel, { count: profile.allVisits, name: t.owner.repeatAllShort })}
                           </span>
                         </div>
                       </td>
@@ -324,7 +321,7 @@ export function RepeatCustomersTable({
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border-2 border-ink bg-cream px-3.5 py-2.5">
               <div>
                 <p className="text-xs font-bold text-muted">{history.profile.phone}</p>
-                <p className="text-sm font-extrabold">{format(t.owner.historyHadirVisits, { count: hadirDays })}</p>
+                <p className="text-sm font-extrabold">{format(t.owner.historyHadirVisits, { count: hadirVisits })}</p>
               </div>
               <span className="pill status-muted">
                 {format(t.owner.repeatBranchCount, { count: history.profile.branches.length })}
